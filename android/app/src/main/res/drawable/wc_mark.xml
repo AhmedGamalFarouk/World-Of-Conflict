@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- World Of Conflict mark: a globe with one quarter claimed in gold.
+     Authored by hand as a vector (no raster source); 108dp adaptive-icon
+     grid, artwork inside the 66dp safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#E8B24A"
+        android:pathData="M54,54 L54,28 A26,26 0 0,0 28,54 Z" />
+    <path
+        android:strokeColor="#F6D27A"
+        android:strokeWidth="3.5"
+        android:fillColor="#00000000"
+        android:pathData="M54,28 A26,26 0 1,1 53.99,28 Z" />
+    <path
+        android:strokeColor="#F6D27A"
+        android:strokeWidth="2.5"
+        android:fillColor="#00000000"
+        android:pathData="M54,28 A11,26 0 1,1 53.99,28 Z M28,54 L80,54 M31.5,41 L76.5,41 M31.5,67 L76.5,67" />
+</vector>

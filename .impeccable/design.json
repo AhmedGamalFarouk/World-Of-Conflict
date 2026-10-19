@@ -1,0 +1,567 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-18T19:50:40.445Z",
+  "title": "Design System: World Of Conflict",
+  "extensions": {
+    "colorMeta": {
+      "night": {
+        "role": "neutral",
+        "displayName": "Night",
+        "canonical": "#0b1020",
+        "approxOklch": "oklch(17.7% 0.034 269.6)",
+        "tonalRamp": [
+          "#0a0b0f",
+          "#222429",
+          "#3c4049",
+          "#585d6b",
+          "#798093",
+          "#9aa1b5",
+          "#c1c7d7",
+          "#eaeef9"
+        ]
+      },
+      "plate": {
+        "role": "neutral",
+        "displayName": "Plate",
+        "canonical": "#141b2d",
+        "approxOklch": "oklch(22.5% 0.037 267.2)",
+        "tonalRamp": [
+          "#090b0f",
+          "#222429",
+          "#3b404a",
+          "#575d6c",
+          "#778095",
+          "#98a1b7",
+          "#c0c7d8",
+          "#e9eefa"
+        ]
+      },
+      "plate-hi": {
+        "role": "neutral",
+        "displayName": "Plate High",
+        "canonical": "#1e2842",
+        "approxOklch": "oklch(28.1% 0.050 267.2)",
+        "tonalRamp": [
+          "#090b11",
+          "#21242b",
+          "#3a404d",
+          "#555d72",
+          "#74809c",
+          "#95a1be",
+          "#bdc7de",
+          "#e8eefe"
+        ]
+      },
+      "steel": {
+        "role": "secondary",
+        "displayName": "Steel",
+        "canonical": "#2a3555",
+        "approxOklch": "oklch(33.5% 0.059 268.7)",
+        "tonalRamp": [
+          "#090b11",
+          "#20242d",
+          "#393f4f",
+          "#545d75",
+          "#737fa1",
+          "#94a1c3",
+          "#bcc7e2",
+          "#e7eeff"
+        ]
+      },
+      "steel-face-top": {
+        "role": "secondary",
+        "displayName": "Steel Face Top",
+        "canonical": "#303d61",
+        "approxOklch": "oklch(36.6% 0.065 268.0)",
+        "tonalRamp": [
+          "#080b12",
+          "#20242d",
+          "#383f51",
+          "#535d77",
+          "#717fa4",
+          "#92a1c6",
+          "#bbc7e5",
+          "#e6eeff"
+        ]
+      },
+      "steel-face-bottom": {
+        "role": "secondary",
+        "displayName": "Steel Face Bottom",
+        "canonical": "#1c2540",
+        "approxOklch": "oklch(27.1% 0.052 268.8)",
+        "tonalRamp": [
+          "#090b11",
+          "#21242c",
+          "#3a3f4e",
+          "#555d72",
+          "#74809d",
+          "#95a1bf",
+          "#bec7df",
+          "#e8eeff"
+        ]
+      },
+      "gold": {
+        "role": "primary",
+        "displayName": "Struck Gold",
+        "canonical": "#e8b24a",
+        "approxOklch": "oklch(79.4% 0.134 80.9)",
+        "tonalRamp": [
+          "#120900",
+          "#2e220c",
+          "#523c10",
+          "#785710",
+          "#a57708",
+          "#c8993f",
+          "#e6c283",
+          "#ffebc1"
+        ]
+      },
+      "gold-hi": {
+        "role": "primary",
+        "displayName": "Gold Leaf",
+        "canonical": "#f6d27a",
+        "approxOklch": "oklch(87.6% 0.115 87.8)",
+        "tonalRamp": [
+          "#100a01",
+          "#2b2310",
+          "#4c3e1a",
+          "#705b22",
+          "#9a7c2b",
+          "#bc9e51",
+          "#dcc58d",
+          "#fdedc7"
+        ]
+      },
+      "gold-face-top": {
+        "role": "primary",
+        "displayName": "Gold Face Top",
+        "canonical": "#f3c860",
+        "approxOklch": "oklch(85.1% 0.131 86.8)",
+        "tonalRamp": [
+          "#110a00",
+          "#2c230d",
+          "#4e3d11",
+          "#745a12",
+          "#9f7a0e",
+          "#c19c41",
+          "#e0c484",
+          "#ffedc2"
+        ]
+      },
+      "gold-face-bottom": {
+        "role": "primary",
+        "displayName": "Gold Face Bottom",
+        "canonical": "#d99b2b",
+        "approxOklch": "oklch(73.2% 0.140 77.0)",
+        "tonalRamp": [
+          "#130900",
+          "#2f210b",
+          "#543a0d",
+          "#7c550a",
+          "#aa7400",
+          "#cd963a",
+          "#eac080",
+          "#ffeabf"
+        ]
+      },
+      "gold-rim": {
+        "role": "primary",
+        "displayName": "Gold Rim",
+        "canonical": "#f7dc8f",
+        "approxOklch": "oklch(90.0% 0.101 90.9)",
+        "tonalRamp": [
+          "#0f0b02",
+          "#292413",
+          "#4a3f20",
+          "#6c5c2c",
+          "#957e3a",
+          "#b6a05e",
+          "#d8c695",
+          "#faeecc"
+        ]
+      },
+      "gold-ink": {
+        "role": "primary",
+        "displayName": "Gold Ink",
+        "canonical": "#2a1a04",
+        "approxOklch": "oklch(23.3% 0.043 72.6)",
+        "tonalRamp": [
+          "#0e0a07",
+          "#28231d",
+          "#473e34",
+          "#685b4b",
+          "#8f7d67",
+          "#b19e88",
+          "#d3c5b3",
+          "#f7ede0"
+        ]
+      },
+      "gilt-hairline": {
+        "role": "primary",
+        "displayName": "Gilt Hairline",
+        "canonical": "rgb(232 178 74 / 0.5)",
+        "approxOklch": "oklch(79.4% 0.134 80.9)",
+        "tonalRamp": [
+          "#120900",
+          "#2e220c",
+          "#523c10",
+          "#785710",
+          "#a57708",
+          "#c8993f",
+          "#e6c283",
+          "#ffebc1"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Line",
+        "canonical": "rgb(255 255 255 / 0.09)",
+        "approxOklch": "oklch(100.0% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a1a1a1",
+          "#c7c7c7",
+          "#eeeeee"
+        ]
+      },
+      "troop-blue": {
+        "role": "tertiary",
+        "displayName": "Troop Blue",
+        "canonical": "#4a9be8",
+        "approxOklch": "oklch(67.4% 0.139 249.6)",
+        "tonalRamp": [
+          "#020c19",
+          "#142537",
+          "#214262",
+          "#2e6191",
+          "#3c84c8",
+          "#60a7ec",
+          "#98cdff",
+          "#cff3ff"
+        ]
+      },
+      "growth-green": {
+        "role": "tertiary",
+        "displayName": "Growth Green",
+        "canonical": "#3dbe7a",
+        "approxOklch": "oklch(71.5% 0.150 155.9)",
+        "tonalRamp": [
+          "#000f05",
+          "#122a1c",
+          "#1c4a30",
+          "#246d46",
+          "#2d965f",
+          "#57b880",
+          "#94daae",
+          "#cdfcdd"
+        ]
+      },
+      "ember": {
+        "role": "tertiary",
+        "displayName": "Ember",
+        "canonical": "#f0a04b",
+        "approxOklch": "oklch(77.0% 0.138 64.7)",
+        "tonalRamp": [
+          "#150800",
+          "#31200e",
+          "#583714",
+          "#825119",
+          "#b36e1c",
+          "#d69047",
+          "#f2bb87",
+          "#ffe7c3"
+        ]
+      },
+      "ivory": {
+        "role": "neutral",
+        "displayName": "Ivory",
+        "canonical": "#ece8df",
+        "approxOklch": "oklch(93.2% 0.013 86.8)",
+        "tonalRamp": [
+          "#0c0b0a",
+          "#252422",
+          "#41403c",
+          "#605d58",
+          "#838079",
+          "#a4a19a",
+          "#cac7c1",
+          "#f0eeea"
+        ]
+      },
+      "mute": {
+        "role": "neutral",
+        "displayName": "Mute",
+        "canonical": "#a9b3c7",
+        "approxOklch": "oklch(76.5% 0.031 264.4)",
+        "tonalRamp": [
+          "#0a0b0e",
+          "#222428",
+          "#3c4048",
+          "#585e6a",
+          "#788091",
+          "#99a2b3",
+          "#c1c7d5",
+          "#eaeff8"
+        ]
+      },
+      "battlefield-ground": {
+        "role": "neutral",
+        "displayName": "Battlefield Ground",
+        "canonical": "#262626",
+        "approxOklch": "oklch(26.9% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a1a1a1",
+          "#c7c7c7",
+          "#eeeeee"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "wordmark": {
+        "displayName": "Wordmark",
+        "purpose": "Title screen WORLD / OF / CONFLICT only."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Aftergame VICTORY / DEFEAT."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "PAUSED, modal and menu headers (24-30px)."
+      },
+      "numeral-hero": {
+        "displayName": "Numeral Hero",
+        "purpose": "Troop count, the largest number on screen."
+      },
+      "numeral": {
+        "displayName": "Numeral",
+        "purpose": "Every other HUD number, 16-24px, tabular."
+      },
+      "button": {
+        "displayName": "Button",
+        "purpose": "Button labels; hero calls step up to 22-30px."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Muted caps naming an adjacent value or control group."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Tutorial text and subtitles, 14-16px."
+      }
+    },
+    "shadows": [
+      {
+        "name": "plate",
+        "value": "inset 0 1px 0 rgb(255 255 255 / 0.08), 0 4px 10px rgb(0 0 0 / 0.45)",
+        "purpose": "Every HUD plate and card."
+      },
+      {
+        "name": "gold-rest",
+        "value": "inset 0 1px 0 rgb(255 255 255 / 0.5), inset 0 -3px 0 rgb(120 70 10 / 0.55), 0 3px 8px rgb(0 0 0 / 0.45)",
+        "purpose": "Gold button lip at rest."
+      },
+      {
+        "name": "gold-pressed",
+        "value": "inset 0 1px 0 rgb(255 255 255 / 0.35), inset 0 -1px 0 rgb(120 70 10 / 0.55), 0 1px 3px rgb(0 0 0 / 0.45)",
+        "purpose": "Gold button compressed."
+      },
+      {
+        "name": "steel-rest",
+        "value": "inset 0 1px 0 rgb(255 255 255 / 0.12), inset 0 -3px 0 rgb(0 0 0 / 0.35), 0 3px 8px rgb(0 0 0 / 0.4)",
+        "purpose": "Steel button lip at rest."
+      },
+      {
+        "name": "steel-pressed",
+        "value": "inset 0 1px 0 rgb(255 255 255 / 0.08), inset 0 -1px 0 rgb(0 0 0 / 0.35), 0 1px 3px rgb(0 0 0 / 0.4)",
+        "purpose": "Steel button compressed."
+      },
+      {
+        "name": "menu",
+        "value": "0 8px 24px rgb(0 0 0 / 0.55)",
+        "purpose": "In-game menu panel."
+      },
+      {
+        "name": "focus-ring",
+        "value": "outline: 2px solid #e8b24a; outline-offset: 2px",
+        "purpose": "Every :focus-visible element."
+      },
+      {
+        "name": "scrim",
+        "value": "background: rgb(6 9 18 / 0.62); backdrop-filter: blur(3px)",
+        "purpose": "Behind pause and aftergame cards."
+      }
+    ],
+    "motion": [
+      {
+        "name": "wc-ease",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The one easing: exponential ease-out."
+      },
+      {
+        "name": "press",
+        "value": "translateY(2px), 90ms",
+        "purpose": "Struck press on buttons and rail stops."
+      },
+      {
+        "name": "hud-hide",
+        "value": "translateY(-8px) + fade, 180ms",
+        "purpose": "Top-right cluster hiding."
+      },
+      {
+        "name": "wc-fade",
+        "value": "opacity 0 to 1, 180ms",
+        "purpose": "Scrim entrance."
+      },
+      {
+        "name": "wc-rise",
+        "value": "translateY(8px) + fade, 220-260ms",
+        "purpose": "Pause and aftergame card entrance; off under prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "min-landscape",
+        "value": "640x320"
+      },
+      {
+        "name": "design-reference",
+        "value": "844x390"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Gold Button",
+      "kind": "button",
+      "refersTo": "button-gold",
+      "description": "Primary press: RESUME, PLAY AGAIN, the active speed, pause.",
+      "html": "<button class=\"ds-btn ds-btn-gold\">Resume</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;min-width:48px;padding:0 20px;border-radius:10px;font-family:\"Barlow Condensed\",\"Barlow\",sans-serif;font-weight:700;font-size:18px;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;transition:transform 90ms cubic-bezier(0.16,1,0.3,1),box-shadow 90ms cubic-bezier(0.16,1,0.3,1);}.ds-btn-gold{color:#2a1a04;background:linear-gradient(180deg,#f3c860,#d99b2b);border:1px solid #f7dc8f;box-shadow:inset 0 1px 0 rgb(255 255 255 / 0.5),inset 0 -3px 0 rgb(120 70 10 / 0.55),0 3px 8px rgb(0 0 0 / 0.45);}.ds-btn-gold:active{transform:translateY(2px);box-shadow:inset 0 1px 0 rgb(255 255 255 / 0.35),inset 0 -1px 0 rgb(120 70 10 / 0.55),0 1px 3px rgb(0 0 0 / 0.45);}.ds-btn-gold:focus-visible{outline:2px solid #e8b24a;outline-offset:2px;}"
+    },
+    {
+      "name": "Steel Button",
+      "kind": "button",
+      "refersTo": "button-steel",
+      "description": "Secondary press: TUTORIAL, SETTINGS, QUIT TO MENU, inactive speeds.",
+      "html": "<button class=\"ds-btn ds-btn-steel\">Settings</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;min-width:48px;padding:0 20px;border-radius:10px;font-family:\"Barlow Condensed\",\"Barlow\",sans-serif;font-weight:700;font-size:18px;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;transition:transform 90ms cubic-bezier(0.16,1,0.3,1),box-shadow 90ms cubic-bezier(0.16,1,0.3,1);}.ds-btn-steel{color:#ece8df;background:linear-gradient(180deg,#303d61,#1c2540);border:1px solid rgb(255 255 255 / 0.14);box-shadow:inset 0 1px 0 rgb(255 255 255 / 0.12),inset 0 -3px 0 rgb(0 0 0 / 0.35),0 3px 8px rgb(0 0 0 / 0.4);}.ds-btn-steel:active{transform:translateY(2px);box-shadow:inset 0 1px 0 rgb(255 255 255 / 0.08),inset 0 -1px 0 rgb(0 0 0 / 0.35),0 1px 3px rgb(0 0 0 / 0.4);}.ds-btn-steel:focus-visible{outline:2px solid #e8b24a;outline-offset:2px;}"
+    },
+    {
+      "name": "Play Button",
+      "kind": "button",
+      "refersTo": "button-play",
+      "description": "The title screen hero call.",
+      "html": "<button class=\"ds-btn ds-btn-gold ds-play\">Play</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;min-width:48px;padding:0 20px;border-radius:10px;font-family:\"Barlow Condensed\",\"Barlow\",sans-serif;font-weight:700;font-size:18px;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;transition:transform 90ms cubic-bezier(0.16,1,0.3,1),box-shadow 90ms cubic-bezier(0.16,1,0.3,1);}.ds-btn-gold{color:#2a1a04;background:linear-gradient(180deg,#f3c860,#d99b2b);border:1px solid #f7dc8f;box-shadow:inset 0 1px 0 rgb(255 255 255 / 0.5),inset 0 -3px 0 rgb(120 70 10 / 0.55),0 3px 8px rgb(0 0 0 / 0.45);}.ds-btn-gold:active{transform:translateY(2px);box-shadow:inset 0 1px 0 rgb(255 255 255 / 0.35),inset 0 -1px 0 rgb(120 70 10 / 0.55),0 1px 3px rgb(0 0 0 / 0.45);}.ds-play{min-height:72px;min-width:320px;font-size:30px;letter-spacing:0.12em;}.ds-play:focus-visible{outline:2px solid #e8b24a;outline-offset:2px;}"
+    },
+    {
+      "name": "Plate",
+      "kind": "card",
+      "refersTo": "plate",
+      "description": "The armoured container behind every HUD element and overlay card.",
+      "html": "<div class=\"ds-plate\" style=\"padding:16px 20px;width:260px\">Plate</div>",
+      "css": ".ds-plate{background:linear-gradient(180deg,rgb(30 40 66 / 0.95),rgb(16 22 38 / 0.95));border:1px solid rgb(232 178 74 / 0.5);border-radius:10px;box-shadow:inset 0 1px 0 rgb(255 255 255 / 0.08),0 4px 10px rgb(0 0 0 / 0.45);color:#ece8df;font-family:\"Barlow\",sans-serif;}"
+    },
+    {
+      "name": "Timer Plate",
+      "kind": "custom",
+      "refersTo": "timer-plate",
+      "description": "Top-right game clock beside the gold pause button.",
+      "html": "<div class=\"ds-plate ds-timer\">00:18</div>",
+      "css": ".ds-plate{background:linear-gradient(180deg,rgb(30 40 66 / 0.95),rgb(16 22 38 / 0.95));border:1px solid rgb(232 178 74 / 0.5);border-radius:10px;box-shadow:inset 0 1px 0 rgb(255 255 255 / 0.08),0 4px 10px rgb(0 0 0 / 0.45);color:#ece8df;}.ds-timer{font-family:\"Barlow Condensed\",\"Barlow\",sans-serif;font-weight:700;font-variant-numeric:tabular-nums lining-nums;letter-spacing:0.01em;line-height:1;display:grid;place-items:center;min-width:88px;height:48px;padding:0 12px;font-size:22px;}"
+    },
+    {
+      "name": "Economy Plate",
+      "kind": "custom",
+      "description": "Bottom-left troops and gold readout.",
+      "html": "<div class=\"ds-plate ds-eco\"><div class=\"ds-eco-t\"><span class=\"ds-label\">Troops</span><span class=\"ds-num\" style=\"font-size:34px;color:#fff\">9.21K</span><span class=\"ds-num\" style=\"font-size:16px;color:#3dbe7a\">+255/s</span><span class=\"ds-bar\"><i style=\"width:40%\"></i><b style=\"width:10%\"></b></span></div><div class=\"ds-eco-g\"><span class=\"ds-label\">Gold</span><span class=\"ds-num\" style=\"font-size:24px;color:#f6d27a\">18.8K</span></div></div>",
+      "css": ".ds-plate{background:linear-gradient(180deg,rgb(30 40 66 / 0.95),rgb(16 22 38 / 0.95));border:1px solid rgb(232 178 74 / 0.5);border-radius:10px;box-shadow:inset 0 1px 0 rgb(255 255 255 / 0.08),0 4px 10px rgb(0 0 0 / 0.45);color:#ece8df;}.ds-eco{display:inline-flex;gap:14px;padding:8px 14px 10px;min-width:248px;}.ds-eco-t{display:flex;flex-direction:column;gap:2px;min-width:140px;}.ds-eco-g{display:flex;flex-direction:column;gap:2px;padding-left:14px;border-left:1px solid rgb(255 255 255 / 0.09);}.ds-num{font-family:\"Barlow Condensed\",\"Barlow\",sans-serif;font-weight:700;font-variant-numeric:tabular-nums lining-nums;letter-spacing:0.01em;line-height:1;}.ds-label{font-family:\"Barlow Condensed\",\"Barlow\",sans-serif;font-weight:600;font-size:14px;letter-spacing:0.08em;text-transform:uppercase;color:#a9b3c7;}.ds-bar{display:flex;height:6px;margin-top:4px;border-radius:3px;overflow:hidden;background:rgb(255 255 255 / 0.1);}.ds-bar i{background:#4a9be8;}.ds-bar b{background:#f0a04b;}"
+    },
+    {
+      "name": "Send Rail",
+      "kind": "custom",
+      "refersTo": "rail-stop",
+      "description": "Signature right-edge send-ratio control snapping 100/75/50/25.",
+      "html": "<div class=\"ds-plate ds-rail\"><span class=\"ds-num\" style=\"font-size:24px;color:#f6d27a\">25<small style=\"font-size:14px\">%</small></span><span class=\"ds-label\">Send</span><span class=\"ds-track\"><button class=\"ds-stop\">100</button><button class=\"ds-stop\">75</button><button class=\"ds-stop\">50</button><button class=\"ds-stop ds-on\">25</button></span><span class=\"ds-num\" style=\"font-size:16px\">2.30K</span></div>",
+      "css": ".ds-plate{background:linear-gradient(180deg,rgb(30 40 66 / 0.95),rgb(16 22 38 / 0.95));border:1px solid rgb(232 178 74 / 0.5);border-radius:10px;box-shadow:inset 0 1px 0 rgb(255 255 255 / 0.08),0 4px 10px rgb(0 0 0 / 0.45);color:#ece8df;}.ds-rail{width:64px;height:300px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 6px;}.ds-num{font-family:\"Barlow Condensed\",\"Barlow\",sans-serif;font-weight:700;font-variant-numeric:tabular-nums lining-nums;letter-spacing:0.01em;line-height:1;}.ds-label{font-family:\"Barlow Condensed\",\"Barlow\",sans-serif;font-weight:600;font-size:14px;letter-spacing:0.08em;text-transform:uppercase;color:#a9b3c7;}.ds-track{flex:1;width:100%;display:flex;flex-direction:column;gap:4px;margin:6px 0 4px;}.ds-stop{flex:1;display:grid;place-items:center;border-radius:7px;font-family:\"Barlow Condensed\",\"Barlow\",sans-serif;font-weight:700;font-size:16px;color:#a9b3c7;background:rgb(255 255 255 / 0.05);border:1px solid rgb(255 255 255 / 0.09);cursor:pointer;transition:background 120ms cubic-bezier(0.16,1,0.3,1),transform 90ms cubic-bezier(0.16,1,0.3,1);}.ds-stop:hover{background:rgb(232 178 74 / 0.18);color:#ece8df;}.ds-stop:active{transform:translateY(2px);}.ds-stop.ds-on{color:#2a1a04;background:linear-gradient(180deg,#f3c860,#d99b2b);border-color:#f7dc8f;box-shadow:inset 0 1px 0 rgb(255 255 255 / 0.5),inset 0 -2px 0 rgb(120 70 10 / 0.55);}.ds-stop:focus-visible{outline:2px solid #e8b24a;outline-offset:2px;}"
+    },
+    {
+      "name": "Skip Chip",
+      "kind": "chip",
+      "refersTo": "skip-chip",
+      "description": "Steel chip replacing link-style actions in the tutorial banner.",
+      "html": "<button class=\"ds-chip\">Skip</button>",
+      "css": ".ds-chip{min-height:32px;padding:0 10px;border-radius:8px;color:#ece8df;background:linear-gradient(180deg,#303d61,#1c2540);border:1px solid rgb(255 255 255 / 0.14);font-family:\"Barlow\",sans-serif;font-weight:600;font-size:14px;cursor:pointer;}.ds-chip:active{transform:translateY(1px);}.ds-chip:focus-visible{outline:2px solid #e8b24a;outline-offset:2px;}"
+    },
+    {
+      "name": "Commander Name Field",
+      "kind": "input",
+      "description": "Title screen name input on a plate.",
+      "html": "<input class=\"ds-input\" value=\"AnonSteel5\" />",
+      "css": ".ds-input{min-height:52px;width:300px;padding:0 16px;border:1px solid rgb(232 178 74 / 0.5);border-radius:10px;background:rgb(20 27 45 / 0.85);color:#ece8df;caret-color:#e8b24a;font-family:\"Barlow Condensed\",\"Barlow\",sans-serif;font-weight:700;font-size:20px;letter-spacing:0.02em;}.ds-input:focus-visible{outline:2px solid #e8b24a;outline-offset:2px;}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The War Table, Armoured",
+    "overview": "The mobile strategy-game category standard played straight at Supercell finish: dark armoured plates sit on the edges of a bright battlefield, gold marks what you press and what you spend, and every control is chunky enough to feel struck under a thumb. The battlefield owns the middle of the screen; chrome holds the corners and the right edge and nothing else.\n\nScope is the mobile layer only. Every rule here lives under `body.mobile-theme`, which only the mobile build turns on (through `src/client/mobile/OfflineGuard.ts`). The web client keeps upstream's look, and the WebGL battlefield renders exactly as upstream does: in-game the page ground goes back to upstream's Battlefield Ground. The layer reaches upstream components two ways: by remapping upstream's Tailwind tokens (the blue accent becomes gold, the surfaces become night plates, the blue glows become plain dark drop shadows) and by `wc-*` plates and buttons in the few components the mobile shell renders itself.\n\nThe platform is web UI inside an Android System WebView (Capacitor), locked to landscape, down to 640x320 CSS px, with the system bars hidden. It rejects the desktop web-app look the fork inherited (thin outlines, blue links, floating text clusters) and it rejects cartoon softness.",
+    "keyCharacteristics": [
+      "Night-navy plates with a warm-gold hairline and a lit top edge.",
+      "Two button metals only: struck gold (primary) and steel navy (secondary), each with a lower lip that compresses on press.",
+      "Condensed uppercase display type for titles, buttons, labels and every number; numbers are tabular.",
+      "Anchored HUD: rank top-left, timer and pause top-right, economy bottom-left, send rail on the right edge.",
+      "Touch first: targets of at least 48px, text of at least 14px, numbers of at least 16px, safe-area insets on every edge plate."
+    ],
+    "rules": [
+      {
+        "name": "The Gold Is Pressed Rule",
+        "body": "Gold faces mean \"press this\" or \"this is selected\": one gold button per decision group (PLAY, RESUME, PLAY AGAIN, the active speed, the lit rail stop, the pause button). Everything else in the group is steel.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ink On Gold Rule",
+        "body": "Text and icons on a gold face are Gold Ink; icon images on gold are flattened to ink (`brightness(0) opacity(0.82)`).",
+        "section": "colors"
+      },
+      {
+        "name": "The Numbers Are Display Rule",
+        "body": "Every number on the HUD is Barlow Condensed 700 with tabular lining figures, so counts do not jitter as they tick.",
+        "section": "typography"
+      },
+      {
+        "name": "The Label Names A Number Rule",
+        "body": "A Label always sits with the value or control it names. It is never a free-standing heading above prose.",
+        "section": "typography"
+      },
+      {
+        "name": "The Struck Plate Rule",
+        "body": "A press moves the control down 2px over 90ms and shrinks its lower lip to 1px. Nothing scales and nothing glows.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do scope every rule under `body.mobile-theme` and reach upstream components through the token remap or targeted selectors, never by forking them.",
+      "Do use exactly one gold face per decision group and steel for the rest.",
+      "Do keep touch targets at least 48px, text at least 14px and numbers at least 16px, and add `env(safe-area-inset-*)` to every edge-anchored offset.",
+      "Do set every number in Barlow Condensed 700 with tabular lining figures.",
+      "Do press with a 2px drop over 90ms on the `cubic-bezier(0.16, 1, 0.3, 1)` ease; enter overlays with an 8px rise and fade (180ms to 260ms); turn entrance animations off under `prefers-reduced-motion`.",
+      "Do leave the battlefield as upstream renders it, including the #262626 in-game ground."
+    ],
+    "donts": [
+      "Don't use coloured glows or blue accents on mobile surfaces; the remap turns upstream's blue glows into plain dark drop shadows.",
+      "Don't put Ivory or white text on a gold face.",
+      "Don't float text on the map without a plate. HUD information lives on plates anchored to the screen edges.",
+      "Don't load web fonts from a CDN; the app is offline and its CSP blocks them.",
+      "Don't use OpenFront's logo or brand art on mobile surfaces (the title screen hides it)."
+    ]
+  }
+}

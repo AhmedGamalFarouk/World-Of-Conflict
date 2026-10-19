@@ -1,0 +1,11 @@
+{
+  "appId": "com.worldofconflict.game",
+  "appName": "World Of Conflict",
+  "webDir": "dist-mobile",
+  "backgroundColor": "#0B1020",
+  "plugins": {
+    "SystemBars": {
+      "hidden": true
+    }
+  }
+}

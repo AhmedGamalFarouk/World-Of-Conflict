@@ -1,0 +1,1190 @@
+/* World Of Conflict mobile theme. Loaded only by the mobile build (through
+   OfflineGuard.ts), scoped to body.mobile-theme so the web client is
+   untouched. Retunes upstream's Tailwind tokens (the same mechanism as
+   halloween.css) and adds the wc-* plates and buttons used by the mobile
+   components. */
+@import "@fontsource/barlow/500.css";
+@import "@fontsource/barlow/600.css";
+@import "@fontsource/barlow/700.css";
+@import "@fontsource/barlow-condensed/600.css";
+@import "@fontsource/barlow-condensed/700.css";
+@import "@fontsource/barlow-condensed/800.css";
+
+body.mobile-theme,
+body.mobile-theme o-modal {
+  --wc-night: #0b1020;
+  --wc-plate: #141b2d;
+  --wc-plate-hi: #1e2842;
+  --wc-steel: #2a3555;
+  --wc-line: rgb(255 255 255 / 0.09);
+  --wc-gilt: rgb(232 178 74 / 0.5);
+  --wc-gold: #e8b24a;
+  --wc-gold-hi: #f6d27a;
+  --wc-gold-lo: #a8761e;
+  --wc-gold-ink: #2a1a04;
+  --wc-blue: #4a9be8;
+  --wc-red: #e5484d;
+  --wc-green: #3dbe7a;
+  --wc-ivory: #ece8df;
+  --wc-mute: #a9b3c7;
+  --wc-display: "Barlow Condensed", "Barlow", sans-serif;
+  --wc-body: "Barlow", sans-serif;
+  --wc-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Upstream tokens, retuned: the blue accent becomes gold. */
+  --color-malibu-blue: var(--wc-gold);
+  --color-aquarius: var(--wc-gold-hi);
+  --color-bright-blue: var(--wc-gold);
+  --color-surface: var(--wc-plate);
+  --color-deep-navy: var(--wc-night);
+  --default-ring-color: var(--wc-gold);
+  --font-display: var(--wc-display);
+  --font-sans: var(--wc-body);
+  --shadow-malibu-blue: 0 2px 8px rgb(0 0 0 / 0.45);
+  --shadow-malibu-blue-soft: 0 2px 6px rgb(0 0 0 / 0.4);
+  --shadow-malibu-blue-strong: 0 3px 10px rgb(0 0 0 / 0.5);
+  --shadow-malibu-blue-pill: 0 1px 4px rgb(0 0 0 / 0.45);
+  --shadow-malibu-blue-ring-sm: 0 0 0 3px rgb(232 178 74 / 0.35);
+  --shadow-malibu-blue-ring-lg: 0 0 0 4px rgb(232 178 74 / 0.4);
+  --shadow-lobby-card-hover:
+    0 0 0 2px var(--wc-gold), 0 6px 16px rgb(0 0 0 / 0.55);
+  --shadow-action-card-hover:
+    0 0 0 1px var(--wc-gilt), 0 6px 16px rgb(0 0 0 / 0.5);
+}
+
+body.mobile-theme {
+  font-family: var(--wc-body);
+  background: var(--wc-night) !important;
+  color: var(--wc-ivory);
+  -webkit-tap-highlight-color: transparent;
+}
+body.mobile-theme ::selection {
+  background: rgb(232 178 74 / 0.4);
+  color: #fff;
+}
+body.mobile-theme :focus-visible {
+  outline: 2px solid var(--wc-gold);
+  outline-offset: 2px;
+}
+body.mobile-theme * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--wc-steel) transparent;
+  caret-color: var(--wc-gold);
+}
+
+/* Home backdrop: the World map, blurred into the night, replaces upstream's
+   hex grid and brand art. */
+body.mobile-theme #hex-grid {
+  background:
+    radial-gradient(
+      120% 90% at 30% 40%,
+      rgb(11 16 32 / 0.35),
+      var(--wc-night) 75%
+    ),
+    url("/maps/world/thumbnail.webp") center / cover;
+  filter: saturate(0.7);
+}
+body.mobile-theme #hex-grid > * {
+  display: none;
+}
+body.mobile-theme.in-game #hex-grid {
+  display: none;
+}
+
+/* ---- Plates and buttons ---- */
+.wc-plate {
+  background: linear-gradient(
+    180deg,
+    rgb(30 40 66 / 0.95),
+    rgb(16 22 38 / 0.95)
+  );
+  border: 1px solid var(--wc-gilt);
+  border-radius: 10px;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 4px 10px rgb(0 0 0 / 0.45);
+  color: var(--wc-ivory);
+}
+.wc-num {
+  font-family: var(--wc-display);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+.wc-label {
+  font-family: var(--wc-display);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wc-mute);
+}
+.wc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  min-width: 48px;
+  padding: 0 20px;
+  border-radius: 10px;
+  font-family: var(--wc-display);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    transform 90ms var(--wc-ease),
+    box-shadow 90ms var(--wc-ease),
+    filter 90ms var(--wc-ease);
+}
+.wc-btn:active {
+  transform: translateY(2px);
+}
+.wc-btn:disabled {
+  filter: grayscale(0.8) brightness(0.7);
+  cursor: default;
+  transform: none;
+}
+.wc-btn-gold {
+  color: var(--wc-gold-ink);
+  background: linear-gradient(180deg, #f3c860, #d99b2b);
+  border: 1px solid #f7dc8f;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.5),
+    inset 0 -3px 0 rgb(120 70 10 / 0.55),
+    0 3px 8px rgb(0 0 0 / 0.45);
+}
+.wc-btn-gold:active {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.35),
+    inset 0 -1px 0 rgb(120 70 10 / 0.55),
+    0 1px 3px rgb(0 0 0 / 0.45);
+}
+.wc-btn-steel {
+  color: var(--wc-ivory);
+  background: linear-gradient(180deg, #303d61, #1c2540);
+  border: 1px solid rgb(255 255 255 / 0.14);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.12),
+    inset 0 -3px 0 rgb(0 0 0 / 0.35),
+    0 3px 8px rgb(0 0 0 / 0.4);
+}
+.wc-btn-steel:active {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    inset 0 -1px 0 rgb(0 0 0 / 0.35),
+    0 1px 3px rgb(0 0 0 / 0.4);
+}
+.wc-icon {
+  width: 22px;
+  height: 22px;
+  flex: none;
+}
+
+/* ---- Home: title screen ----
+   Upstream's play page stacks a top bar, an identity row and the mode
+   selector. In landscape it becomes one grid: the wordmark owns the left,
+   the commander name and the actions stack on the right. display: contents
+   flattens the upstream wrappers into that grid without editing them. */
+body.mobile-theme #page-play:not(.hidden) {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-areas:
+    "word name"
+    "word actions";
+  grid-template-rows: 1fr 1fr;
+  column-gap: 40px;
+  row-gap: 16px;
+  min-height: 100dvh;
+  padding: calc(env(safe-area-inset-top) + 64px)
+    calc(env(safe-area-inset-right) + 32px)
+    calc(env(safe-area-inset-bottom) + 32px)
+    calc(env(safe-area-inset-left) + 40px);
+}
+body.mobile-theme #page-play > div:has(news-box),
+body.mobile-theme game-mode-selector,
+body.mobile-theme .wc-title {
+  display: contents;
+}
+body.mobile-theme #page-play > div:has(news-box) > .lg\:hidden {
+  display: none;
+}
+body.mobile-theme #page-play div:has(> news-box) {
+  grid-area: name;
+  align-self: end;
+  width: 100%;
+  max-width: 360px;
+  justify-self: start;
+}
+body.mobile-theme #page-play div:has(> cosmetic-background) {
+  border: 1px solid var(--wc-gilt);
+  border-radius: 10px;
+  background: rgb(20 27 45 / 0.85);
+  min-height: 52px;
+}
+body.mobile-theme #page-play div:has(> cosmetic-background) > div {
+  background: transparent;
+}
+body.mobile-theme cosmetic-background {
+  display: none;
+}
+body.mobile-theme username-input input {
+  font-family: var(--wc-display);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.02em;
+}
+
+/* Top bar: no brand art or empty menu, just the help and settings icons. */
+body.mobile-theme #page-play > div.fixed {
+  background: transparent;
+  border: 0;
+}
+body.mobile-theme #hamburger-btn,
+body.mobile-theme #page-play > div.fixed img {
+  display: none;
+}
+
+.wc-wordmark {
+  grid-area: word;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  font-family: var(--wc-display);
+  font-weight: 800;
+  font-size: clamp(64px, 19vh, 128px);
+  line-height: 0.86;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--wc-ivory);
+  text-shadow: 0 3px 12px rgb(0 0 0 / 0.6);
+}
+.wc-wordmark-of {
+  font-size: 0.34em;
+  line-height: 1.2;
+  letter-spacing: 0.32em;
+  color: var(--wc-gold);
+  padding-left: 0.12em;
+}
+.wc-title-actions {
+  grid-area: actions;
+  align-self: start;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  width: 100%;
+  max-width: 360px;
+}
+.wc-play {
+  min-height: 72px;
+  font-size: 30px;
+  letter-spacing: 0.12em;
+}
+
+/* Footer: only the language flag stays (it also loads the translations),
+   pinned bottom-right as a plate button. */
+body.mobile-theme page-footer footer {
+  padding: 0;
+  border: 0;
+  background: none;
+  backdrop-filter: none;
+}
+body.mobile-theme page-footer footer > :not(lang-selector) {
+  display: none;
+}
+body.mobile-theme page-footer lang-selector {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 8px);
+  right: calc(env(safe-area-inset-right) + 120px);
+  bottom: auto;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  transform: none;
+  border-radius: 50%;
+  background: rgb(20 27 45 / 0.85);
+  border: 1px solid var(--wc-gilt);
+}
+body.mobile-theme page-footer lang-selector img {
+  width: 26px;
+  height: auto;
+  border-radius: 3px;
+}
+
+/* Help and settings: plate buttons instead of bare icons. */
+body.mobile-theme #page-play nav-utility-icons button {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  color: var(--wc-ivory);
+  background: rgb(20 27 45 / 0.85);
+  border: 1px solid var(--wc-gilt);
+}
+body.mobile-theme #page-play > div.fixed > div {
+  height: 64px;
+  padding-right: calc(env(safe-area-inset-right) + 16px);
+}
+
+/* The map backdrop reads as atmosphere, not as a second map. */
+body.mobile-theme:not(.in-game) #hex-grid {
+  inset: -12px;
+  filter: saturate(0.7) blur(1.5px);
+}
+
+/* ---- Page modals (solo, settings, help...) ---- */
+body.mobile-theme div[slot="header"] > div.border-b {
+  padding: calc(env(safe-area-inset-top) + 8px)
+    calc(env(safe-area-inset-right) + 16px) 8px
+    calc(env(safe-area-inset-left) + 16px);
+  border-color: var(--wc-gilt);
+  background: linear-gradient(180deg, rgb(30 40 66 / 0.9), rgb(16 22 38 / 0.6));
+}
+body.mobile-theme div[slot="header"] > div.border-b > div > button:first-child {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #303d61, #1c2540);
+  border: 1px solid rgb(255 255 255 / 0.14);
+}
+body.mobile-theme div[slot="header"] span.uppercase {
+  font-family: var(--wc-display);
+  font-weight: 800;
+  font-size: 26px;
+  letter-spacing: 0.08em;
+}
+
+/* Primary buttons everywhere: struck gold with dark ink. */
+body.mobile-theme o-button[variant="primary"] > button {
+  min-height: 56px;
+  font-family: var(--wc-display);
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: 0.1em;
+  color: var(--wc-gold-ink);
+  background: linear-gradient(180deg, #f3c860, #d99b2b);
+  border: 1px solid #f7dc8f;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.5),
+    inset 0 -3px 0 rgb(120 70 10 / 0.55),
+    0 3px 8px rgb(0 0 0 / 0.45);
+  transition: transform 90ms var(--wc-ease);
+}
+body.mobile-theme o-button[variant="primary"] > button:active {
+  transform: translateY(2px);
+}
+
+/* Solo setup in landscape: settings scroll on the left, START holds a
+   right-hand rail so it never scrolls away. */
+body.mobile-theme single-player-modal o-modal > div.flex-col.h-full {
+  flex-direction: row;
+}
+body.mobile-theme
+  single-player-modal
+  o-modal
+  > div.flex-col.h-full
+  > div:first-child {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  padding: 12px 16px 16px calc(env(safe-area-inset-left) + 16px);
+  margin: 0;
+  max-width: none;
+}
+body.mobile-theme
+  single-player-modal
+  o-modal
+  > div.flex-col.h-full
+  > div:last-child {
+  width: 232px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px calc(env(safe-area-inset-right) + 16px) 16px 16px;
+  border-top: 0;
+  border-left: 1px solid var(--wc-gilt);
+  background: rgb(11 16 32 / 0.6);
+}
+body.mobile-theme single-player-modal o-button[variant="primary"] > button {
+  min-height: 72px;
+  font-size: 26px;
+}
+
+/* The flag belongs to the title screen only. */
+body.mobile-theme:has(#page-play.hidden) page-footer lang-selector {
+  display: none;
+}
+
+/* ---- In-game HUD ----
+   Upstream's bottom bar is a blurred strip; under the theme the strip goes
+   and its control panel draws two plates of its own: the economy at the
+   bottom-left and the send rail on the right edge. backdrop-filter would
+   trap the rail's position: fixed, so the wrapper drops it. */
+body.mobile-theme div:has(> control-panel) {
+  background-color: transparent !important;
+  backdrop-filter: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+body.mobile-theme control-panel > div {
+  padding: 0 0 12px 16px !important;
+}
+
+.wc-economy {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 14px;
+  padding: 8px 14px 10px;
+  min-width: 248px;
+}
+.wc-economy-troops {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 140px;
+}
+.wc-economy-count {
+  font-size: 34px;
+  color: #fff;
+}
+.wc-economy-rate {
+  font-size: 16px;
+  color: var(--wc-green);
+}
+.wc-economy-rate.wc-falling {
+  color: #f0a04b;
+}
+.wc-economy-bar {
+  display: flex;
+  height: 6px;
+  margin-top: 4px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: rgb(255 255 255 / 0.1);
+}
+.wc-economy-bar i {
+  background: var(--wc-blue);
+}
+.wc-economy-bar b {
+  background: #f0a04b;
+}
+.wc-economy-gold {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 14px;
+  border-left: 1px solid var(--wc-line);
+}
+.wc-economy-gold .wc-num {
+  font-size: 24px;
+  color: var(--wc-gold-hi);
+}
+.wc-gold-gain {
+  position: absolute;
+  top: -22px;
+  left: 14px;
+  font-size: 16px !important;
+  color: var(--wc-green) !important;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.8);
+}
+
+.wc-rail {
+  position: fixed;
+  z-index: 210;
+  right: calc(env(safe-area-inset-right) + 12px);
+  top: calc(env(safe-area-inset-top) + 72px);
+  bottom: calc(env(safe-area-inset-bottom) + 12px);
+  width: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 6px;
+  touch-action: none;
+  user-select: none;
+}
+.wc-rail-value {
+  font-size: 24px;
+  color: var(--wc-gold-hi);
+}
+.wc-rail-value small {
+  font-size: 14px;
+}
+.wc-rail .wc-label {
+  font-size: 14px;
+}
+.wc-rail-track {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 6px 0 4px;
+}
+.wc-rail-stop {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  font-family: var(--wc-display);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--wc-mute);
+  background: rgb(255 255 255 / 0.05);
+  border: 1px solid var(--wc-line);
+  transition:
+    background 120ms var(--wc-ease),
+    transform 90ms var(--wc-ease);
+}
+.wc-rail-stop.wc-fill {
+  background: rgb(232 178 74 / 0.18);
+  color: var(--wc-ivory);
+}
+.wc-rail-stop.wc-on {
+  color: var(--wc-gold-ink);
+  background: linear-gradient(180deg, #f3c860, #d99b2b);
+  border-color: #f7dc8f;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.5),
+    inset 0 -2px 0 rgb(120 70 10 / 0.55);
+}
+.wc-rail-troops {
+  font-size: 16px;
+  color: var(--wc-ivory);
+}
+
+/* Timer and pause, top-right. */
+.wc-topright {
+  display: flex;
+  gap: 8px;
+  padding: calc(env(safe-area-inset-top) + 12px)
+    calc(env(safe-area-inset-right) + 12px) 0 0;
+  transition:
+    transform 180ms var(--wc-ease),
+    opacity 180ms var(--wc-ease);
+}
+.wc-topright.wc-hidden {
+  transform: translateY(-8px);
+  opacity: 0;
+  pointer-events: none;
+}
+.wc-timer {
+  display: grid;
+  place-items: center;
+  min-width: 88px;
+  height: 48px;
+  padding: 0 12px;
+  font-size: 22px;
+}
+.wc-pause {
+  width: 64px;
+  padding: 0;
+}
+.wc-pause img {
+  width: 22px;
+  height: 22px;
+}
+.wc-btn-gold img {
+  filter: brightness(0) opacity(0.82);
+}
+
+/* Pause overlay. */
+.wc-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  background: rgb(6 9 18 / 0.62);
+  backdrop-filter: blur(3px);
+  animation: wc-fade 180ms var(--wc-ease);
+}
+.wc-pause-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(420px, calc(100vw - 32px));
+  padding: 18px 20px 20px;
+  animation: wc-rise 220ms var(--wc-ease);
+}
+.wc-pause-title {
+  margin: 0 0 4px;
+  text-align: center;
+  font-family: var(--wc-display);
+  font-weight: 800;
+  font-size: 30px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.wc-pause-resume {
+  min-height: 60px;
+  font-size: 24px;
+}
+.wc-speed {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.wc-speed .wc-btn {
+  padding: 0 6px;
+  font-size: 16px;
+}
+.wc-pause-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
+}
+.wc-pause-row .wc-btn {
+  font-size: 16px;
+  padding: 0 10px;
+}
+@keyframes wc-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes wc-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wc-scrim,
+  .wc-pause-card {
+    animation: none;
+  }
+}
+
+/* In a game the renderer clears to transparent: keep upstream's backdrop so
+   the battlefield looks exactly as it does upstream. */
+body.mobile-theme.in-game {
+  background: #262626 !important;
+}
+
+/* Leaderboard button, top-left: a plate with your place. */
+body.mobile-theme game-left-sidebar aside {
+  margin: calc(env(safe-area-inset-top) + 12px) 0 0
+    calc(env(safe-area-inset-left) + 12px);
+  padding: 0;
+  background-color: transparent !important;
+  backdrop-filter: none;
+  box-shadow: none;
+  max-height: calc(100dvh - 24px);
+}
+body.mobile-theme
+  game-left-sidebar
+  aside
+  > div:first-child
+  > div[role="button"] {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  min-width: 48px;
+  padding: 0 12px;
+  border-radius: 10px;
+  background: linear-gradient(
+    180deg,
+    rgb(30 40 66 / 0.95),
+    rgb(16 22 38 / 0.95)
+  );
+  border: 1px solid var(--wc-gilt);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 4px 10px rgb(0 0 0 / 0.45);
+}
+.wc-rank {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.wc-rank .wc-num {
+  font-size: 22px;
+  color: #fff;
+}
+body.mobile-theme game-left-sidebar player-stats,
+body.mobile-theme game-left-sidebar team-stats {
+  display: block;
+  margin-top: 8px;
+}
+
+/* Tutorial: a compact banner across the top, between the rank plate and
+   the timer, never over the economy plate or the send rail. */
+body.mobile-theme tutorial-panel {
+  position: fixed;
+  z-index: 905;
+  top: calc(env(safe-area-inset-top) + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(420px, calc(100vw - 380px));
+}
+body.mobile-theme tutorial-panel > div {
+  max-height: 15dvh;
+  overflow-y: auto;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.3;
+  background: linear-gradient(
+    180deg,
+    rgb(30 40 66 / 0.96),
+    rgb(16 22 38 / 0.96)
+  );
+  border: 1px solid var(--wc-gilt);
+  box-shadow: 0 4px 10px rgb(0 0 0 / 0.45);
+}
+
+/* Event feed keeps clear of the send rail. */
+body.mobile-theme div:has(> events-display) {
+  padding-right: calc(env(safe-area-inset-right) + 88px);
+}
+
+/* Aftergame. */
+.wc-result-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(440px, calc(100vw - 32px));
+  padding: 22px 22px 20px;
+  animation: wc-rise 260ms var(--wc-ease);
+}
+.wc-result-title {
+  margin: 0 0 6px;
+  text-align: center;
+  font-family: var(--wc-display);
+  font-weight: 800;
+  font-size: 40px;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wc-ivory);
+}
+.wc-result-title.wc-win {
+  color: var(--wc-gold-hi);
+  text-shadow: 0 2px 14px rgb(232 178 74 / 0.35);
+}
+.wc-result-again {
+  min-height: 64px;
+  font-size: 26px;
+}
+
+/* Spawn prompt and other heads-up lines sit below the tutorial banner. */
+body.mobile-theme heads-up-message .fixed.top-\[15\%\] {
+  top: calc(env(safe-area-inset-top) + 84px);
+}
+
+/* Solo map list: three thumbnails a row in landscape. */
+body.mobile-theme single-player-modal .grid.grid-cols-2 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* In-game menu: the same plate as the rest of the HUD. */
+body.mobile-theme settings-modal .bg-slate-800 {
+  background: linear-gradient(
+    180deg,
+    rgb(30 40 66 / 0.98),
+    rgb(16 22 38 / 0.98)
+  );
+  border-color: var(--wc-gilt);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.55);
+}
+body.mobile-theme settings-modal button.p-3 {
+  min-height: 56px;
+  border-radius: 10px;
+}
+body.mobile-theme settings-modal .hover\:bg-slate-700:hover,
+body.mobile-theme settings-modal .bg-slate-700 {
+  background-color: var(--wc-plate-hi);
+}
+
+/* Tutorial step: one line until tapped; Skip as a chip, not a link. */
+/* Clamped to one line with a fade and a gold chevron that say "tap for
+   more"; open, the chevron points up. */
+body.mobile-theme tutorial-panel .tutorial-step-body {
+  position: relative;
+  padding-right: 28px;
+  cursor: pointer;
+}
+body.mobile-theme tutorial-panel .tutorial-step-body:not(.expanded) {
+  max-height: 1.35em;
+  overflow: hidden;
+}
+body.mobile-theme tutorial-panel .tutorial-step-body::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 64px;
+  height: 1.35em;
+  pointer-events: none;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23f6d27a' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E")
+      right center / 16px no-repeat,
+    linear-gradient(90deg, rgb(20 28 48 / 0), rgb(20 28 48) 55%);
+}
+body.mobile-theme tutorial-panel .tutorial-step-body.expanded::after {
+  width: 24px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23f6d27a' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 10l4-4 4 4'/%3E%3C/svg%3E")
+    right center / 16px no-repeat;
+}
+body.mobile-theme tutorial-panel > div {
+  max-height: none;
+}
+body.mobile-theme tutorial-panel button.underline {
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--wc-ivory);
+  background: linear-gradient(180deg, #303d61, #1c2540);
+  border: 1px solid rgb(255 255 255 / 0.14);
+}
+body.mobile-theme tutorial-panel button[aria-label] {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+}
+
+/* In-game menu header in display caps, like SOLO and PAUSED. */
+body.mobile-theme settings-modal h2 {
+  font-family: var(--wc-display);
+  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.wc-result-sub {
+  margin: -8px 0 4px;
+  text-align: center;
+  font-size: 16px;
+  color: var(--wc-mute);
+}
+
+/* Resource glyphs beside the economy labels. */
+.wc-res-icon {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 5px;
+  vertical-align: -2px;
+}
+.wc-res-icon.wc-invert {
+  filter: brightness(0) invert(0.85);
+}
+
+/* ---- About (mobile/About.ts) ---- */
+.wc-about-open {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 8px);
+  right: calc(env(safe-area-inset-right) + 176px);
+  /* Above the title page's fixed top bar, beside the flag it lines up with. */
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgb(20 27 45 / 0.85);
+  border: 1px solid var(--wc-gilt);
+  color: var(--wc-ivory);
+  font-family: var(--wc-display);
+  font-weight: 800;
+  font-size: 22px;
+  font-style: italic;
+}
+.wc-about {
+  z-index: 2100;
+}
+.wc-about-card {
+  display: flex;
+  flex-direction: column;
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(
+    100vh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+  );
+  animation: wc-rise 240ms var(--wc-ease);
+}
+.wc-about-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--wc-gilt);
+}
+.wc-about-back {
+  padding: 0;
+  font-size: 26px;
+}
+.wc-about-title {
+  margin: 0;
+  font-family: var(--wc-display);
+  font-weight: 800;
+  font-size: 26px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.wc-about-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 18px 18px;
+  overflow-y: auto;
+  font-family: var(--wc-body);
+  font-size: 16px;
+  line-height: 1.3;
+}
+.wc-about-body p {
+  margin: 0;
+}
+.wc-about-body .wc-label {
+  margin-top: 6px;
+}
+.wc-about-mark {
+  font-family: var(--wc-display);
+  font-weight: 800;
+  font-size: 30px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.wc-about-version {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+.wc-about-version .wc-num {
+  font-size: 16px;
+}
+.wc-about-dev {
+  font-family: var(--wc-display);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #f0a04b;
+}
+.wc-about-muted {
+  font-size: 14px;
+  color: var(--wc-mute);
+}
+.wc-about-links {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 20px;
+}
+.wc-about-link {
+  padding: 12px 0;
+  color: var(--wc-gold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  background: none;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+.wc-about-pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 14px;
+  color: var(--wc-ivory);
+}
+
+/* ---- Fatal screen (mobile/FatalScreen.ts) ---- */
+.wc-fatal {
+  position: fixed;
+  inset: 0;
+  z-index: 2200;
+  display: grid;
+  place-items: center;
+  background: var(--wc-night);
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+.wc-fatal-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(420px, calc(100vw - 32px));
+  padding: 18px 20px 20px;
+  font-family: var(--wc-body);
+  animation: wc-rise 240ms var(--wc-ease);
+}
+.wc-fatal-card p {
+  margin: 0;
+}
+.wc-fatal-title {
+  margin: 0;
+  font-family: var(--wc-display);
+  font-weight: 800;
+  font-size: 26px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.wc-fatal-body {
+  font-size: 16px;
+}
+.wc-fatal-detail {
+  font-size: 14px;
+  color: var(--wc-mute);
+  user-select: text;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.wc-fatal-report {
+  font-size: 14px;
+  color: var(--wc-mute);
+}
+.wc-fatal-copy {
+  align-self: flex-start;
+  padding: 12px 0;
+  color: var(--wc-gold);
+  text-decoration: underline;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.wc-fatal-back {
+  min-height: 60px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wc-about-card,
+  .wc-fatal-card {
+    animation: none;
+  }
+}
+
+/* Aiming a weapon (BuildPreviewController): the target sits at the screen
+   center, the player pans the map under it, then Launch or Close. */
+.wc-aim-bar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 950;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+.wc-aim-hint {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgb(10 16 32 / 0.8);
+  color: var(--wc-ivory);
+  font-size: 14px;
+}
+.wc-aim-row {
+  display: flex;
+  gap: 12px;
+  pointer-events: auto;
+}
+.wc-aim-row .wc-btn {
+  min-width: 120px;
+}
+
+/* The hovered-player bar sits where a finger can't hover; on the phone the
+   same details are in the radial's Info wedge. Its slot holds the weapons. */
+player-info-overlay {
+  display: none !important;
+}
+
+/* Weapons button (WeaponsButton.ts): top center, list opens downward. */
+.wc-weapons {
+  position: fixed;
+  left: 50%;
+  top: calc(8px + env(safe-area-inset-top));
+  transform: translateX(-50%);
+  z-index: 900;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 8px;
+}
+.wc-weapons-btn {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, #303d61, #1c2540);
+  border: 1px solid #f7dc8f;
+  box-shadow: 0 3px 8px rgb(0 0 0 / 0.45);
+}
+.wc-weapons-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #d99b2b;
+  color: var(--wc-gold-ink);
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 22px;
+}
+.wc-weapons-badge:empty {
+  display: none;
+}
+.wc-weapons-list {
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 12px;
+  background: rgb(10 16 32 / 0.92);
+  border: 1px solid rgb(255 255 255 / 0.14);
+}
+.wc-weapons-list.open {
+  display: flex;
+}
+.wc-weapons-item {
+  display: grid;
+  grid-template-columns: 28px auto;
+  column-gap: 10px;
+  align-items: center;
+  min-width: 220px;
+  min-height: 48px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  text-align: left;
+  color: var(--wc-ivory);
+  background: rgb(255 255 255 / 0.06);
+}
+.wc-weapons-item img {
+  grid-row: span 2;
+}
+.wc-weapons-name {
+  font-weight: 700;
+}
+.wc-weapons-note {
+  font-size: 12px;
+  color: var(--wc-mute);
+}
+.wc-weapons-item:disabled {
+  opacity: 0.75;
+}
+.wc-weapons-item:disabled .wc-weapons-note {
+  color: #ff8a80;
+}

@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/client/mobile/mobile-theme.css"
+        ],
+        "createdAt": "2026-10-16T20:48:32.576Z",
+        "reason": "finish reviewer (a258c47): .wc-btn-gold inset -3px bottom shadow is the struck-button bevel named in the direction contract, not a side stripe"
+      }
+    ]
+  }
+}
