@@ -15,8 +15,10 @@ Capacitor shell; the engine is untouched. App id `com.worldofconflict.game`
 
 ## Where it stands
 
-Branch `mobile/offline-build` (base `main` = upstream `5e4b55a`). Nothing is
-pushed and there is no PR.
+Repo: https://github.com/AhmedGamalFarouk/World-Of-Conflict, branch `main`.
+It started as one snapshot of the old `mobile/offline-build` branch (upstream
+OpenFront `5e4b55a` plus the commits below); the hashes below are from that
+branch and no longer exist.
 
 | Commit    | What                                                                                                                                                                      |
 | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

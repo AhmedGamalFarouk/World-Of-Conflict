@@ -77,7 +77,7 @@ $env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
 # 2. src/client/mobile/AppInfo.ts: SOURCE_URL = the public repo
 git commit -am "Release v0.1.0"
 git tag v0.1.0
-git push origin mobile/offline-build v0.1.0
+git push origin main v0.1.0
 npm run android:release
 gh release create v0.1.0 dist-mobile/WorldOfConflict-v0.1.0.apk --title v0.1.0
 ```
@@ -94,15 +94,15 @@ not for a store release.
 
 Every failure prints all problems at once, then stops the build.
 
-| Code | Meaning | Fix |
-|---|---|---|
-| `WC_GATE_PLACEHOLDER_URL` | `SOURCE_URL` is still the placeholder | set it in `src/client/mobile/AppInfo.ts` |
-| `WC_GATE_SOURCE_URL` | `SOURCE_URL` isn't a `https://github.com/` repo | point it at the public repo |
-| `WC_GATE_DIRTY` | uncommitted or untracked files | commit or `git stash -u` |
-| `WC_GATE_UNTAGGED` | HEAD has no tag | `git tag vX.Y.Z && git push origin vX.Y.Z` |
-| `WC_GATE_BAD_TAG` | tag isn't `vX.Y.Z` (About would say DEV BUILD) | re-tag as `vX.Y.Z` |
-| `WC_GATE_VERSION_NAME` | `versionName` in build.gradle doesn't match the tag | set it, bump `versionCode`, commit, re-tag |
-| `WC_GRADLE_FAILED` | Gradle failed | set `JAVA_HOME` to Android Studio's jbr |
+| Code                      | Meaning                                             | Fix                                        |
+| ------------------------- | --------------------------------------------------- | ------------------------------------------ |
+| `WC_GATE_PLACEHOLDER_URL` | `SOURCE_URL` is still the placeholder               | set it in `src/client/mobile/AppInfo.ts`   |
+| `WC_GATE_SOURCE_URL`      | `SOURCE_URL` isn't a `https://github.com/` repo     | point it at the public repo                |
+| `WC_GATE_DIRTY`           | uncommitted or untracked files                      | commit or `git stash -u`                   |
+| `WC_GATE_UNTAGGED`        | HEAD has no tag                                     | `git tag vX.Y.Z && git push origin vX.Y.Z` |
+| `WC_GATE_BAD_TAG`         | tag isn't `vX.Y.Z` (About would say DEV BUILD)      | re-tag as `vX.Y.Z`                         |
+| `WC_GATE_VERSION_NAME`    | `versionName` in build.gradle doesn't match the tag | set it, bump `versionCode`, commit, re-tag |
+| `WC_GRADLE_FAILED`        | Gradle failed                                       | set `JAVA_HOME` to Android Studio's jbr    |
 
 ### Release checklist (on the emulator, from the Release asset)
 
