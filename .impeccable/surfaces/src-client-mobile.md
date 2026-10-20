@@ -11,7 +11,7 @@ Scope: every UI surface of the offline Android app (home, solo setup, loading, s
 
 Audience and job: casual phone players, landscape, one or two thumbs, short sessions vs bots. Job: start a game in seconds, read the state of the war at a glance, send troops without fighting the UI.
 
-Constraints: PRODUCT.md; docs/mobile/PLAN.md design + gate blocks (48px targets, ≥14px text, ≥16px numbers, safe-area insets, HUD anchors, right-edge vertical ratio slider snapping 25/50/75/100). Mobile-only layer (body.mobile-theme + src/client/mobile/), upstream components untouched where CSS can carry it.
+Constraints: PRODUCT.md; DESIGN.md rules (48px targets, ≥14px text, ≥16px numbers, safe-area insets, HUD anchors, right-edge vertical ratio slider snapping 25/50/75/100). Mobile-only layer (body.mobile-theme + src/client/mobile/), upstream components untouched where CSS can carry it.
 
 ## Direction contract
 

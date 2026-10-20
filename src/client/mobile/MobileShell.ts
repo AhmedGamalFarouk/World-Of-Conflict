@@ -14,7 +14,7 @@ export function isMobileShell(): boolean {
 }
 
 // "offline": single-player only, nothing leaves the device.
-// "own-server" is reserved for the online milestone (TODOS.md); one switch
+// "own-server" is reserved for the online milestone (docs/mobile/NEXT-STEPS.md, Later); one switch
 // instead of scattered isMobileShell() checks at every online caller.
 export type NetworkMode = "online" | "offline";
 

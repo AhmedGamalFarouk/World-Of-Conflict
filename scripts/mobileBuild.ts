@@ -101,7 +101,7 @@ export function checkMobileDist(
   return errors;
 }
 
-// ---- Release gate (docs/mobile/PLAYTEST-PLAN.md D3) ----
+// ---- Release gate (docs/mobile/ANDROID.md#release-gate) ----
 //
 // `npm run build-mobile:release` must not produce an APK that can't legally
 // leave the machine: the About screen has to link the real public source and

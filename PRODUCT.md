@@ -14,11 +14,11 @@ Casual phone players, new to the territory-conquest genre, playing short session
 
 ## Product Purpose
 
-World Of Conflict is a phone adaptation of OpenFront (openfront.io), a real-time territory-conquest strategy game: expand from a spawn point, attack neighbours with a share of your troops, build, and outlast bots. The first build is single-player vs bots, fully offline, Android first (iOS later). Success for the first build: a playtest where ≥60% of players finish a game and ≥40% start a second (docs/mobile/PLAN.md, product gate).
+World Of Conflict is a phone adaptation of OpenFront (openfront.io), a real-time territory-conquest strategy game: expand from a spawn point, attack neighbours with a share of your troops, build, and outlast bots. The first build is single-player vs bots, fully offline, Android first (iOS later). Success for the first build: a playtest where ≥60% of players finish a game and ≥40% start a second (product gate).
 
 ## Positioning
 
-Undecided by the owner (gate decision uc2a: port first). The differentiator is chosen after the playtest; a short-session mode is the leading candidate (TODOS.md). Until then the claim is only "OpenFront's game, built for a phone, playable offline". Do not invent a stronger claim.
+Undecided by the owner (gate decision uc2a: port first). The differentiator is chosen after the playtest; a short-session mode is the leading candidate (Quick game, docs/mobile/NEXT-STEPS.md C2). Until then the claim is only "OpenFront's game, built for a phone, playable offline". Do not invent a stronger claim.
 
 ## Operating Context
 
@@ -47,7 +47,7 @@ Undecided by the owner (gate decision uc2a: port first). The differentiator is c
 ## Evidence on Hand
 
 - Open replacement assets: `mobile/assets/` (font, logo, favicon, sounds), map and flag data under `resources/` (CC BY-SA).
-- Reviewed plan: `docs/mobile/PLAN.md`; deferred work: `TODOS.md`; build/gate: `docs/mobile/ANDROID.md`.
+- Next steps and deferred work: `docs/mobile/NEXT-STEPS.md`; build/gate: `docs/mobile/ANDROID.md`.
 - No playtest data, player quotes, store listing or metrics exist yet. Do not fabricate them.
 
 ## Product Principles

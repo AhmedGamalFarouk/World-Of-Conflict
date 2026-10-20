@@ -6,7 +6,7 @@ import type { GameMapName } from "@openfront/engine-api/game/Maps.gen";
 // app download, so the mobile build copies only these folders and the UI
 // offers only these. Australia is here because the cosmetics preview
 // (render/preview/loadPreviewMap.ts) hardcodes it.
-// ponytail: fixed list; on-demand downloads (TODOS.md E12) when players want more.
+// ponytail: fixed list; on-demand downloads (docs/mobile/NEXT-STEPS.md, Later) when players want more.
 export const CURATED_MAP_IDS: readonly GameMapName[] = [
   "World",
   "Europe",

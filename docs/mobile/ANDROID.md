@@ -62,7 +62,7 @@ HUD still draws under the status bar; safe areas are part of the UX pass.
 
 A playtest APK may leave this machine only as a GitHub Release on the public
 World Of Conflict repo, built from a clean commit whose tag matches the
-version About shows (AGPL-3.0 source offer, docs/mobile/PLAYTEST-PLAN.md).
+version About shows (AGPL-3.0 source offer).
 `npm run build-mobile` builds a dev APK: About marks it **DEV BUILD, do not
 share**. `npm run android:release` builds a release and refuses one that
 couldn't legally be shared.

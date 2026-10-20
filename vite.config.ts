@@ -229,8 +229,9 @@ function mobileVersion(): string {
   return v ?? "dev";
 }
 
-// Refuses a release build that couldn't legally be shared (PLAYTEST-PLAN.md
-// D3). A plain mobile build only warns: those APKs show DEV BUILD in About.
+// Refuses a release build that couldn't legally be shared
+// (docs/mobile/ANDROID.md#release-gate). A plain mobile build only warns:
+// those APKs show DEV BUILD in About.
 function mobileReleaseGate(version: string): Plugin {
   return {
     name: "mobile-release-gate",
@@ -266,7 +267,7 @@ function mobileReleaseGate(version: string): Plugin {
 export default defineConfig(({ mode, command }) => {
   const env = loadEnv(mode, process.cwd(), "");
   const isProduction = mode === "production";
-  // Offline Android app (docs/mobile/PLAN.md). Built like dev (the EJS page is
+  // Offline Android app (docs/mobile/NEXT-STEPS.md). Built like dev (the EJS page is
   // rendered at build time), but into its own folder with only open assets.
   const isMobile = mode === "mobile";
   const wcVersion = isMobile && command === "build" ? mobileVersion() : "dev";
@@ -582,7 +583,7 @@ export default defineConfig(({ mode, command }) => {
     build: {
       // Mobile: Capacitor's webDir. The target is the Android System WebView
       // floor; older WebViews get the static notice in index.html.
-      // Dependency notices for the About screen (PLAYTEST-PLAN.md N1).
+      // Dependency notices for the About screen (AGPL/CC BY-SA credits).
       ...(isMobile
         ? { target: ["chrome107"], license: { fileName: "licenses.md" } }
         : {}),

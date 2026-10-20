@@ -35,7 +35,7 @@ import type { AttackTroopLabel } from "./passes/WorldTextPass";
 import { GPURenderer } from "./Renderer";
 import type { RenderSettings } from "./RenderSettings";
 
-/** Visible time a lost context gets to come back (docs/mobile/PLAN.md). */
+/** Visible time a lost context gets to come back (mobile fatal-screen rule). */
 export const RESTORE_TIMEOUT_MS = 3000;
 
 export class MapRenderer {
