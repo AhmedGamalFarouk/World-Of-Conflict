@@ -5,7 +5,8 @@
 export const SOURCE_URL_PLACEHOLDER = "https://github.com/OWNER/REPO";
 
 /** The public source repo every shared APK links to (AGPL-3.0). */
-export const SOURCE_URL = SOURCE_URL_PLACEHOLDER;
+export const SOURCE_URL =
+  "https://github.com/AhmedGamalFarouk/World-Of-Conflict";
 
 export const OPENFRONT_SOURCE_URL =
   "https://github.com/openfrontio/OpenFrontIO";
