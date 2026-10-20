@@ -24,7 +24,8 @@ function run(cmd: string, args: string[], cwd: string): void {
 // tree or an untagged commit before anything is built.
 run("npm", ["run", "android:sync:release"], root);
 run(
-  isWindows ? "gradlew.bat" : "./gradlew",
+  // Explicit .\ : cmd skips the cwd when NoDefaultCurrentDirectoryInExePath is set.
+  isWindows ? ".\\gradlew.bat" : "./gradlew",
   ["assembleDebug"],
   path.join(root, "android"),
 );
