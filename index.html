@@ -342,6 +342,74 @@
   <body
     class="select-none font-sans min-h-screen bg-neutral-800 transition-opacity duration-300 ease-in-out flex flex-row flex-wrap content-start <%= locals.mobile ? 'mobile-theme' : 'halloween-theme' %>"
   >
+    <% if (locals.mobile) { %>
+    <!-- Launch frame: starts exactly the native launch background (#0b1020,
+         no mark: the portrait frame before sensorLandscape can't draw one
+         sideways), fades the mark in over 200 ms, leaves once the page painted. -->
+    <style>
+      /* While html.preload hides the page, the launch frame must stay up and
+         match the native background: no #111827 step, no hidden mark. */
+      html.preload {
+        background-color: #0b1020 !important;
+      }
+      html.preload body {
+        opacity: 1;
+      }
+      #wc-boot {
+        visibility: visible;
+        position: fixed;
+        inset: 0;
+        z-index: 2147483000;
+        display: grid;
+        place-items: center;
+        background: #0b1020;
+        transition: opacity 200ms ease;
+      }
+      #wc-boot.wc-boot-done {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #wc-boot span {
+        display: block;
+        text-align: center;
+        font-family: var(--wc-display, sans-serif);
+        font-weight: 800;
+        font-size: 36px;
+        line-height: 1;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #f2ead8;
+        animation: wc-boot-in 200ms ease both;
+      }
+      @keyframes wc-boot-in {
+        from {
+          opacity: 0;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #wc-boot,
+        #wc-boot span {
+          transition: none;
+          animation: none;
+        }
+      }
+    </style>
+    <div id="wc-boot" aria-hidden="true"><span>World of Conflict</span></div>
+    <script>
+      window.addEventListener("load", function () {
+        var boot = document.getElementById("wc-boot");
+        if (!boot) return;
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            boot.classList.add("wc-boot-done");
+            setTimeout(function () {
+              boot.remove();
+            }, 400);
+          });
+        });
+      });
+    </script>
+    <% } %>
     <div id="hex-grid" class="fixed inset-0 -z-50 pointer-events-none">
       <div
         id="background-layer"

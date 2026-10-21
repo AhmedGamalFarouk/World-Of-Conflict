@@ -1,10 +1,21 @@
-import type { GameConfig } from "@openfront/engine-api/Schemas";
+import {
+  type GameConfig,
+  GameConfigSchema,
+} from "@openfront/engine-api/Schemas";
+import { ReplaySpeedMultiplier } from "../utilities/ReplaySpeedMultiplier";
 
-// Mobile aftergame "Play again": the last solo game's settings survive the
-// reload to the menu, and the solo modal starts a new game with them at once.
-// sessionStorage, so a fresh app launch never auto-starts anything.
+// Mobile aftergame "Play again" and QUICK GAME: a solo config survives the
+// hop to the menu (or comes straight from it), and the solo modal starts a
+// game with it at once. sessionStorage, so a fresh app launch never
+// auto-starts anything.
 const CONFIG_KEY = "wc-solo-config";
 const REPLAY_KEY = "wc-solo-replay";
+
+export interface SoloReplay {
+  config: GameConfig;
+  /** Turn speed to start at; undefined keeps the default. */
+  speed: ReplaySpeedMultiplier | undefined;
+}
 
 export function rememberSoloConfig(config: GameConfig): void {
   try {
@@ -14,21 +25,33 @@ export function rememberSoloConfig(config: GameConfig): void {
   }
 }
 
-export function requestSoloReplay(): void {
+export function requestSoloReplay(speed?: ReplaySpeedMultiplier): void {
   try {
-    sessionStorage.setItem(REPLAY_KEY, "1");
+    sessionStorage.setItem(
+      REPLAY_KEY,
+      speed === undefined ? "1" : String(speed),
+    );
   } catch {
     // As above.
   }
 }
 
-/** The config to replay, once: the request is consumed by this call. */
-export function takeSoloReplay(): GameConfig | null {
+/** The replay to start, once: the request is consumed by this call. */
+export function takeSoloReplay(): SoloReplay | null {
   try {
-    if (sessionStorage.getItem(REPLAY_KEY) === null) return null;
+    const flag = sessionStorage.getItem(REPLAY_KEY);
+    if (flag === null) return null;
     sessionStorage.removeItem(REPLAY_KEY);
     const raw = sessionStorage.getItem(CONFIG_KEY);
-    return raw === null ? null : (JSON.parse(raw) as GameConfig);
+    if (raw === null) return null;
+    // A damaged or outdated config falls back to the solo setup screen.
+    const parsed = GameConfigSchema.safeParse(JSON.parse(raw));
+    if (!parsed.success) return null;
+    const speed = Number(flag);
+    return {
+      config: parsed.data,
+      speed: flag !== "1" && Number.isFinite(speed) ? speed : undefined,
+    };
   } catch {
     return null;
   }

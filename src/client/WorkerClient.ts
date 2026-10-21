@@ -24,6 +24,8 @@ import {
   mapFilesTransfer,
 } from "@openfront/shared/GameMapLoader";
 import { generateID } from "@openfront/shared/SharedUtil";
+import { appendError } from "./mobile/ErrorLog";
+import { isMobileShell } from "./mobile/MobileShell";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
 
 // Inlined as a same-origin Blob (Vite's `?worker&inline`), sidestepping the
@@ -105,6 +107,11 @@ export class WorkerClient {
     const worker = await created;
     this.worker = worker;
     worker.addEventListener("message", this.handleWorkerMessage.bind(this));
+    if (isMobileShell()) {
+      worker.addEventListener("error", (e) =>
+        appendError({ code: "worker.error", message: e.message }),
+      );
+    }
 
     return new Promise((resolve, reject) => {
       const messageId = generateID();

@@ -32,6 +32,17 @@ import { PublicLobbySocket } from "./LobbySocket";
 import { JoinLobbyEvent } from "./Main";
 import { openAbout } from "./mobile/About";
 import { isOffline } from "./mobile/MobileShell";
+import { startQuickGame } from "./mobile/QuickGame";
+import {
+  allowNewGame,
+  confirmDiscard,
+  continueSavedGame,
+  discardSavedGame,
+  dismissNotice,
+  homeSave,
+  isContinuing,
+  onHomeSaveChange,
+} from "./mobile/SaveHome";
 import {
   backendUnreachableConfirmed,
   isPinnedToAVersion,
@@ -394,8 +405,13 @@ export class GameModeSelector extends LitElement {
     return usernameInput ? usernameInput.canPlay() : true;
   }
 
+  private unsubscribeSave: (() => void) | null = null;
+
   connectedCallback() {
     super.connectedCallback();
+    if (isOffline()) {
+      this.unsubscribeSave = onHomeSaveChange(() => this.requestUpdate());
+    }
     this.defaultLobbyTime = ClientEnv.gameCreationRate() / 1000;
     window.addEventListener(
       "username-validity-change",
@@ -446,6 +462,8 @@ export class GameModeSelector extends LitElement {
   }
 
   disconnectedCallback() {
+    this.unsubscribeSave?.();
+    this.unsubscribeSave = null;
     this.stop();
     window.clearTimeout(this.retryCooldownTimer);
     this.retryCoolingDown = false;
@@ -694,13 +712,27 @@ export class GameModeSelector extends LitElement {
           ><span>Conflict</span>
         </h1>
         <div class="wc-title-actions">
+          ${this.renderSaveCard()}
           <button
-            class="wc-btn wc-btn-gold wc-play"
-            @click=${this.openSinglePlayerModal}
+            class="wc-btn ${homeSave().kind === "save"
+              ? "wc-btn-steel"
+              : "wc-btn-gold"} wc-play"
+            ?disabled=${isContinuing()}
+            @click=${this.playOffline}
           >
             ${translateText("main.play")}
           </button>
-          <button class="wc-btn wc-btn-steel" @click=${this.startTutorial}>
+          <button
+            class="wc-btn wc-btn-steel wc-quick"
+            ?disabled=${isContinuing()}
+            @click=${this.quickGameOffline}
+          >
+            ${translateText("main.quick_game")}
+          </button>
+          <button
+            class="wc-btn wc-btn-steel wc-tutorial"
+            @click=${this.startTutorial}
+          >
             ${translateText("main.tutorial")}
           </button>
         </div>
@@ -881,10 +913,67 @@ export class GameModeSelector extends LitElement {
   };
 
   // Handled in Main, which also serves the help page's tutorial button.
-  private startTutorial = () => {
+  private startTutorial = async () => {
     if (!this.validateUsername()) return;
+    if (isOffline() && !(await allowNewGame())) return;
     document.dispatchEvent(new CustomEvent("start-tutorial"));
   };
+
+  // Mobile: every new game start asks first when a saved game exists.
+  private playOffline = async () => {
+    if (await allowNewGame()) this.openSinglePlayerModal();
+  };
+
+  private quickGameOffline = async () => {
+    if (await allowNewGame()) startQuickGame();
+  };
+
+  // The CONTINUE plate, or the notice that replaced a save that could not be
+  // restored. At most 360px wide and 96px high (DESIGN.md).
+  private renderSaveCard() {
+    const save = homeSave();
+    if (save.kind === "notice") {
+      return html`<button
+        class="wc-plate wc-save-notice"
+        role="status"
+        @click=${dismissNotice}
+      >
+        ${translateText(save.key)}
+      </button>`;
+    }
+    if (save.kind !== "save") return nothing;
+    const mm = Math.floor(save.seconds / 60);
+    const ss = String(Math.floor(save.seconds % 60)).padStart(2, "0");
+    const ago = Math.max(0, Math.round((Date.now() - save.savedAt) / 60000));
+    const busy = isContinuing();
+    return html`<div class="wc-plate wc-save-card">
+      <div class="wc-save-info">
+        <span class="wc-save-map">${save.mapName}</span>
+        <span class="wc-save-meta"
+          ><span class="wc-num">${mm}:${ss}</span> ·
+          ${translateText("save.saved_min_ago", { minutes: ago })}</span
+        >
+      </div>
+      <button
+        class="wc-btn wc-btn-gold wc-continue"
+        ?disabled=${busy}
+        @click=${continueSavedGame}
+      >
+        ${translateText("save.continue")}
+      </button>
+      <button
+        class="wc-save-discard"
+        ?disabled=${busy}
+        @click=${() => void this.discardFromCard()}
+      >
+        ${translateText("save.discard")}
+      </button>
+    </div>`;
+  }
+
+  private async discardFromCard() {
+    if (await confirmDiscard()) await discardSavedGame();
+  }
 
   private openHostLobby = () => {
     if (this.blockedFromApiAction()) return;

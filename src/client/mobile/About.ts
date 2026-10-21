@@ -11,9 +11,17 @@ import {
   CC_BY_SA_URL,
   isDevBuild,
   OPENFRONT_SOURCE_URL,
-  SOURCE_URL,
+  PRIVACY_URL,
+  sourceLink,
 } from "./AppInfo";
-import { readPlayStats } from "./PlayStats";
+import { appendError, errorLogReport } from "./ErrorLog";
+import { medianGame, readPlayStats } from "./PlayStats";
+import {
+  confirmDiscard,
+  discardSavedGame,
+  homeSave,
+  onHomeSaveChange,
+} from "./SaveHome";
 
 type Licenses =
   | { state: "loading" }
@@ -24,6 +32,26 @@ type Licenses =
 export class WcAbout extends LitElement {
   @state() private open = false;
   @state() private licenses: Licenses | null = null;
+  /** "Copied (N entries)", for 2 s. */
+  @state() private toast: string | null = null;
+  /** Selectable log text, when the clipboard refused. */
+  @state() private manualLog: string | null = null;
+  private toastTimer: ReturnType<typeof setTimeout> | null = null;
+  private unsubscribeSave: (() => void) | null = null;
+
+  connectedCallback() {
+    super.connectedCallback();
+    this.unsubscribeSave = onHomeSaveChange(() => this.requestUpdate());
+  }
+
+  disconnectedCallback() {
+    this.unsubscribeSave?.();
+    super.disconnectedCallback();
+  }
+
+  private async clearSave() {
+    if (await confirmDiscard()) await discardSavedGame();
+  }
   private opener: HTMLElement | null = null;
 
   createRenderRoot() {
@@ -36,6 +64,7 @@ export class WcAbout extends LitElement {
         ? document.activeElement
         : null;
     this.licenses = null;
+    this.manualLog = null;
     this.open = true;
     void this.updateComplete.then(() =>
       this.querySelector<HTMLElement>(".wc-about-back")?.focus(),
@@ -48,6 +77,10 @@ export class WcAbout extends LitElement {
 
   /** Back: the licenses pane first, then About itself. */
   back(): void {
+    if (this.manualLog !== null) {
+      this.manualLog = null;
+      return;
+    }
     if (this.licenses !== null) {
       this.licenses = null;
       return;
@@ -55,6 +88,19 @@ export class WcAbout extends LitElement {
     this.open = false;
     this.opener?.focus();
     this.opener = null;
+  }
+
+  private async copyLog() {
+    const { text, count } = errorLogReport();
+    try {
+      await navigator.clipboard.writeText(text);
+      this.toast = translateText("mobile.about_log_copied", { count });
+      if (this.toastTimer !== null) clearTimeout(this.toastTimer);
+      this.toastTimer = setTimeout(() => (this.toast = null), 2000);
+    } catch {
+      appendError({ code: "errlog.clipboard_failed" });
+      this.manualLog = text;
+    }
   }
 
   private async showLicenses() {
@@ -81,6 +127,11 @@ export class WcAbout extends LitElement {
     >`;
   }
 
+  private renderManualLog(text: string) {
+    return html`<p>${translateText("mobile.about_log_manual")}</p>
+      <pre class="wc-about-pre">${text}</pre>`;
+  }
+
   private renderLicenses(l: Licenses) {
     if (l.state === "loading") {
       return html`<p class="wc-about-muted">
@@ -100,6 +151,7 @@ export class WcAbout extends LitElement {
   private renderMain() {
     const version = appVersion();
     const stats = readPlayStats();
+    const median = stats ? medianGame(stats) : null;
     return html`
       <p class="wc-about-mark">
         <span>World</span> <span class="wc-wordmark-of">of</span>
@@ -123,7 +175,7 @@ export class WcAbout extends LitElement {
       <p>${translateText("mobile.about_license")}</p>
       <a
         class="wc-btn wc-btn-gold"
-        href=${SOURCE_URL}
+        href=${sourceLink(version)}
         target="_blank"
         rel="noopener"
         >${translateText("mobile.about_source")} ↗</a
@@ -153,15 +205,43 @@ export class WcAbout extends LitElement {
             })}
           </p>`
         : nothing}
+      ${median
+        ? html`<p class="wc-about-muted">
+            ${translateText(
+              median.provisional
+                ? "mobile.about_median_provisional"
+                : "mobile.about_median",
+              { minutes: median.minutes },
+            )}
+          </p>`
+        : nothing}
+
+      <p class="wc-label">${translateText("mobile.about_support")}</p>
+      <div class="wc-about-links">
+        <button class="wc-about-link" @click=${() => this.copyLog()}>
+          ${translateText("mobile.about_copy_log")}
+        </button>
+        ${homeSave().kind === "save"
+          ? html`<button class="wc-about-link" @click=${() => this.clearSave()}>
+              ${translateText("save.clear_saved")}
+            </button>`
+          : nothing}
+        ${this.link(PRIVACY_URL, translateText("mobile.about_privacy"))}
+      </div>
+      <p class="wc-about-muted" role="status" aria-live="polite">
+        ${this.toast ?? nothing}
+      </p>
     `;
   }
 
   render() {
     if (!this.open) return nothing;
     const title =
-      this.licenses !== null
-        ? translateText("mobile.about_licenses")
-        : translateText("mobile.about");
+      this.manualLog !== null
+        ? translateText("mobile.about_copy_log")
+        : this.licenses !== null
+          ? translateText("mobile.about_licenses")
+          : translateText("mobile.about");
     return html`
       <div
         class="wc-scrim wc-about"
@@ -181,9 +261,11 @@ export class WcAbout extends LitElement {
             <h2 id="wc-about-title" class="wc-about-title">${title}</h2>
           </div>
           <div class="wc-about-body">
-            ${this.licenses !== null
-              ? this.renderLicenses(this.licenses)
-              : this.renderMain()}
+            ${this.manualLog !== null
+              ? this.renderManualLog(this.manualLog)
+              : this.licenses !== null
+                ? this.renderLicenses(this.licenses)
+                : this.renderMain()}
           </div>
         </div>
       </div>

@@ -1,29 +1,31 @@
 # Android build
 
 The app is the `npm run build-mobile` client (`dist-mobile/`) in a Capacitor
-shell (`capacitor.config.json`, `android/`). Plan: [PLAN.md](PLAN.md).
+shell (`capacitor.config.json`, `android/`). Plan: [NEXT-STEPS.md](NEXT-STEPS.md).
 
 ## Debug APK
 
-Needs JDK 21 (Android Studio's bundled `jbr` works) and the Android SDK
-(API 36). Put `sdk.dir=<path to Sdk>` in `android/local.properties`
+Needs JDK 21 (Android Studio's bundled `jbr` works), the Android SDK (API 36)
+and `adb`. Put `sdk.dir=<path to Sdk>` in `android/local.properties`
 (git-ignored), forward slashes.
 
 ```bash
-npm run android:sync
-cd android && ./gradlew assembleDebug
-adb install -r app/build/outputs/apk/debug/app-debug.apk
+npm run inst
+npm run android:doctor
+npm run android:debug
+adb install -r dist-mobile/WorldOfConflict-dev.apk
 ```
 
-`android:sync` rebuilds `dist-mobile/` and copies it into the app; run it after
-every web change. Output: `android/app/build/outputs/apk/debug/app-debug.apk`
-(~62 MB). Debug builds allow WebView debugging at `chrome://inspect`.
+`android:doctor` prints a `WC_DOCTOR_*` code and the fix for each missing tool.
+`android:debug` rebuilds `dist-mobile/`, syncs it into the app, runs
+`assembleDebug` and prints `READY <path> (<size> MB)`. Debug builds allow
+WebView debugging at `chrome://inspect` and show DEV BUILD in About.
 
 Fixed in `android/`: `minSdkVersion` 26, `sensorLandscape`. App id
 `com.worldofconflict.game` (confirmed by the owner 2026-10-16; permanent once on
 Play).
 
-## Feasibility gate (PLAN.md, before the UX pass)
+## Feasibility gate (device test, record in the table below)
 
 Reference device: 4 GB RAM, Snapdragon 6-series / Helio G-class, Android 11+.
 
@@ -67,42 +69,107 @@ version About shows (AGPL-3.0 source offer).
 share**. `npm run android:release` builds a release and refuses one that
 couldn't legally be shared.
 
-### Release steps
+### Signing
 
-PowerShell:
+Play wants an upload key. Create it once, outside the repo, and back it up
+(lose it and you must ask Play to reset the upload key):
 
-```powershell
-$env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
-# 1. android/app/build.gradle: versionName "0.1.0", versionCode +1
-# 2. src/client/mobile/AppInfo.ts: SOURCE_URL = the public repo
-git commit -am "Release v0.1.0"
-git tag v0.1.0
-git push origin main v0.1.0
-npm run android:release
-gh release create v0.1.0 dist-mobile/WorldOfConflict-v0.1.0.apk --title v0.1.0
+```bash
+keytool -genkeypair -v -keystore upload.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
 ```
 
-Git Bash: the same, with `export JAVA_HOME="/c/Program Files/Android/Android Studio/jbr"`.
+Copy `android/keystore.properties.example` to `android/keystore.properties`
+(git-ignored, as are `*.jks` and `*.keystore`) and fill it in. Play App Signing
+stays on, so Google holds the app signing key. Release builds are not
+minified (`minifyEnabled false`) for v0.2.0.
 
-Back up `~/.android/debug.keystore` once and build every playtest APK with
-it: an APK signed with another key will not install over the previous one, so
-testers would have to uninstall (and lose their play counter). Debug APKs are
-debuggable (WebView remote debugging is on); fine for a sideloaded playtest,
-not for a store release.
+For CI, store the keystore and passwords as secrets:
 
-### Gate errors
+```bash
+base64 -w0 upload.jks | gh secret set ANDROID_KEYSTORE_B64
+gh secret set ANDROID_KEYSTORE_PASSWORD
+gh secret set ANDROID_KEY_ALIAS
+gh secret set ANDROID_KEY_PASSWORD
+```
+
+### Release steps
+
+Order: `version:set`, commit, tag, push the tag. Every Play upload gets its own
+patch tag.
+
+```bash
+npm run version:set -- 0.2.0 # versionName "0.2.0", versionCode 200
+git commit -am "Release v0.2.0"
+git tag v0.2.0
+git push origin main v0.2.0 # .github/workflows/android-release.yml builds and attaches
+```
+
+`versionCode` is `major*10000 + minor*100 + patch`. The workflow can also be run
+by hand with `dry_run: true` (the default): it builds and keeps the files as a
+workflow artifact without touching any Release; do that before the first tag.
+A dry run sets `WC_DRY_RUN=1`, which skips only the gate's tag check (the
+`versionName` and `versionCode` checks still run). `storeFile` in
+`keystore.properties` must be an absolute path.
+
+To build locally instead: `npm run android:release` (doctor, signing check,
+gated build, then `dist-mobile/WorldOfConflict-vX.Y.Z.aab` and `.apk`), then
+upload with the `gh release upload ... --clobber` line it prints.
+
+Never `gh release create` before the upstream workflows are gone from
+`.github/workflows/` (only `ci.yml` and `android-release.yml` belong there).
+
+### Error codes
 
 Every failure prints all problems at once, then stops the build.
 
-| Code                      | Meaning                                             | Fix                                        |
-| ------------------------- | --------------------------------------------------- | ------------------------------------------ |
-| `WC_GATE_PLACEHOLDER_URL` | `SOURCE_URL` is still the placeholder               | set it in `src/client/mobile/AppInfo.ts`   |
-| `WC_GATE_SOURCE_URL`      | `SOURCE_URL` isn't a `https://github.com/` repo     | point it at the public repo                |
-| `WC_GATE_DIRTY`           | uncommitted or untracked files                      | commit or `git stash -u`                   |
-| `WC_GATE_UNTAGGED`        | HEAD has no tag                                     | `git tag vX.Y.Z && git push origin vX.Y.Z` |
-| `WC_GATE_BAD_TAG`         | tag isn't `vX.Y.Z` (About would say DEV BUILD)      | re-tag as `vX.Y.Z`                         |
-| `WC_GATE_VERSION_NAME`    | `versionName` in build.gradle doesn't match the tag | set it, bump `versionCode`, commit, re-tag |
-| `WC_GRADLE_FAILED`        | Gradle failed                                       | set `JAVA_HOME` to Android Studio's jbr    |
+| Code                       | Meaning                                           | Fix                                                                  |
+| -------------------------- | ------------------------------------------------- | -------------------------------------------------------------------- |
+| `WC_DOCTOR_JAVA`           | Java 21 not found                                 | install JDK 21 or set `JAVA_HOME` to Android Studio's jbr            |
+| `WC_DOCTOR_SDK`            | Android SDK not found                             | set `ANDROID_HOME` or `sdk.dir` in `android/local.properties`        |
+| `WC_DOCTOR_GRADLE`         | `android/gradlew` missing                         | `git checkout -- android/gradlew android/gradlew.bat android/gradle` |
+| `WC_DOCTOR_ADB`            | `adb` not found (debug only)                      | add `<Sdk>/platform-tools` to PATH                                   |
+| `WC_SIGNING_MISSING`       | no or incomplete `android/keystore.properties`    | copy the `.example`, fill it in; or use `npm run android:debug`      |
+| `WC_SIGNING_INVALID`       | the keystore won't open with those credentials    | check `storeFile` (absolute path) and the passwords                  |
+| `WC_GATE_KEYSTORE_TRACKED` | git tracks a keystore or `keystore.properties`    | `git rm --cached` it and rotate the key                              |
+| `WC_GATE_SOURCE_URL`       | `SOURCE_URL` isn't a `https://github.com/` repo   | point it at the public repo in `src/client/mobile/AppInfo.ts`        |
+| `WC_GATE_DIRTY`            | uncommitted or untracked files                    | commit or `git stash -u`                                             |
+| `WC_GATE_UNTAGGED`         | HEAD has no tag                                   | `git tag vX.Y.Z && git push origin vX.Y.Z`                           |
+| `WC_GATE_BAD_TAG`          | tag isn't `vX.Y.Z` (About would say DEV BUILD)    | re-tag as `vX.Y.Z`                                                   |
+| `WC_GATE_VERSION_NAME`     | `versionName` doesn't match the tag               | `npm run version:set -- X.Y.Z`, commit, re-tag                       |
+| `WC_GATE_VERSION_CODE`     | `versionCode` isn't `major*10000+minor*100+patch` | `npm run version:set -- X.Y.Z`, commit, re-tag                       |
+| `WC_GATE_AAB_SIZE`         | the AAB is over Play's 150 MB limit               | trim the folders the message lists                                   |
+| `WC_GRADLE_FAILED`         | Gradle failed                                     | read the Gradle error above it                                       |
+
+In-app error log codes (About > Copy error log): `save.write_failed`,
+`save.storage_unavailable`, `save.stale`, `save.damaged`, `resume-desync`,
+`errlog.clipboard_failed`, `js.error`, `js.unhandled_rejection`,
+`worker.error`, `fatal.<kind>` (`map_load`, `crashed`, `gl_lost`,
+`cant_start`, `spawn_failed`).
+
+### Tester crash reports
+
+1. Ask for About > Copy error log, pasted into a GitHub issue.
+2. The header line has the app version and commit; match it to the release tag.
+3. For a native crash: `adb logcat -s Capacitor chromium`.
+
+### Save and resume
+
+A save is the game's turn list, written every 60 s of game time, when the app
+goes to the background and on EXIT TO HOME. CONTINUE starts a fresh game and the
+existing rejoin path feeds it every saved turn, so the worker catches up (a
+longer game takes longer). A save from another release build is discarded at
+boot with a notice. Dev builds never go stale; set
+`localStorage["wc.dev.autosaveSeconds"]` to shorten the interval (ignored in
+release builds). To test a kill: play a minute,
+`adb shell am force-stop com.worldofconflict.game`, relaunch, CONTINUE.
+
+### Device test record (A2)
+
+Run on a 4 GB phone, on Europe (the largest curated map).
+
+| Device  | Android / WebView | Median fps | 1% low | Crash / OOM | 10 bg/fg cycles | Back | Reverse landscape |
+| ------- | ----------------- | ---------- | ------ | ----------- | --------------- | ---- | ----------------- |
+| (owner) |                   |            |        |             |                 |      |                   |
 
 ### Release checklist (on the emulator, from the Release asset)
 
@@ -110,8 +177,8 @@ Every failure prints all problems at once, then stops the build.
 - Source code / License text / OpenFront source / CC BY-SA 4.0 open the
   system browser; back returns to the app.
 - Open-source licenses lists `lit` and `zod` (`dist-mobile/licenses.md`).
-- The "didn't spawn" message (upstream modal) is readable at 844x390 and
-  closes with Android back.
+- The "Could not spawn" panel is readable at 844x390; BACK TO HOME and Android
+  back both leave the game.
 
 ### Trigger the fatal screens locally
 

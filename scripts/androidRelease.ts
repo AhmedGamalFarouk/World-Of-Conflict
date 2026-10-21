@@ -1,46 +1,92 @@
-// npm run android:release: gated web build, cap sync, Gradle assemble, and the
-// APK copied next to the build under its tag. Works in PowerShell, cmd and
-// Git Bash. Steps and error codes: docs/mobile/ANDROID.md#release-gate.
+// npm run android:release: doctor, signing check, gated web build, cap sync,
+// signed bundleRelease + assembleRelease, copied next to the build under
+// the tag. Steps and error codes: docs/mobile/ANDROID.md#error-codes.
 import { execSync, spawnSync } from "child_process";
 import fs from "fs";
 import path from "path";
+import {
+  aabSizeProblem,
+  androidDir,
+  dirSize,
+  fail,
+  gradlew,
+  keytoolPath,
+  parseProperties,
+  root,
+  run,
+  runDoctor,
+  signingProblem,
+} from "./androidTools";
 
-const root = path.join(import.meta.dirname, "..");
-const isWindows = process.platform === "win32";
+runDoctor(false);
 
-function run(cmd: string, args: string[], cwd: string): void {
-  const r = spawnSync(cmd, args, { cwd, stdio: "inherit", shell: isWindows });
-  if (r.status !== 0) {
-    if (cmd.includes("gradlew")) {
-      console.error(
-        "WC_GRADLE_FAILED: the Android build failed. Fix: set JAVA_HOME to Android Studio's jbr (see docs/mobile/ANDROID.md#release-gate), then re-run npm run android:release",
-      );
-    }
-    process.exit(r.status ?? 1);
-  }
+const propsFile = path.join(androidDir, "keystore.properties");
+const props = fs.existsSync(propsFile)
+  ? parseProperties(fs.readFileSync(propsFile, "utf-8"))
+  : null;
+const missing = signingProblem(
+  props,
+  props?.storeFile ? fs.existsSync(props.storeFile) : false,
+);
+if (missing) fail(missing);
+
+// Passwords go through the environment, never the command line.
+const keytool = spawnSync(
+  keytoolPath(),
+  ["-list", "-keystore", props!.storeFile!, "-storepass:env", "WC_STOREPASS"],
+  { env: { ...process.env, WC_STOREPASS: props!.storePassword } },
+);
+if (keytool.status !== 0) {
+  fail(
+    "WC_SIGNING_INVALID: keytool could not open the keystore (wrong password or file). Fix: check storeFile and storePassword in android/keystore.properties",
+  );
 }
 
-// Runs the release gate first: it refuses a placeholder source URL, a dirty
-// tree or an untagged commit before anything is built.
+// Runs the release gate first: it refuses a dirty tree, an untagged commit or
+// a versionCode that doesn't match the tag before anything is built.
 run("npm", ["run", "android:sync:release"], root);
-run(
-  // Explicit .\ : cmd skips the cwd when NoDefaultCurrentDirectoryInExePath is set.
-  isWindows ? ".\\gradlew.bat" : "./gradlew",
-  ["assembleDebug"],
-  path.join(root, "android"),
-);
+run(gradlew(), ["bundleRelease", "assembleRelease"], androidDir);
 
-const tag = execSync("git describe --tags --exact-match", {
-  cwd: root,
-  encoding: "utf-8",
-}).trim();
-const apk = path.join(
-  root,
-  "android/app/build/outputs/apk/debug/app-debug.apk",
-);
-const out = path.join(root, "dist-mobile", `WorldOfConflict-${tag}.apk`);
-fs.copyFileSync(apk, out);
+// A dry run (WC_DRY_RUN=1, scripts/mobileBuild.ts) may sit on an untagged commit.
+let tag: string;
+try {
+  tag = execSync("git describe --tags --exact-match", {
+    cwd: root,
+    encoding: "utf-8",
+    stdio: ["ignore", "pipe", "ignore"],
+  }).trim();
+} catch (e) {
+  if (process.env.WC_DRY_RUN !== "1") throw e;
+  const gradle = fs.readFileSync(
+    path.join(androidDir, "app/build.gradle"),
+    "utf-8",
+  );
+  tag = `v${/versionName\s+"([^"]+)"/.exec(gradle)?.[1] ?? "0.0.0"}`;
+}
+const outputs = path.join(androidDir, "app/build/outputs");
+const aab = path.join(outputs, "bundle/release/app-release.aab");
+const apk = path.join(outputs, "apk/release/app-release.apk");
 
-const rel = path.relative(root, out).split(path.sep).join("/");
-console.log(`READY ${rel}`);
-console.log(`Attach it: gh release create ${tag} ${rel} --title "${tag}"`);
+const assets = path.join(androidDir, "app/src/main/assets/public");
+const folders = fs
+  .readdirSync(assets, { withFileTypes: true })
+  .filter((e) => e.isDirectory())
+  .map((e) => ({ name: e.name, bytes: dirSize(path.join(assets, e.name)) }));
+const tooBig = aabSizeProblem(fs.statSync(aab).size, folders);
+if (tooBig) fail(tooBig);
+
+const dist = path.join(root, "dist-mobile");
+const outAab = path.join(dist, `WorldOfConflict-${tag}.aab`);
+const outApk = path.join(dist, `WorldOfConflict-${tag}.apk`);
+fs.copyFileSync(aab, outAab);
+fs.copyFileSync(apk, outApk);
+
+for (const f of [outAab, outApk]) {
+  const mb = (fs.statSync(f).size / 1048576).toFixed(1);
+  console.log(
+    `READY ${path.relative(root, f).split(path.sep).join("/")} (${mb} MB)`,
+  );
+}
+console.log(
+  `Attach: gh release upload ${tag} dist-mobile/WorldOfConflict-${tag}.aab dist-mobile/WorldOfConflict-${tag}.apk --clobber`,
+);

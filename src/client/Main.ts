@@ -137,8 +137,12 @@ import {
   type TurnstileApi,
   type TurnstileToken,
 } from "./TurnstileToken";
+import { installErrorLog } from "./mobile/ErrorLog";
 import { installBackButton } from "./mobile/MobileBack";
 import { isMobileShell, isOffline } from "./mobile/MobileShell";
+import { loadHomeSave } from "./mobile/SaveHome";
+import type { SavedGame } from "./mobile/SaveStore";
+import type { ReplaySpeedMultiplier } from "./utilities/ReplaySpeedMultiplier";
 // Before the first userMeResponse, for the modals that load after it.
 import "./UserMeBroadcast";
 import { UserSettings } from "./UserSettings";
@@ -258,6 +262,10 @@ export interface JoinLobbyEvent {
   spectator?: boolean;
   // Host only: the play token the lobby was created under (see createLobby).
   creatorToken?: string;
+  // Mobile solo only: the turn speed to start at (QUICK GAME starts fast).
+  speed?: ReplaySpeedMultiplier;
+  // Mobile solo only: a saved game to resume (CONTINUE).
+  resume?: SavedGame;
 }
 
 /**
@@ -1841,6 +1849,8 @@ class Client {
       gameRecord: lobby.gameRecord,
       spectator: lobby.spectator,
       creatorToken: lobby.creatorToken,
+      speed: lobby.speed,
+      resume: lobby.resume,
     });
 
     if (this.mostRecentJoinEvent !== event.timeStamp) {
@@ -2266,6 +2276,10 @@ const bootstrap = () => {
   // Hide elements immediately
   hidePortalElements();
   installBackButton();
+  if (isMobileShell()) {
+    installErrorLog();
+    void loadHomeSave();
+  }
 
   // Also hide elements after a short delay to catch late-rendered components
   setTimeout(hidePortalElements, 100);

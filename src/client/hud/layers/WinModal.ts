@@ -31,7 +31,8 @@ import {
 import { isDesktopShell } from "../../DesktopShell";
 import { gamePortal } from "../../GamePortal";
 import { isOffline } from "../../mobile/MobileShell";
-import { gameFinished } from "../../mobile/PlayStats";
+import { gameEnded } from "../../mobile/PlayStats";
+import { GameOverEvent } from "../../mobile/SaveEvents";
 import { requestSoloReplay } from "../../mobile/SoloReplay";
 import {
   gameShareMoment,
@@ -619,7 +620,11 @@ export class WinModal extends LitElement implements Controller {
   async show() {
     if (isOffline() && !this.finishCounted) {
       this.finishCounted = true;
-      gameFinished();
+      // 10 ticks a second, whatever the speed: total game time, resumes included.
+      const reason = this.isWin ? "win" : "loss";
+      gameEnded(reason, this.game.ticks() / 10);
+      // Elimination ends the player's game too: nothing left to resume.
+      this.eventBus.emit(new GameOverEvent(reason));
     }
     gamePortal.gameplayStop();
     this.isRankedGame =

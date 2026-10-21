@@ -1,12 +1,13 @@
 // What the About screen and the release gate both need to agree on. No DOM:
 // vite.config.ts imports this file in Node for the release gate.
 
-/** Placeholder until the public World Of Conflict repo exists. */
-export const SOURCE_URL_PLACEHOLDER = "https://github.com/OWNER/REPO";
-
 /** The public source repo every shared APK links to (AGPL-3.0). */
 export const SOURCE_URL =
   "https://github.com/AhmedGamalFarouk/World-Of-Conflict";
+
+/** GitHub Pages ("deploy from branch", main /docs): docs/privacy.html. */
+export const PRIVACY_URL =
+  "https://ahmedgamalfarouk.github.io/World-Of-Conflict/privacy.html";
 
 export const OPENFRONT_SOURCE_URL =
   "https://github.com/openfrontio/OpenFrontIO";
@@ -23,4 +24,18 @@ export function appVersion(): string {
 
 export function isDevBuild(version: string): boolean {
   return !RELEASE_TAG_RE.test(version);
+}
+
+/** The AGPL source offer: the exact tag in release builds, the repo root in dev. */
+export function sourceLink(version: string): string {
+  return isDevBuild(version) ? SOURCE_URL : `${SOURCE_URL}/tree/${version}`;
+}
+
+/**
+ * The build identity a save is stamped with: the release tag, or "DEV" for
+ * any other build (which never goes stale, so dev iteration keeps its saves).
+ */
+export function buildCommit(): string {
+  const v = appVersion();
+  return isDevBuild(v) ? "DEV" : v;
 }

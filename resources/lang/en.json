@@ -881,6 +881,12 @@
     },
     "turnstile_error": "Verification error: {code}. Please refresh and try again."
   },
+  "event_plate": {
+    "attack": "{name} is attacking you",
+    "betrayal": "{name} broke your alliance",
+    "nuke": "Nuke inbound from {name}",
+    "someone": "Someone"
+  },
   "events_display": {
     "about_to_expire": "Your alliance with {name} is about to expire!",
     "accept_alliance": "Accept",
@@ -1474,6 +1480,7 @@
     "news": "News",
     "play": "Play",
     "privacy_policy": "Privacy Policy",
+    "quick_game": "Quick game",
     "quit": "Exit game",
     "settings": "Settings",
     "sign_in": "Sign in",
@@ -1700,6 +1707,7 @@
   "mobile": {
     "about": "About",
     "about_assets": "Contains assets from OpenFront by the OpenFront contributors (CC BY-SA 4.0). Modified assets are shared under the same license.",
+    "about_copy_log": "Copy error log",
     "about_credits": "Credits",
     "about_dev_build": "Dev build",
     "about_dev_build_note": "do not share",
@@ -1708,12 +1716,18 @@
     "about_license_text": "License text",
     "about_licenses": "Open-source licenses",
     "about_licenses_group": "Licenses",
+    "about_log_copied": "Copied ({count} entries)",
+    "about_log_manual": "Couldn't copy. Select the text below and copy it.",
+    "about_median": "Median game {minutes} min · last 20",
+    "about_median_provisional": "Median game {minutes} min · last 20 (provisional)",
     "about_native_licenses": "The Android app also includes Capacitor and AndroidX libraries, licensed Apache-2.0.",
     "about_openfront_source": "OpenFront source",
+    "about_privacy": "Privacy policy",
     "about_source": "Source code",
+    "about_support": "Support",
     "about_version": "Version {version}",
     "back": "Back",
-    "back_to_menu": "Back to menu",
+    "back_to_home": "Back to home",
     "defeat": "Defeat",
     "fatal_copy": "Copy details",
     "fatal_report": "Screenshot this and send it to the playtest organizer.",
@@ -1733,6 +1747,8 @@
     "resume": "Resume",
     "send": "Send",
     "send_ratio": "Share of troops to send",
+    "spawn_failed": "Could not spawn",
+    "spawn_failed_body": "The game could not place you on the map. Start a new game from home.",
     "victory": "Victory"
   },
   "mode_selector": {
@@ -2226,6 +2242,26 @@
   },
   "rewards_modal": {
     "title": "Rewards"
+  },
+  "save": {
+    "abandon": "Abandon",
+    "abandon_body": "This game is lost for good. It can't be resumed.",
+    "abandon_title": "Abandon this game?",
+    "catching_up": "Catching up…",
+    "clear_saved": "Clear saved game",
+    "continue": "Continue",
+    "damaged": "Your saved game was damaged and could not be restored",
+    "discard": "Discard",
+    "discard_body": "Starting a new game deletes your saved one.",
+    "discard_title": "Discard saved game?",
+    "exit_home": "Exit to home",
+    "keep": "Keep",
+    "keep_playing": "Keep playing",
+    "resumed_header": "Resumed · turn {turn} · saved {minutes} min ago",
+    "saved_ago": "Saved {seconds} s ago",
+    "saved_min_ago": "Saved {minutes} min ago",
+    "saving_paused": "Saving paused",
+    "stale": "Your saved game is from an older version and could not be restored"
   },
   "select_lang": {
     "title": "Select Language"
@@ -2757,6 +2793,8 @@
     "touch_tap_menu_desc": "When ON, tapping land opens the menu and the sword button attacks. When OFF, tapping enemy or neutral land attacks directly; long-press opens the menu.",
     "touch_tap_menu_label": "Tap to Open Menu",
     "unbind": "Unbind",
+    "vibration_desc": "Short vibrations when you attack, when a warning shows and while sliding over the radial menu.",
+    "vibration_label": "Vibration",
     "view_options": "View Options",
     "zoom_controls": "Zoom Controls",
     "zoom_in": "Zoom In",

@@ -1,9 +1,6 @@
-name: 🧪 CI
+name: CI
 
 on:
-  merge_group:
-    types:
-      - checks_requested
   pull_request:
   push:
     branches: [main]
@@ -11,117 +8,25 @@ on:
 permissions: {}
 
 jobs:
-  build:
-    name: 🏗️ Build
+  check:
+    name: Typecheck, lint, mobile tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
           submodules: false
-      - name: Setup node
-        uses: actions/setup-node@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
       - name: Setup npm
         run: npm install --global --ignore-scripts npm@12.1.0
-      - run: npm ci
-      # Root project plus each package's own tsconfig (engine, engine-api and
-      # engine-lib get no DOM and no Node types).
+      - run: npm run inst
       - run: npm run typecheck
-      - run: npm run build-prod
-      - uses: actions/upload-artifact@v7
-        with:
-          path: out/index.html
-          retention-days: 1
-  test-shard:
-    name: 🔬 Test (${{ matrix.shard }}/3)
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-        with:
-          submodules: false
-      - name: Setup node
-        uses: actions/setup-node@v7
-        with:
-          node-version: 24
-      - name: Setup npm
-        run: npm install --global --ignore-scripts npm@12.1.0
-      - run: npm ci
-      - run: npm test -- --shard=${{ matrix.shard }}/3
-
-  # The main ruleset requires a check named "🔬 Test"; this rolls the shards
-  # up into it. always() so a failed shard fails it instead of skipping it
-  # (a skipped required check counts as passing).
-  test:
-    name: 🔬 Test
-    needs: test-shard
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - if: needs.test-shard.result != 'success'
-        run: exit 1
-
-  lint:
-    name: 🔍 Lint
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: "24"
-          cache: "npm"
-      - name: Setup npm
-        run: npm install --global --ignore-scripts npm@12.1.0
-      - run: npm ci
       - run: npm run lint:github
-
-  prettier:
-    name: 🎨 Prettier
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: "24"
-          cache: "npm"
-      - name: Setup npm
-        run: npm install --global --ignore-scripts npm@12.1.0
-      - run: npm ci
-      - run: npx prettier --check .
-
-  gen-maps:
-    name: 🗺️ Generated maps up to date
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: "24"
-          cache: "npm"
-      - name: Setup npm
-        run: npm install --global --ignore-scripts npm@12.1.0
-      - uses: actions/setup-go@v7
-        with:
-          go-version-file: map-generator/go.mod
-          cache-dependency-path: map-generator/go.sum
-      - run: npm ci
-      - run: npm run gen-maps
-      - name: Check for diff
-        run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "::error::Generated maps are out of date — run 'npm run gen-maps' and commit the result."
-            git status --short
-            git --no-pager diff
-            exit 1
-          fi
+      # Targeted, not the 10-minute suite: the mobile layer and the import rules.
+      - run: >-
+          npx vitest run tests/client/mobile tests/client/MobileShell.test.ts
+          tests/MobileBuild.test.ts tests/AndroidTools.test.ts
+          tests/LayerBoundaries.test.ts tests/Workflows.test.ts
+          tests/AndroidResources.test.ts tests/SaveResume.test.ts

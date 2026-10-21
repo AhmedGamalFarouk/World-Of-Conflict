@@ -4,6 +4,7 @@ import { showInGameConfirm } from "../InGameModal";
 import { translateText } from "../Utils";
 import { aboutBack } from "./About";
 import { backToMenu, isFatalShown } from "./FatalScreen";
+import { CONFIRM_ID } from "./SaveHome";
 
 /** Fired on window when Android back is pressed during a game. */
 export const MOBILE_BACK_EVENT = "mobile-back";
@@ -22,7 +23,25 @@ export function dispatchEscape(): void {
  * app outright, since the modal router replaces history instead of pushing.
  */
 export async function onBackButton(exitApp: () => void): Promise<void> {
-  // The mobile overlays sit above everything else, so they go first.
+  // The mobile overlays sit above everything else, so they go first. A
+  // critical event plate dismisses before back does anything else.
+  // A confirmation (discard, abandon) answers back as KEEP.
+  const confirm = document.getElementById(CONFIRM_ID);
+  if (confirm) {
+    confirm.querySelector<HTMLElement>(".wc-keep")?.click();
+    return;
+  }
+  // An in-game dialog answers back as cancel, never a second one on top.
+  const dialog = document.querySelector("confirm-dialog");
+  if (dialog) {
+    dialog.dispatchEvent(new CustomEvent("cancel"));
+    return;
+  }
+  const plate = document.getElementById("wc-event-plate");
+  if (plate) {
+    plate.click();
+    return;
+  }
   if (isFatalShown()) {
     backToMenu();
   } else if (aboutBack()) {

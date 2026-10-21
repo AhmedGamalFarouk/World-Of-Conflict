@@ -17,6 +17,8 @@ import { TransformHandler } from "../TransformHandler";
 import { UIState } from "../UIState";
 // The homepage loads it on demand, but the in-game instance (#game-settings)
 // is set up below, so it has to be defined by the time a game renders.
+import { CriticalEventPlate } from "../mobile/CriticalEventPlate";
+import { vibrate } from "../mobile/Haptics";
 import { isMobileShell } from "../mobile/MobileShell";
 import "../UserSettingModal";
 import type { UserSettingModal } from "../UserSettingModal";
@@ -59,6 +61,7 @@ export function createRenderer(
   playerRole: string | null,
   view: MapRenderer,
   mapLayerController?: MapLayerController,
+  resumeTurnCount = 0,
 ): GameRenderer {
   const transformHandler = new TransformHandler(game, eventBus, inputEl);
   const userSettings = new UserSettings();
@@ -331,7 +334,18 @@ export function createRenderer(
       view,
       userSettings,
     ),
-    ...(isMobileShell() ? [new WeaponsButton(game, eventBus, uiState)] : []),
+    ...(isMobileShell()
+      ? [
+          new WeaponsButton(game, eventBus, uiState),
+          new CriticalEventPlate(
+            game,
+            (kind) => {
+              if (kind === "attack") vibrate(40);
+            },
+            resumeTurnCount,
+          ),
+        ]
+      : []),
     new HoverHighlightController(game, eventBus, transformHandler, view),
     new LiveStatsController(game, eventBus),
     new StructureHighlightController(eventBus, view),

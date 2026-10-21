@@ -428,6 +428,10 @@ export class UserSettings {
     return this.getBool("settings.anonymousNames", false);
   }
 
+  vibration() {
+    return this.getBool("settings.vibration", true);
+  }
+
   lobbyIdVisibility() {
     return this.getBool("settings.lobbyIdVisibility", true);
   }
@@ -516,6 +520,10 @@ export class UserSettings {
 
   togglePerformanceOverlay() {
     this.setBool(PERFORMANCE_OVERLAY_KEY, !this.performanceOverlay());
+  }
+
+  toggleVibration() {
+    this.setBool("settings.vibration", !this.vibration());
   }
 
   toggleAlertFrame() {

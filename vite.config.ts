@@ -18,11 +18,7 @@ import {
   checkReleaseGate,
   copyMobileResources,
 } from "./scripts/mobileBuild";
-import {
-  RELEASE_TAG_RE,
-  SOURCE_URL,
-  SOURCE_URL_PLACEHOLDER,
-} from "./src/client/mobile/AppInfo";
+import { RELEASE_TAG_RE, SOURCE_URL } from "./src/client/mobile/AppInfo";
 import { curatedMapFolders } from "./src/client/mobile/CuratedMaps";
 import {
   buildPublicAssetManifest,
@@ -249,11 +245,17 @@ function mobileReleaseGate(version: string): Plugin {
       );
       const errors = checkReleaseGate({
         sourceUrl: SOURCE_URL,
-        placeholderUrl: SOURCE_URL_PLACEHOLDER,
         porcelain: git("status --porcelain") ?? "",
         exactTag: git("describe --tags --exact-match"),
         versionName: /versionName\s+"([^"]+)"/.exec(gradle)?.[1] ?? null,
+        versionCode: Number(/versionCode\s+(\d+)/.exec(gradle)?.[1]) || null,
+        trackedSecrets: (git("ls-files") ?? "")
+          .split("\n")
+          .filter((f) =>
+            /(^|\/)keystore\.properties$|\.(jks|keystore)$/.test(f),
+          ),
         tagPattern: RELEASE_TAG_RE,
+        dryRun: process.env.WC_DRY_RUN === "1",
       });
       if (errors.length > 0) {
         this.error(

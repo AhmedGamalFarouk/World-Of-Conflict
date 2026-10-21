@@ -1,0 +1,81 @@
+name: Android release
+
+# On a v* tag: build the signed AAB + APK and attach them to the GitHub
+# Release for the tag. workflow_dispatch with dry_run (default) builds and
+# keeps the files as a workflow artifact without touching any Release; use it
+# before the first tag (WC_DRY_RUN=1 skips only the release gate's tag check;
+# versionName/versionCode must still be consistent). Signing setup: docs/mobile/ANDROID.md#signing.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Build only; upload a workflow artifact, touch no Release
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # the release gate needs tags
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: android-actions/setup-android@v3
+      - name: Setup npm
+        run: npm install --global --ignore-scripts npm@12.1.0
+      - run: npm run inst
+
+      # The keystore only ever lives in $RUNNER_TEMP and is deleted below;
+      # secrets reach the script as env vars, never on a command line.
+      - name: Build signed AAB and APK
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          WC_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && '1' || '' }}
+        run: |
+          # Java properties: a backslash must be doubled to read back as one.
+          esc() { printf '%s' "${1//\\/\\\\}"; }
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          {
+            echo "storeFile=$RUNNER_TEMP/upload.jks"
+            echo "storePassword=$(esc "$STORE_PASSWORD")"
+            echo "keyAlias=$(esc "$KEY_ALIAS")"
+            echo "keyPassword=$(esc "$KEY_PASSWORD")"
+          } > android/keystore.properties
+          npm run android:release
+
+      - name: Attach to the Release
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes ""
+          gh release upload "$GITHUB_REF_NAME" dist-mobile/WorldOfConflict-*.aab dist-mobile/WorldOfConflict-*.apk --clobber
+
+      - name: Keep the files (dry run)
+        if: github.event_name == 'workflow_dispatch' && inputs.dry_run
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-dry-run
+          path: dist-mobile/WorldOfConflict-*
+          retention-days: 3
+
+      - name: Delete keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/upload.jks" android/keystore.properties

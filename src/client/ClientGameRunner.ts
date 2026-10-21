@@ -59,6 +59,7 @@ import {
   counterAttackTroops,
   MoveWarshipIntentEvent,
   NewLobbyEvent,
+  PauseGameIntentEvent,
   SendAllianceExtensionIntentEvent,
   SendAllianceRequestIntentEvent,
   SendAttackIntentEvent,
@@ -82,8 +83,11 @@ import { MapLayerController } from "./controllers/MapLayerController";
 import { createRenderer, GameRenderer } from "./hud/GameRenderer";
 import { goldRateTracker } from "./hud/layers/lib/GoldRateTracker";
 import { fatalForHeading, GL_LOST, showFatal } from "./mobile/FatalScreen";
+import { vibrate } from "./mobile/Haptics";
 import { isMobileShell } from "./mobile/MobileShell";
 import { gameStarted } from "./mobile/PlayStats";
+import { GameResumedEvent } from "./mobile/SaveEvents";
+import type { SavedGame } from "./mobile/SaveStore";
 import {
   applyGraphicsOverrides,
   createRenderSettings,
@@ -100,6 +104,7 @@ import { ALL_UNIT_TYPES, UnitState } from "./render/types";
 import { audioMixer, initAudioMixer } from "./sound/AudioMixer";
 import { SoundManager } from "./sound/SoundManager";
 import { themeProvider } from "./theme/ThemeProvider";
+import type { ReplaySpeedMultiplier } from "./utilities/ReplaySpeedMultiplier";
 import { showTapRipple } from "./utilities/TapRipple";
 import { GameView, PlayerView } from "./view";
 
@@ -122,6 +127,10 @@ export interface LobbyConfig {
   // Host only: the play token the lobby was created under, used for the
   // first join so the host joins as the creator (see createLobby).
   creatorToken?: string;
+  // Mobile solo only: the turn speed the local server starts at.
+  speed?: ReplaySpeedMultiplier;
+  // Mobile solo only: a saved game to resume (mobile/SaveStore.ts).
+  resume?: SavedGame;
 }
 
 export interface JoinLobbyResult {
@@ -297,7 +306,8 @@ export function joinLobby(
       )
         .then((r) => {
           currentGameRunner = r;
-          if (isMobileShell()) gameStarted();
+          // A resumed game was counted when it first started.
+          if (isMobileShell() && !lobbyConfig.resume) gameStarted();
           r.start();
         })
         .catch((e) => {
@@ -628,9 +638,34 @@ function mountWebGLFrameLoop(
   // renderer's captured frame callback (which draws). One RAF = one
   // synchronized camera-update + WebGL render.
   let rafId: number | null = null;
+  // Battery: while the sim is paused and nothing moved, the last frame is
+  // still right, so don't draw it again (the pause card is DOM on top).
+  let simPaused = false;
+  let stillKey = "";
+  if (isMobileShell()) {
+    eventBus.on(PauseGameIntentEvent, (e) => {
+      simPaused = e.paused;
+      stillKey = "";
+    });
+    // A resumed game opens paused without anyone pressing pause.
+    eventBus.on(GameResumedEvent, () => {
+      simPaused = true;
+      stillKey = "";
+    });
+    // Coming back from the background, the canvas may have been dropped.
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") stillKey = "";
+    });
+  }
+  const frameKey = (): string =>
+    `${gameView.ticks()}|${transformHandler.scale}|${transformHandler.offsetX}|${transformHandler.offsetY}|${cachedCanvasW}|${cachedCanvasH}`;
   const driveFrame = (nowMs: number): void => {
-    onFrame(nowMs);
-    syncCamera();
+    const key = simPaused ? frameKey() : "";
+    if (!simPaused || key !== stillKey) {
+      stillKey = key;
+      onFrame(nowMs);
+      syncCamera();
+    }
     rafId = requestAnimationFrame(driveFrame);
   };
   rafId = requestAnimationFrame(driveFrame);
@@ -867,6 +902,7 @@ async function createClientGame(
       lobbyConfig.playerRole,
       view,
       mapLayerController,
+      lobbyConfig.resume?.turnCount,
     );
 
     const metrics = new GameMetrics(lobbyConfig.gameID, clientID);
@@ -995,6 +1031,10 @@ export class ClientGameRunner {
       );
     }, 20000);
 
+    if (isMobileShell()) {
+      this.eventBus.on(SendAttackIntentEvent, this.onAttackSent);
+      this.eventBus.on(SendBoatAttackIntentEvent, this.onAttackSent);
+    }
     this.eventBus.on(MouseUpEvent, this.inputEvent.bind(this));
     this.eventBus.on(MouseMoveEvent, this.onMouseMove.bind(this));
     this.eventBus.on(AutoUpgradeEvent, this.autoUpgradeEvent.bind(this));
@@ -1047,6 +1087,7 @@ export class ClientGameRunner {
       this.gameView.update(gu);
       this.webglBuilder?.update(this.gameView);
       this.renderer.tick();
+      this.centerResumedGame();
       if (gu.tickExecutionDuration !== undefined) {
         this.metrics?.recordTickExecution(gu.tickExecutionDuration);
       }
@@ -1207,7 +1248,30 @@ export class ClientGameRunner {
     this.transport.rejoinGame(0);
   }
 
+  // A resumed game opens centred on the player once the worker has replayed
+  // every saved turn.
+  private resumeCentered = false;
+  private centerResumedGame(): void {
+    const resume = this.lobby.resume;
+    if (!resume || this.resumeCentered) return;
+    if (
+      this.gameView.isCatchingUp() ||
+      this.gameView.ticks() < resume.turnCount
+    ) {
+      return;
+    }
+    const me = this.gameView.myPlayer();
+    if (!me) return;
+    this.resumeCentered = true;
+    this.eventBus.emit(new GoToPlayerEvent(me, 8));
+  }
+
+  // A tick under the finger when an attack goes out.
+  private onAttackSent = (): void => vibrate(15);
+
   public stop() {
+    this.eventBus.off(SendAttackIntentEvent, this.onAttackSent);
+    this.eventBus.off(SendBoatAttackIntentEvent, this.onAttackSent);
     this.soundManager.dispose();
     this.graphicsListenerAbort?.abort();
     // Detach the input handler's window/canvas listeners and its EventBus

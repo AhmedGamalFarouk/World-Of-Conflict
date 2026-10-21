@@ -1,350 +1,207 @@
-# World Of Conflict — next steps (v0.2.0 release)
+# World Of Conflict — next steps (toward v0.2.0)
 
-Start here in a new session. This is the only planning doc: it replaces the old
-`PLAN.md`, `HANDOFF.md`, `PLAYTEST-PLAN.md`, `IMPROVEMENTS.md`, `RELEASE-PLAN.md`,
-`docs/designs/playtest-readiness.md` and `TODOS.md` (all in git history).
-Reviewed by /autoplan on 2026-10-21 (CEO, design, DX and eng phases) and
-approved by the owner with `rec except uc1b`.
-
-Other references: `PRODUCT.md` (product truth), `DESIGN.md` (design system,
-the authority for all UI), `docs/mobile/ANDROID.md` (build, device checklist,
-release gate), `CLAUDE.md` (repo rules: engine tests, i18n, layer boundaries).
+Start here in a new session. This replaces the first plan (A to D), which is
+implemented; its history is in git. Reviewed by an Opus 5.5 read-only pass on
+2026-10-21 against the first implementation. Other references: `PRODUCT.md`,
+`DESIGN.md` (authority for UI), `docs/mobile/ANDROID.md` (build, signing, error
+codes, device record), `CLAUDE.md` (repo rules).
 
 ## Where it stands
 
-- Offline, landscape-locked Android app (Capacitor) adapting OpenFront. Single
-  player vs bots. App id `com.worldofconflict.game` (permanent once on Play).
-- Repo `AhmedGamalFarouk/World-Of-Conflict`, branch `main`. v0.1.0 tagged at
-  `27b1001` (debug-signed tester APK, not published as a GitHub Release).
-- Real-phone test passed (owner, 2026-10-21); numbers not yet recorded (A2).
+- Offline, landscape-locked Android app (Capacitor) adapting OpenFront. Repo
+  `AhmedGamalFarouk/World-Of-Conflict`, branch `main`, v0.1.0 tagged.
+- The first implementation pass is in the working tree, **uncommitted**:
+  release tooling and signing, trimmed CI, event plate, vibration, error log,
+  play stats, Quick game, save and resume, pause-card exits, privacy page.
+- Checks at the end of that pass: `npm run typecheck`, `npm run lint`, prettier
+  and all of `tests/client` pass (130 targeted tests; only the known
+  load-flaky `InventoryModal` timeouts fail).
+- **Second pass (2026-10-21), still uncommitted:** blockers 1 and 2, should-fixes
+  3 to 11 and most of section 4 are implemented and tested (typecheck, lint,
+  prettier, 157 targeted tests pass; title screen and pause card checked at
+  640x320 in the browser preview). Still open: section 3 (needs the A2 device),
+  section 5 (owner actions) and the items marked **open** in section 4. Do not
+  tag until section 3 shows resume is usable.
 
-## Before anything else (urgent)
-
-- Do not run `gh release create` until A1 lands: upstream
-  `.github/workflows/release.yml` fires on `release: published`.
-- Do not save a keystore under `android/` until H1 lands: `android/.gitignore`
-  has `*.jks` / `*.keystore` commented out.
-
-## Rules that bind every step
+## Rules that still bind every step
 
 - Engine untouched (`packages/engine*`). Mobile code lives in
   `src/client/mobile/`, `mobile-theme.css` (scoped to `body.mobile-theme`) and
   small `isMobileShell()` / `isOffline()` branches. No new dependencies.
-- Homepage chunk never statically imports the game client; restore loads it
-  through `GameClientLoader` (CLAUDE.md).
-- All new UI text through `translateText()` with keys in `resources/lang/en.json`
-  only (Crowdin owns other locales).
+- The homepage chunk never statically imports the game client.
+- UI text through `translateText()`, keys in `resources/lang/en.json` only.
 - Every new module gets a test; run targeted vitest files, `npm run typecheck`,
-  `npm run lint` (not the 10-minute full suite).
-- Owner decisions not to reopen: fork only, no outreach to OpenFront
-  maintainers (gate uc1a); port first, no positioning claim beyond what the
-  build does (uc2a); landscape only; ratio rail snapping 25/50/75/100; tap
-  attacks, long-press opens the radial menu; keep the INTERNET permission;
-  build order as below with no playtest gate before features (uc1b).
+  `npm run lint`, not the 10-minute suite.
+- Owner decisions not to reopen: fork only, no outreach to OpenFront; port
+  first, no claims beyond what the build does; landscape only; ratio rail
+  25/50/75/100; tap attacks, long-press opens the radial menu; keep the
+  INTERNET permission.
 
-## Order
+## 1. Fix first (blockers) — done
 
-1. A1 + A3 + E1 (quick wins) first.
-2. Then B (design), C (features) and the rest of E in parallel.
-3. B8 (final mark) when the owner has it; if not by D17 asset capture, ship the
-   current `wc_mark` and rebrand in a later minor.
-4. D (release plumbing) → `version:set` → commit → tag `v0.2.0` → closed test.
-5. A2 (device numbers) and A4 (trademark) gate only the tag.
-6. C5 rule: Quick game (C2), save/resume (C1) and the event plate (B4) may be
-   dropped to v0.2.1 if they would hold the tag.
+1. **Elimination never clears the save.** Nothing emits `GameOverEvent`
+   (`src/client/mobile/SaveEvents.ts`); only the `winner` message clears the
+   save (`LocalServer.ts`). A dead player keeps autosaving, EXIT saves again,
+   home offers CONTINUE for a lost game, and resuming counts a second loss.
+   Fix: in `WinModal.show()` (offline, first call) emit
+   `GameOverEvent(isWin ? "win" : "loss")` on the event bus. Add a test that
+   drives `WinModal.show`, not one that emits the event by hand
+   (`tests/client/mobile/LocalServerResume.test.ts:169` does).
+2. **Release CI cannot build.** `android/gradlew` is committed as mode 100644,
+   so `./gradlew` on ubuntu fails and is reported as `WC_GRADLE_FAILED`. Fix:
+   `git update-index --chmod=+x android/gradlew` (or a `chmod +x` step in
+   `.github/workflows/android-release.yml`).
 
-Parallel lanes: Lane A: A → D (share `.github/`, `scripts/`). Lane B: B.
-Lane C: C1 then C3/C4 (all touch `About.ts`, `Main.ts`). Rebase
-`resources/lang/en.json` between lanes.
+## 2. Should fix before screenshots and the closed test — done
 
-## Owner actions (give each a date in ANDROID.md "Release gate")
+3. **Pause card too tall for short screens** (`mobile-theme.css`, `.wc-pause-card`):
+   341px normal, 403px when resumed, against 320px at 640x320. Add
+   `max-height: calc(100dvh - 16px); overflow-y: auto` and a compact layout
+   under `@media (max-height: 400px)` (saved line inline, smaller title and
+   RESUME).
+4. **Title screen at 640x320 with a save**: QUICK GAME and TUTORIAL sit at
+   y 308 to 356, off screen (PLAY stays visible). Put CONTINUE beside the map
+   info in the short media query, or shrink the rows, so all four fit.
+5. **A resume counts as a started game** (`ClientGameRunner.ts`, the
+   `gameStarted()` call). Guard with `!lobbyConfig.resume`, with a test.
+6. **Event plate fires on old events during catch-up** (`CriticalEventPlate.ts`
+   `tick()`): replayed attacks, nukes and betrayals produce plates, vibration
+   and screen-reader alerts. Return early while `game.isCatchingUp()` or
+   `ticks() < resume.turnCount`, and mark attacks already in progress as seen
+   when catch-up ends.
+7. **B1 launch frame does not work** (`index.html`): `html.preload` paints
+   `#111827` and hides `body`, which holds `#wc-boot`, so the player sees a
+   colour step and never the mark. In the mobile branch set
+   `html.preload { background-color: #0b1020 !important }` and
+   `#wc-boot { visibility: visible }`, and remove the frame after the first
+   real paint, not on `load`. `tests/AndroidResources.test.ts` only matches
+   strings; check it on a device cold and warm.
+8. **Boot race can overwrite a save without asking** (`SaveHome.ts`
+   `allowNewGame`): it reads state that `loadHomeSave()` fills asynchronously
+   (IndexedDB can take 4 s). A new game started in that window skips the
+   discard dialog and its first autosave overwrites the old save; a late stale
+   `clear()` can bump the epoch and silently stop that game from saving.
+   Keep the `loadHomeSave` promise and await it in `allowNewGame` and before
+   `LocalServer.startSaver` takes its epoch.
+9. **The dry run cannot run before the first tag.** The release gate needs HEAD
+   on a tag, and any `v*` push runs the upload. Add a `WC_DRY_RUN=1` mode that
+   skips only the tag check (still checks `versionName` and `versionCode`),
+   set by the `workflow_dispatch` path. `dry_run: false` on a manual run
+   currently uploads nothing.
+10. **EXIT TO HOME timeout path** (`GameRightSidebar.ts` `keepGameOnExit`): on a
+    failed or slow save it disposes the saver and records `quit` but leaves the
+    old save, so CONTINUE is still offered and the game's end is counted twice
+    later. Either keep the save and skip `quit`, or `await saver.finish()`
+    before recording `quit`.
+11. **Keystore check misreports** (`scripts/androidRelease.ts`): `keytool` comes
+    from PATH, not `$JAVA_HOME/bin`, so Android Studio's jbr alone gives a
+    false `WC_SIGNING_INVALID`; `shell: true` on Windows splits a `storeFile`
+    with spaces; a relative `storeFile` resolves from the repo root but Gradle
+    resolves it from `android/app`. Use `path.join(JAVA_HOME, "bin", "keytool")`
+    with `shell: false` and require an absolute `storeFile`.
 
-- A2 device numbers, A4 trademark search, B8 final mark, D1 upload keystore and
-  key backup, D5 recruit 12+ closed testers (start now), D4 store assets.
+## 3. Measure on the A2 device (decides whether C1 stays in v0.2.0)
 
----
+Resume replays every saved turn: an hour-long game is 36,000 turns sent in one
+message, then 36,000 worker ticks with the HUD updating. On a mid-range phone on
+Europe that could take minutes, and nothing caps or tests it.
 
-## A — Release hygiene
+- Play 25+ minutes on Europe, `adb shell am force-stop com.worldofconflict.game`,
+  relaunch, CONTINUE. Record catch-up time, whether the camera centres, whether
+  the pause card fits, and whether `resume-desync` shows in Copy error log.
+- If catch-up is minutes, either cap it (save the turn list but resume only
+  from a game under N minutes, otherwise offer to discard), or drop save and
+  resume, Quick game and the event plate to v0.2.1 as the old plan's C5 rule
+  allowed. An engine snapshot is the proper fix but needs an engine change
+  (a full baseline update after restore), which the rules forbid today.
+- Get eliminated, then exit from the win modal and from the pause card: home
+  must show no CONTINUE and PlayStats must count one loss.
+- Background the app mid-game for a minute and return: the pause card must show,
+  the map behind it must still be drawn (the battery frame skip in
+  `ClientGameRunner.ts` never forces a redraw on return), and EXIT and ABANDON
+  must be reachable at the phone's real landscape height.
+- Cold and warm start: no white frame and no `#111827` step (see item 7).
+- Also record the A2 numbers in `ANDROID.md`: model, Android and WebView
+  versions, median and 1%-low fps, crash or OOM, 10 background cycles, back
+  button, reverse landscape. Use a 4 GB phone on Europe; if memory is tight
+  lower the offline default bots (`SinglePlayerModal.ts`, 400) or drop Europe
+  from `CURATED_MAP_IDS`.
 
-**A1. Remove upstream automation.** Delete every upstream workflow
-(`release.yml`, `deploy.yml`, `cherry-pick-milestone.yml`, `claude-code-review.yml`,
-`issue-lifecycle-*.yml`, `pr-*.yml`) together with `scripts/pr-gate/`,
-`scripts/issue-lifecycle/` and `tests/PrGateRules.test.ts`, in one commit.
-Keep a trimmed `ci.yml` (typecheck, lint, targeted tests) that installs with
-`npm run inst`. The upstream `.github/ISSUE_TEMPLATE/*` and
-`PULL_REQUEST_TEMPLATE.md` get World Of Conflict wording or are deleted.
-Test: `.github/workflows/` contains exactly `ci.yml` and `android-release.yml`.
+## 4. Smaller follow-ups
 
-**A2. Record the device test** in `ANDROID.md`: device model, Android and
-WebView versions, median and 1%-low fps (min 5–15), OOM/crash result, 10
-background/foreground cycles, back button, reverse landscape. The gate must be
-run on a 4 GB device on Europe (largest curated map, `map.bin` 4.86 MB), not
-only on World; if memory is tight, lower the offline default bot count
-(`SinglePlayerModal.ts:103`, 400) or drop Europe from `CURATED_MAP_IDS`.
-Human checklist line in the release gate, not automated.
+Done in the second pass: the `InGameModal` back guard (now in `MobileBack`), error
+log flush on `visibilitychange`/`pagehide` and in `showFatal`, the header label
+(`build`), boat-attack vibration, save cleared on `CRASHED`/`spawn_failed`,
+CONTINUE stays disabled after the join, new CSS scoped under `body.mobile-theme`,
+keystore backslash escaping, a resumed (paused) game skips frames and a redraw is
+forced on return from the background. Item 5's `gameStarted` resume guard has
+no direct test (it sits inside `createClientGame`).
 
-**A3. CONTRIBUTING.md for this fork.** Replace the OpenFront text. Show the
-debug path first, release second, with literal commands:
-`npm run inst`, `npm run android:doctor`, `npm run android:debug`,
-`adb install -r dist-mobile/WorldOfConflict-dev.apk`; dev uses
-`build-mobile`/`android:sync`, release uses
-`build-mobile:release`/`android:sync:release`. Explain the release gate, the
-thin-layer rule, and that engine fixes belong upstream. Owner times a clean
-clone → `android:debug` → install once and records the minutes (target ≤15 min
-after JDK/SDK install).
+Open:
 
-**A4. Trademark check** (owner): "World Of Conflict" in EUIPO, USPTO and Play
-Store; record the result in this file.
+- **Owner decision:** Quick game uses `nations: "default"`, which adds AI nations beyond the 5
+  bots. Decide if that is wanted.
+- `tests/Workflows.test.ts` checks secrets only with a regex (now also no `echo`
+  of a `secrets.` expression); a real lint of the workflow YAML is still open.
+- Missing tests: each start entry (PLAY, QUICK GAME, START, Play again) shows
+  the discard dialog; a resumed record replays to the same final hash; saved
+  speed restored end to end; the offline runtime test asserts no non-local
+  request after a finished game; `save.restore_failed` is never logged.
+- Check whether all of `resources/flags/` (26 MB) is needed offline; the
+  AAB limit gate (`WC_GATE_AAB_SIZE`) needs a real build to prove.
+- B2 (solo rail): the plan's "START directly under the last control" could not
+  be reproduced; the rail holds only START and is pinned to the bottom.
+  `DESIGN.md` still lists "empty space above START" as an open item.
+- `E1` was named in the first plan's Order but never defined; nothing built.
 
-## B — Design defects
+## 5. Owner actions (give each a date in `ANDROID.md`)
 
-**B1. Splash.** The launch theme (`AppTheme.NoActionBarLaunch`) shows a plain
-Night background (`--wc-night` #0b1020, exactly) with no directional mark, so
-the portrait frame before `sensorLandscape` cannot draw it sideways. The
-Capacitor web splash keeps the branded frame; its first frame matches the
-native background and the mark fades in over 200 ms. Check cold and warm start:
-no white frame.
+- A2 device numbers (section 3). A4 trademark search: "World Of Conflict" in
+  EUIPO, USPTO and the Play Store; record the result here.
+- B8: the final brand mark (replace `res/drawable/wc_mark.xml` and the web
+  wordmark, regenerate adaptive icon). If it is not ready by store asset
+  capture, ship the current mark and rebrand in a later minor.
+- D1: create the upload keystore (outside the repo), back it up, fill
+  `android/keystore.properties`, add the four CI secrets
+  (`ANDROID_KEYSTORE_B64`, `_PASSWORD`, `ANDROID_KEY_ALIAS`, `_KEY_PASSWORD`).
+- Turn on GitHub Pages from `main` `/docs` so `docs/privacy.html` is served at
+  the URL About links to.
+- D4 store assets: screenshots 1920x1080 (home with CONTINUE, mid-game
+  territory, event plate, QUICK GAME start, aftergame), feature graphic
+  1024x500, content rating, data safety "no data collected". Copy is World Of
+  Conflict only; "OpenFront" appears only as the CC BY-SA and AGPL credit.
+  Offline single player vs bots, quick game, resume after interruption;
+  non-monetized; minSdk 26 with a WebGL2 WebView; AGPL source link.
+- D5 closed test: a personal developer account needs 12+ opted-in testers for
+  14 continuous days before production. Recruit now. Feedback via GitHub issues
+  with pasted Copy error log; enable pre-launch reports; recheck targetSdk at
+  upload.
+- Time a clean clone to `android:debug` to install once and record the minutes
+  (target 15 or less after JDK and SDK install) in `CONTRIBUTING.md`.
 
-**B2. Solo rail.** START sits directly under the last control at 844x390 and
-640x320 (mobile CSS only).
+## 6. Release order
 
-**B3. spawn_failed panel** (`ClientGameRunner.ts:1091`). FatalScreen panel
-under `body.mobile-theme`, title "COULD NOT SPAWN", one gold BACK TO HOME;
-Android back does the same.
+1. Commit the first-pass work (it is all uncommitted) in reviewable pieces.
+2. Fix section 1, then section 2.
+3. Dry-run the release workflow (needs item 9), then `npm run version:set -- 0.2.0`,
+   commit, tag `v0.2.0`, push the tag.
+4. Closed test (14 days, 12+ testers).
 
-**B4. Critical event plate** (`CriticalEventPlate.ts`). Events for the local
-player only: nuke inbound (`MessageType.NUKE_INBOUND`, `GameTypes.ts:454`),
-ally betrayed (alliance-broken update `betrayedID`, `GameUpdates.ts:308`),
-under attack (a new attack id in `incomingAttacks`, `GameUpdates.ts:274`; an id
-never triggers twice). Priority nuke > betrayal > attack; a new event replaces
-the plate only at equal or higher priority; attack plates at most one per 10 s
-of game ticks; shows 4 s; tap dismisses; Android back dismisses it first.
-Copy keys `event_plate.attack` "{name} is attacking you",
-`event_plate.betrayal` "{name} broke your alliance", `event_plate.nuke`
-"Nuke inbound from {name}"; name ellipsis after 18 chars. Look: plate with a
-2px `--wc-red` top edge, 22px icon per type, Body 16px Ivory, max width
-min(420px, clear of the rank and timer plates at 640px), top-centre at 12px +
-safe area, directly below the tutorial banner while it shows; 8px rise + 180ms
-fade, none under reduced motion; `aria-live` assertive for nuke/betrayal,
-polite for attack. DESIGN.md gains the plate (Components) and Alarm Red
-(Colors). Tests: priority, rate limit, dedupe.
-
-**B5. Battery while paused.** Remove `backdrop-filter: blur` from `.wc-scrim`
-(`mobile-theme.css:608`), use a darker solid scrim, and skip `onFrame`
-(`ClientGameRunner.ts:631-635`) while the sim is paused and the camera is still.
-
-**B6. Return from background stays paused.** `GameRightSidebar.ts:157-159`
-unpauses as soon as the page is visible; instead keep the game paused and show
-the pause card so the player resumes with a tap (clear `pausedByLifecycle`).
-
-**B7. Android back stacking.** One guard in `showDialog`
-(`src/client/InGameModal.ts:16-21`): if a `confirm-dialog` is open, back
-resolves it as KEEP/cancel and returns, instead of stacking a new dialog and
-another `gameplayStop()`. Test it.
-
-**B8. Final brand mark** (owner). Replace `res/drawable/wc_mark.xml` and the web
-wordmark, regenerate adaptive icon and splash.
-
-## C — Phone features
-
-**C1. Save and resume** (`src/client/mobile/SaveGame.ts`, game client chunk).
-
-- Measure first: snapshot size and `snapshot()` time on Europe and World on the
-  A2 device. Budget: no main-thread task over 50 ms. Over 5 MB → gzip with
-  `CompressionStream` before storing. If over budget, the interval becomes
-  120 s.
-- Storage: IndexedDB store `wc-saves`, key `current`, through an injectable
-  `IDBFactory` like `src/client/replay/ReplayStore.ts:285`. Save holds: snapshot
-  bytes, turn list (intents) for turns 0..T−1 where T =
-  `readSnapshotHeader(snapshot).tick`, the state hash at T, `GameConfig`,
-  `gameStartInfo`, local `clientID`, speed multiplier, map name, elapsed game
-  seconds, build git commit, saved-at time.
-- When: every 60 s of game time (game ticks, never wall clock) and on
-  Capacitor `appStateChange` to background (best effort; guarantee is "at most
-  60 s of game time lost"). Listener registered at game start, removed at end.
-- Safety: one snapshot in flight; ticks while pending are skipped; 10 s timeout
-  around `WorkerClient.snapshot()` (no engine change); a `saveEpoch` checked
-  before the request and before the put; game end, abandon, discard and
-  elimination bump it; older-epoch results are dropped silently. Failed
-  snapshot or `QuotaExceededError` keeps the previous save and logs
-  `save.snapshot_failed`; after 3 in a row the pause card's saved line turns
-  Ember "Saving paused". IndexedDB unavailable → no CONTINUE, logs
-  `save.storage_unavailable` once.
-- Restore: LocalServer starts with `turns` prefilled to the saved list, so the
-  next turn number is T (numbering is `turns.length`, `LocalServer.ts:276`);
-  intents queued past T are dropped; saved speed applied before the first
-  turn; worker init with `snapshotToRestore`; the game opens paused, camera
-  centred on the player's largest territory, header "RESUMED · TURN N · SAVED
-  N MIN AGO". Right after restore, compare the restored state hash with the
-  saved one; mismatch logs one `resume-desync`. A resumed game keeps a full game
-  record (replay works). Restore loads the client through `GameClientLoader`.
-- End: elimination records `loss`, clears the save and stops autosave; a win
-  clears it.
-- Home: with a save, a CONTINUE plate at the top of the title screen's right
-  column (≤360px wide, ≤96px high): map name, elapsed mm:ss, "saved N min ago";
-  CONTINUE is the gold face and PLAY turns steel; PLAY stays visible at
-  640x320. Tap shows the loading screen at once; buttons disable until settled.
-  DISCARD on the card and every game start with a save (PLAY, QUICK GAME, solo
-  START, Play again) open "DISCARD SAVED GAME?" with KEEP (gold, also Android
-  back) and DISCARD (steel; clears, records `abandoned`).
-- Stale or broken save: discarded at boot; a notice plate in the card's slot
-  (`save.stale` "Your saved game is from an older version and could not be
-  restored", `save.damaged` "Your saved game was damaged and could not be
-  restored"), tap to dismiss; records `abandoned`; logs the error. Dev builds
-  report commit `DEV` and never go stale; tests inject the commit.
-- Pause card: RESUME (gold), EXIT TO HOME (steel, saves now, keeps the save),
-  ABANDON (steel, confirm, clears, records `quit`); "Saved N s ago" line.
-- About: "Clear saved game" (only when a save exists), same confirm modal.
-- Dev override: `localStorage` `wc.dev.autosaveSeconds`, ignored in release.
-- Tests: node equivalence test (snapshot at T with turns queued, restore, 200
-  more turns, per-turn hashes equal an uninterrupted run with the same seed
-  and intents); resumed record replays to the same final hash; existing
-  LocalServer replay tests stay green; timeout with a fake worker that never
-  answers; epoch race (pause snapshot, end game, release → no save); quota
-  error keeps the previous save; speed restored; stale/corrupt paths; each
-  start entry shows the discard modal; override ignored in release.
-- Device: force-stop and `adb shell am kill com.worldofconflict.game` mid-game,
-  relaunch, CONTINUE.
-
-**C2. Quick game.** A steel QUICK GAME button on home under PLAY starts a game
-at once: the 3 smallest curated maps (by `map.bin`), 5 bots, speed
-`ReplaySpeedMultiplier.fast` (0.5x turn interval). Provisional until 10 games
-are logged in PlayStats, then retuned by hand toward 5–10 minute games. Solo
-rail unchanged.
-
-**C3. Vibration** (`Haptics.ts`, `navigator.vibrate`, already used at
-`RadialMenu.ts:164`; VIBRATE permission exists). 15 ms on attack sent; 40 ms
-when an attack plate shows (same 10 s limit). Setting "Vibration"
-(`settings.vibration`) in the settings modal, default on; off = no calls.
-DESIGN.md notes the in-app toggle is the reliable off switch.
-
-**C4. Error log and stats.**
-
-- `ErrorLog.ts` (homepage chunk): captures `window.onerror`,
-  `unhandledrejection`, worker errors and FatalScreen (FatalScreen writes
-  through `ErrorLog.append`). localStorage `wc-errlog`, JSON array, last 200,
-  each entry ≤2 KB, persisted at most once per second; memory buffer always
-  current. Each entry: `code` (`save.snapshot_failed`, `save.restore_failed`,
-  `save.stale`, `save.damaged`, `save.storage_unavailable`, `resume-desync`,
-  `errlog.clipboard_failed`, `js.error`, `js.unhandled_rejection`,
-  `worker.error`, `fatal.<kind>`), operation, commits where relevant, turn,
-  truncated stack.
-- About "Copy error log": header line (app version, git commit, Android and
-  WebView version from the user agent, PlayStats counts; never clientID or
-  persistentID) then entries; "Copied (N entries)" toast 2 s; empty log copies
-  the header + "No errors logged"; clipboard failure opens a panel with
-  selectable text and logs `errlog.clipboard_failed`.
-- `PlayStats`: per game, match length (game seconds) and end reason `win`,
-  `loss`, `quit`, `abandoned`; `finished` counts only win/loss; resume adds
-  nothing to `started`; length is total game time. About shows
-  "MEDIAN GAME N MIN · LAST 20" from win/loss games, hidden below 3,
-  "(provisional)" below 10; hidden on storage failure.
-- `SoloReplay` validates stored config with `GameConfigSchema.safeParse`;
-  invalid → falls back to the solo setup screen.
-- Tests for ErrorLog, PlayStats, SoloReplay and `MobileBack` routing.
-
-## D — Release plumbing
-
-**D1. Signing and builds.**
-
-- H1 first: uncomment `*.jks` / `*.keystore` in `android/.gitignore`; add
-  `keystore.properties`, `*.jks`, `*.keystore` to the root `.gitignore`; the
-  gate fails `WC_GATE_KEYSTORE_TRACKED` if `git ls-files` lists any.
-- Upload keystore outside the repo; commit `android/keystore.properties.example`;
-  Gradle reads `android/keystore.properties` for a `release` signingConfig;
-  `minifyEnabled false` for v0.2.0; Play App Signing on; key backup documented
-  (`keytool -genkeypair -v -keystore upload.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload`).
-- `npm run android:doctor`: Java 21, `ANDROID_HOME`/`ANDROID_SDK_ROOT`, Gradle
-  wrapper (and `adb` for debug only); each miss prints `WC_DOCTOR_<ITEM>` with
-  the fix and exits non-zero. Runs first in `android:release`.
-- `npm run android:debug`: sync + `assembleDebug` →
-  `dist-mobile/WorldOfConflict-dev.apk`, prints `READY <path> (<size> MB)`.
-- `npm run android:release`: signed `bundleRelease` and `assembleRelease` →
-  `dist-mobile/WorldOfConflict-vX.Y.Z.aab` and `.apk`, prints paths, sizes and
-  the `gh release upload` line. Missing properties → `WC_SIGNING_MISSING`
-  (names the example file and `android:debug`); bad password →
-  `WC_SIGNING_INVALID`; no secret values printed. AAB over 150 MB →
-  `WC_GATE_AAB_SIZE` with size, limit and the 5 largest folders.
-- Versioning: `npm run version:set -- X.Y.Z` writes versionName and versionCode
-  (`major*10000+minor*100+patch`, v0.2.0 = 200); the gate refuses a mismatch
-  (`WC_GATE_VERSION_CODE` prints the expected number) and any tag suffix.
-  Every Play upload gets its own patch tag. Order: `version:set` → commit →
-  tag → push tag.
-- Trim the APK: exclude web-only resources in `copyMobileResources`
-  (`scripts/mobileBuild.ts:25-31`): `press/` (12 MB), `ads.txt`, `news.json`,
-  `streams.json`, `privacy-policy.html`, `terms-of-service.html`,
-  `changelog.md`, `lemon-drizzle.md`; check whether all of `flags/` (26 MB) is
-  needed offline; re-run the curated-map check.
-- Mobile build forces `cdnBase: ""` and `assetManifest: {}` (`vite.config.ts:308`,
-  346-358). Optional: the origin check also scans emitted `.css` for
-  `url(http…)`/`@import`.
-- Manifest: `android:allowBackup="false"`; delete the unused FileProvider block
-  and `res/xml/file_paths.xml`.
-- Remove the dead `SOURCE_URL_PLACEHOLDER` (`AppInfo.ts:5`), the
-  `WC_GATE_PLACEHOLDER_URL` branch (`scripts/mobileBuild.ts:127-130`) and its
-  test case.
-- About's AGPL source link points at `${SOURCE_URL}/tree/<tag>` in release
-  builds (root link in dev).
-- `LocalServer.archiveGameRecord` is skipped under the mobile shell; the
-  offline runtime test asserts no non-local request after a finished game.
-- Device smoke test of the signed release APK: full offline game, resume after
-  force-stop.
-
-**D2. CI** `.github/workflows/android-release.yml`. On `v*` tag: JDK 21 +
-Android SDK, `npm run inst`, `npm run android:release` run directly (any gate or
-Gradle failure fails the job), `gh release upload --clobber` of AAB and APK
-(re-runs are safe). Keystore from secret `ANDROID_KEYSTORE_B64`
-(`base64 -w0 upload.jks | gh secret set ANDROID_KEYSTORE_B64`), decoded into
-`$RUNNER_TEMP`, never echoed, passwords as env vars, deleted in an
-`if: always()` step, never uploaded. Also `workflow_dispatch` with
-`dry_run: true` (default) that builds and uploads a workflow artifact without
-touching any Release; use it before the first tag.
-
-**D3. Privacy policy.** `docs/privacy.html`, GitHub Pages "deploy from branch"
-(`main` `/docs`), no workflow. Says: the app makes no network requests and
-collects no data; local-only storage (stats, saves, error log). Linked from
-About and the listing.
-
-**D4. Play listing.** World Of Conflict branding only; "OpenFront" only as the
-CC BY-SA attribution and AGPL source credit. Factual copy: offline single
-player vs bots, quick game, resume after interruption; non-monetized hobby
-release; minimum spec Android 8.0 (minSdk 26) with a WebGL2 WebView; AGPL
-source link. Screenshots 1920x1080 (16:9; 844x390 breaks Play's 2:1 limit):
-home with CONTINUE, mid-game territory, event plate, QUICK GAME start,
-aftergame. Feature graphic 1024x500. Content rating, data safety "no data
-collected".
-
-**D5. Closed test.** New personal developer accounts need a closed test with
-at least 12 opted-in testers for 14 continuous days before production (owner
-confirms account type). Recruit now. Feedback: GitHub issues plus pasted
-"Copy error log". Enable pre-launch reports. targetSdk 36 meets the Play floor;
-recheck at upload.
-
-**D6. Docs.** `ANDROID.md`: signing section with the literal commands above,
-release order, "Error codes" table (`WC_GATE_*`, `WC_SIGNING_*`,
-`WC_DOCTOR_*`, `WC_GRADLE_FAILED`, ErrorLog codes) with anchors matching script
-output, and a tester crash-report runbook (ask for Copy error log, match the
-header commit to the tag, file an issue; `adb logcat -s Capacitor chromium`).
-
-## Done when (v0.2.0 public-release ready)
-
-- Closed test ran 14 days with ≥12 testers.
-- No unresolved crash reports from tester error logs.
-- ≥5 testers finished 3+ games (from their pasted PlayStats line).
-- A2 numbers and A4 result recorded; release APK smoke test passed.
+Done when: the closed test ran 14 days with 12+ testers, no unresolved crash
+reports in tester error logs, at least 5 testers finished 3+ games (from their
+pasted play-stats line), A2 numbers and the A4 result are recorded, and the
+signed release APK passed a full offline game plus resume after force-stop.
 
 ## Later (not in v0.2.0)
 
 - Online multiplayer on our own server (`MobileShell` network mode
-  `"own-server"`; add `"android"` to `ClientPlatform`); needs auth/stats
-  replaced or dropped.
+  `"own-server"`; add `"android"` to `ClientPlatform`).
 - iOS (research AGPL vs App Store terms first).
-- On-demand map downloads beyond the 15 curated maps (`curatedMaps()`).
-- In-app "Report a problem" to a prefilled GitHub issue (needs an
-  external-link policy).
-- Daily seeded challenge map (decide after the closed test).
+- On-demand map downloads beyond the 15 curated maps.
+- In-app "Report a problem" to a prefilled GitHub issue.
+- Daily seeded challenge map.
 - Monthly upstream merge from OpenFrontIO with the gate rerun.
-- Devcontainer/Docker build image (if contributors ask).
+- Engine snapshot resume (needs a baseline-update engine change; see section 3).
 
 ## How to run
 
@@ -354,9 +211,10 @@ npx -y npm@12 ci --ignore-scripts
 
 - Browser preview: `.claude/launch.json` config `mobile-preview` (port 9100,
   serves `dist-mobile/`), viewport 844x390; rebuild with `npm run build-mobile`
-  after each change and add `?v=N` to bust the cache.
-- APK today: `npm run android:sync`, then in `android/`
-  `JAVA_HOME="/c/Program Files/Android/Android Studio/jbr" ./gradlew assembleDebug`.
+  after each change and add `?v=N` to bust the cache. For quick save tests set
+  `localStorage["wc.dev.autosaveSeconds"]` (dev builds only).
+- APK: `npm run android:doctor`, `npm run android:debug`,
+  `adb install -r dist-mobile/WorldOfConflict-dev.apk`.
 - Emulator: AVD `Pixel_9_API_Baklava`; prefix adb commands that take
   `/sdcard/…` with `MSYS_NO_PATHCONV=1` in Git Bash.
 - Known noise: 18 `update.sh` tests fail on Windows on clean `main`; some

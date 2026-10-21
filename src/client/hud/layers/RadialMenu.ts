@@ -3,6 +3,7 @@ import { EventBus, GameEvent } from "@openfront/shared/EventBus";
 import * as d3 from "d3";
 import { Controller } from "../../Controller";
 import { CloseViewEvent, RadialSlideEvent } from "../../InputHandler";
+import { vibrate } from "../../mobile/Haptics";
 import { PlaySoundEffectEvent } from "../../sound/Sounds";
 import { getSvgAspectRatio, translateText } from "../../Utils";
 import {
@@ -161,7 +162,7 @@ export class RadialMenu implements Controller {
       this.slidPath = path;
       path?.dispatchEvent(new MouseEvent("mouseover"));
       // A tick per slice lets the player pick without looking.
-      if (path) navigator.vibrate?.(8);
+      if (path) vibrate(8);
     }
     if (this.tooltipElement) {
       // Above the finger, so the finger doesn't cover it.

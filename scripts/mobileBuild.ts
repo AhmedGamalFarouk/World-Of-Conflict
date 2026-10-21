@@ -13,6 +13,19 @@ import { copyRootPublicFiles } from "../src/server/PublicAssetManifest";
 
 const MAP_FILES = ["map.bin", "map4x.bin", "map16x.bin", "manifest.json"];
 
+// Web-only files the offline app never opens (NEXT-STEPS D1). Paths are
+// relative to the output root, from resources/ or resources/public/.
+const WEB_ONLY = [
+  "press",
+  "ads.txt",
+  "privacy-policy.html",
+  "terms-of-service.html",
+  "news.json",
+  "streams.json",
+  "changelog.md",
+  "lemon-drizzle.md",
+];
+
 export function copyMobileResources(
   resourcesDir: string,
   overlayDir: string,
@@ -32,6 +45,9 @@ export function copyMobileResources(
     },
   });
   copyRootPublicFiles(publicDir, outDir);
+  for (const name of WEB_ONLY) {
+    fs.rmSync(path.join(outDir, name), { recursive: true, force: true });
+  }
   fs.cpSync(overlayDir, outDir, {
     recursive: true,
     filter: (src) => path.basename(src) !== "README.md",
@@ -110,25 +126,41 @@ export function checkMobileDist(
 
 export interface ReleaseState {
   sourceUrl: string;
-  placeholderUrl: string;
   /** `git status --porcelain` output. */
   porcelain: string;
   /** `git describe --tags --exact-match`, or null when HEAD has no tag. */
   exactTag: string | null;
   /** versionName from android/app/build.gradle, or null if not found. */
   versionName: string | null;
+  /** versionCode from android/app/build.gradle, or null if not found. */
+  versionCode: number | null;
+  /** `git ls-files` entries that look like signing secrets. */
+  trackedSecrets: string[];
   tagPattern: RegExp;
+  /**
+   * WC_DRY_RUN=1: an untagged HEAD is judged by its versionName instead (the
+   * tag check is the only one skipped), so the pipeline can be proven before
+   * the first tag. Never set for a tag push.
+   */
+  dryRun?: boolean;
+}
+
+/** major*10000 + minor*100 + patch: v0.2.0 is 200. */
+export function versionCodeFor(version: string): number {
+  const [major, minor, patch] = version.split(".").map(Number);
+  return major * 10000 + minor * 100 + patch;
 }
 
 /** Every reason the build is not a release, each with its code and fix. */
 export function checkReleaseGate(s: ReleaseState): string[] {
   const errors: string[] = [];
   const doc = "see docs/mobile/ANDROID.md#release-gate";
-  if (s.sourceUrl === s.placeholderUrl) {
+  if (s.trackedSecrets.length > 0) {
     errors.push(
-      `WC_GATE_PLACEHOLDER_URL: SOURCE_URL is still ${s.sourceUrl}. Fix: edit SOURCE_URL in src/client/mobile/AppInfo.ts (${doc})`,
+      `WC_GATE_KEYSTORE_TRACKED: git tracks signing secrets: ${s.trackedSecrets.join(", ")}. Fix: git rm --cached them and rotate the key (${doc})`,
     );
-  } else if (!s.sourceUrl.startsWith("https://github.com/")) {
+  }
+  if (!s.sourceUrl.startsWith("https://github.com/")) {
     errors.push(
       `WC_GATE_SOURCE_URL: SOURCE_URL ${s.sourceUrl} is not a https://github.com/ repo. Fix: point it at the public World Of Conflict repo (${doc})`,
     );
@@ -139,17 +171,22 @@ export function checkReleaseGate(s: ReleaseState): string[] {
       `WC_GATE_DIRTY: uncommitted changes (untracked files count too):\n    ${dirty.split("\n").join("\n    ")}\n  Fix: commit or git stash -u (${doc})`,
     );
   }
-  if (s.exactTag === null) {
+  const tag = s.exactTag ?? (s.dryRun ? `v${s.versionName ?? ""}` : null);
+  if (tag === null) {
     errors.push(
       `WC_GATE_UNTAGGED: HEAD has no tag. Fix: git tag vX.Y.Z && git push origin vX.Y.Z (${doc})`,
     );
-  } else if (!s.tagPattern.test(s.exactTag)) {
+  } else if (!s.tagPattern.test(tag)) {
     errors.push(
-      `WC_GATE_BAD_TAG: tag ${s.exactTag} is not vX.Y.Z, so the app would show DEV BUILD. Fix: tag the commit vX.Y.Z (${doc})`,
+      `WC_GATE_BAD_TAG: tag ${tag} is not vX.Y.Z, so the app would show DEV BUILD. Fix: tag the commit vX.Y.Z (${doc})`,
     );
-  } else if (s.versionName !== s.exactTag.slice(1)) {
+  } else if (s.versionName !== tag.slice(1)) {
     errors.push(
-      `WC_GATE_VERSION_NAME: android/app/build.gradle versionName is ${s.versionName ?? "missing"}, tag is ${s.exactTag}. Fix: set versionName "${s.exactTag.slice(1)}" and bump versionCode, then commit and re-tag (${doc})`,
+      `WC_GATE_VERSION_NAME: android/app/build.gradle versionName is ${s.versionName ?? "missing"}, tag is ${tag}. Fix: run npm run version:set -- ${tag.slice(1)}, then commit and re-tag (${doc})`,
+    );
+  } else if (s.versionCode !== versionCodeFor(s.versionName)) {
+    errors.push(
+      `WC_GATE_VERSION_CODE: android/app/build.gradle versionCode is ${s.versionCode ?? "missing"}, expected ${versionCodeFor(s.versionName)}. Fix: npm run version:set -- ${s.versionName}, then commit and re-tag (${doc})`,
     );
   }
   return errors;

@@ -30,6 +30,7 @@ import { GameStartingModal } from "./GameStartingModal";
 import { showInGameAlert } from "./InGameModal";
 import { JoinLobbyEvent } from "./Main";
 import { isOffline } from "./mobile/MobileShell";
+import { allowNewGame } from "./mobile/SaveHome";
 import { rememberSoloConfig, takeSoloReplay } from "./mobile/SoloReplay";
 import { fallbackPlayerName, ResolvedPlayerName } from "./PlayerName";
 import { lastUserMeResponse } from "./UserMeBroadcast";
@@ -46,6 +47,7 @@ import {
   sliderToNationsConfig,
   toOptionalNumber,
 } from "./utilities/GameConfigHelpers";
+import type { ReplaySpeedMultiplier } from "./utilities/ReplaySpeedMultiplier";
 
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
 
@@ -708,7 +710,8 @@ export class SinglePlayerModal extends BaseModal {
     // Mobile aftergame "Play again": start at once with the last settings.
     const replay = isOffline() ? takeSoloReplay() : null;
     if (replay !== null) {
-      this.replayConfig = replay;
+      this.replayConfig = replay.config;
+      this.replaySpeed = replay.speed;
       void this.startGame();
       return;
     }
@@ -1055,11 +1058,14 @@ export class SinglePlayerModal extends BaseModal {
   }
 
   private replayConfig: GameConfig | null = null;
+  private replaySpeed: ReplaySpeedMultiplier | undefined;
 
   private async startGame() {
     // A second click while the first is still resolving would dispatch a
     // second join-lobby for a different gameID.
     if (this.starting) return;
+    // Mobile: a new game replaces the saved one, so ask first.
+    if (isOffline() && !(await allowNewGame())) return;
     // Validate and clamp maxTimer setting before starting
     let finalMaxTimerValue: number | undefined = undefined;
     if (this.maxTimer) {
@@ -1209,12 +1215,14 @@ export class SinglePlayerModal extends BaseModal {
             lobbyCreatedAt: Date.now(), // ms; server should be authoritative in MP
           },
           source: "singleplayer",
+          speed: this.replaySpeed,
         } satisfies JoinLobbyEvent,
         bubbles: true,
         composed: true,
       });
       this.dispatchEvent(joinEvent);
       this.replayConfig = null;
+      this.replaySpeed = undefined;
       if (isOffline()) {
         rememberSoloConfig(joinEvent.detail.gameStartInfo.config);
       }

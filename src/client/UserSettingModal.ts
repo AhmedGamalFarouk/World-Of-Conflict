@@ -392,6 +392,10 @@ export class UserSettingModal extends BaseModal {
     console.log("🤡 Emojis:", this.userSettings.emojis() ? "ON" : "OFF");
   }
 
+  private toggleVibration() {
+    this.userSettings.toggleVibration();
+  }
+
   private toggleAlertFrame() {
     this.userSettings.toggleAlertFrame();
 
@@ -1826,6 +1830,16 @@ export class UserSettingModal extends BaseModal {
         .checked=${this.userSettings.alertFrame()}
         @change=${this.toggleAlertFrame}
       ></setting-toggle>
+
+      ${isMobileShell()
+        ? html`<setting-toggle
+            label="${translateText("user_setting.vibration_label")}"
+            description="${translateText("user_setting.vibration_desc")}"
+            id="vibration-toggle"
+            .checked=${this.userSettings.vibration()}
+            @change=${this.toggleVibration}
+          ></setting-toggle>`
+        : nothing}
 
       <!-- 💰 Cursor Price Pill -->
       <setting-toggle

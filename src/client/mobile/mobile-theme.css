@@ -196,7 +196,10 @@ body.mobile-theme #page-play:not(.hidden) {
   grid-template-areas:
     "word name"
     "word actions";
-  grid-template-rows: 1fr 1fr;
+  /* Auto rows, centred as one block: a CONTINUE plate above PLAY makes the
+     right column taller without pushing the name field down a half-row. */
+  grid-template-rows: auto auto;
+  align-content: center;
   column-gap: 40px;
   row-gap: 16px;
   min-height: 100dvh;
@@ -271,19 +274,144 @@ body.mobile-theme #page-play > div.fixed img {
   color: var(--wc-gold);
   padding-left: 0.12em;
 }
-.wc-title-actions {
+body.mobile-theme .wc-title-actions {
   grid-area: actions;
   align-self: start;
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
   width: 100%;
   max-width: 360px;
+}
+/* PLAY, the CONTINUE plate and notices take the full row; QUICK GAME and
+   TUTORIAL share the next one, so PLAY stays on screen at 640x320. */
+body.mobile-theme .wc-title-actions > :not(.wc-quick, .wc-tutorial) {
+  grid-column: 1 / -1;
+}
+.wc-quick,
+.wc-tutorial {
+  padding: 0 8px;
+  font-size: 16px;
+  white-space: nowrap;
 }
 .wc-play {
   min-height: 72px;
   font-size: 30px;
   letter-spacing: 0.12em;
+}
+
+/* CONTINUE plate: top of the right column, at most 360px by 96px. */
+body.mobile-theme .wc-save-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "info discard"
+    "go go";
+  align-items: center;
+  gap: 6px 8px;
+  max-width: 360px;
+  max-height: 96px;
+  padding: 6px 10px;
+}
+body.mobile-theme .wc-save-info {
+  grid-area: info;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.15;
+}
+body.mobile-theme .wc-save-map {
+  font-family: var(--wc-display);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body.mobile-theme .wc-save-meta {
+  font-size: 14px;
+  color: var(--wc-mute);
+}
+body.mobile-theme .wc-continue {
+  grid-area: go;
+  min-height: 48px;
+  font-size: 22px;
+  letter-spacing: 0.1em;
+}
+body.mobile-theme .wc-save-discard {
+  grid-area: discard;
+  min-width: 48px;
+  min-height: 32px;
+  padding: 0 6px;
+  background: none;
+  border: 0;
+  font-family: var(--wc-display);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wc-mute);
+  cursor: pointer;
+}
+/* A save that could not be restored: a tap-to-dismiss notice in the same slot. */
+body.mobile-theme .wc-save-notice {
+  max-width: 360px;
+  max-height: 96px;
+  padding: 10px 14px;
+  text-align: left;
+  font-family: var(--wc-body);
+  font-size: 14px;
+  line-height: 1.3;
+  color: var(--wc-ivory);
+  cursor: pointer;
+  overflow: hidden;
+}
+/* Short phones: the save card, PLAY, QUICK GAME and TUTORIAL must all fit. */
+@media (max-height: 340px) {
+  body.mobile-theme #page-play:not(.hidden) {
+    row-gap: 8px;
+    padding-top: calc(env(safe-area-inset-top) + 56px);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 12px);
+  }
+  .wc-play {
+    min-height: 56px;
+    font-size: 26px;
+  }
+  body.mobile-theme .wc-title-actions {
+    gap: 8px;
+  }
+  /* CONTINUE sits beside the map info, DISCARD under it. */
+  body.mobile-theme .wc-save-card {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "info go"
+      "discard go";
+    gap: 0 8px;
+    max-height: none;
+    padding: 4px 8px;
+  }
+  body.mobile-theme .wc-save-map {
+    font-size: 16px;
+  }
+  body.mobile-theme .wc-save-meta {
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  body.mobile-theme .wc-save-discard {
+    justify-self: start;
+    min-height: 28px;
+    padding: 0;
+    font-size: 12px;
+  }
+  body.mobile-theme .wc-continue {
+    align-self: center;
+    padding: 0 12px;
+    font-size: 16px;
+  }
 }
 
 /* Footer: only the language flag stays (it also loads the translations),
@@ -415,6 +543,24 @@ body.mobile-theme
 body.mobile-theme single-player-modal o-button[variant="primary"] > button {
   min-height: 72px;
   font-size: 26px;
+}
+/* START is the rail's last item whatever else shows above it, pinned to the
+   bottom edge at 844x390 and 640x320, never riding up under a control. */
+body.mobile-theme
+  single-player-modal
+  o-modal
+  > div.flex-col.h-full
+  > div:last-child {
+  align-self: stretch;
+  min-height: 0;
+}
+body.mobile-theme
+  single-player-modal
+  o-modal
+  > div.flex-col.h-full
+  > div:last-child
+  > o-button:last-child {
+  margin-top: auto;
 }
 
 /* The flag belongs to the title screen only. */
@@ -604,8 +750,9 @@ body.mobile-theme control-panel > div {
   z-index: 2000;
   display: grid;
   place-items: center;
-  background: rgb(6 9 18 / 0.62);
-  backdrop-filter: blur(3px);
+  /* Solid, no blur: a blur re-filters the live map every frame and the map
+     is paused behind this. */
+  background: rgb(6 9 18 / 0.82);
   animation: wc-fade 180ms var(--wc-ease);
 }
 .wc-pause-card {
@@ -613,6 +760,8 @@ body.mobile-theme control-panel > div {
   flex-direction: column;
   gap: 10px;
   width: min(420px, calc(100vw - 32px));
+  max-height: calc(100dvh - 16px);
+  overflow-y: auto;
   padding: 18px 20px 20px;
   animation: wc-rise 220ms var(--wc-ease);
 }
@@ -640,13 +789,79 @@ body.mobile-theme control-panel > div {
 }
 .wc-pause-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 8px;
   margin-top: 4px;
 }
 .wc-pause-row .wc-btn {
   font-size: 16px;
-  padding: 0 10px;
+  padding: 0 6px;
+}
+/* Resumed header and the saved line (save/resume, NEXT-STEPS C1). */
+.wc-resumed {
+  margin: 0;
+  text-align: center;
+}
+.wc-saved {
+  margin: 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--wc-mute);
+}
+.wc-saved-paused {
+  color: #f0a04b; /* Ember */
+}
+/* Short landscape phones (640x320): tighter card, smaller header lines. */
+@media (max-height: 400px) {
+  .wc-pause-card {
+    gap: 4px;
+    padding: 8px 16px 10px;
+  }
+  .wc-pause-title {
+    margin: 0;
+    font-size: 22px;
+  }
+  .wc-pause-resume {
+    min-height: 48px;
+    font-size: 20px;
+  }
+  .wc-resumed,
+  .wc-saved {
+    font-size: 13px;
+    line-height: 1.2;
+  }
+  .wc-pause-row {
+    margin-top: 0;
+  }
+}
+
+/* Two-button confirmation (discard, abandon): KEEP gold, destroy steel. */
+body.mobile-theme .wc-confirm {
+  z-index: 2300;
+}
+body.mobile-theme .wc-confirm-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(420px, calc(100vw - 32px));
+  padding: 18px 20px 20px;
+  font-family: var(--wc-body);
+  animation: wc-rise 220ms var(--wc-ease);
+}
+body.mobile-theme .wc-confirm-card p {
+  margin: 0;
+  font-size: 16px;
+}
+body.mobile-theme .wc-confirm-title {
+  margin: 0;
+  font-family: var(--wc-display);
+  font-weight: 800;
+  font-size: 26px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+body.mobile-theme .wc-confirm-card .wc-keep {
+  min-height: 56px;
 }
 @keyframes wc-fade {
   from {
@@ -777,6 +992,51 @@ body.mobile-theme div:has(> events-display) {
 .wc-result-again {
   min-height: 64px;
   font-size: 26px;
+}
+
+/* Critical event plate (CriticalEventPlate.ts): top centre between the rank
+   and timer plates, a 2px Alarm Red top edge, below the tutorial banner while
+   that shows (the plate sets --wc-event-top then). */
+body.mobile-theme .wc-event-plate {
+  position: fixed;
+  z-index: 2100;
+  top: var(--wc-event-top, calc(env(safe-area-inset-top) + 12px));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(420px, calc(100vw - 380px));
+  padding: 8px 14px;
+  font-family: var(--wc-body);
+  font-size: 16px;
+  line-height: 1.25;
+  color: var(--wc-ivory);
+  border-top: 2px solid var(--wc-red);
+  animation: wc-event-in 180ms var(--wc-ease);
+}
+body.mobile-theme .wc-event-plate span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+body.mobile-theme .wc-event-icon {
+  flex: none;
+  fill: none;
+  stroke: var(--wc-red);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+@keyframes wc-event-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.mobile-theme .wc-event-plate {
+    animation: none;
+  }
 }
 
 /* Spawn prompt and other heads-up lines sit below the tutorial banner. */

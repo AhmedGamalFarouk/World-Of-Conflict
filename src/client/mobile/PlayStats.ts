@@ -1,15 +1,31 @@
 // Local count of games started and finished, shown in About so playtesters
 // can report it (there is no telemetry offline). Storage can be blocked or
-// full; then nothing is counted and About hides the line.
+// full; then nothing is counted and About hides the lines.
 
 const KEY = "wc.playStats";
+const KEEP_GAMES = 20;
+const MEDIAN_MIN_GAMES = 3;
+const MEDIAN_FINAL_GAMES = 10;
+
+/** How a game ended. Only win and loss count as finished. */
+export type EndReason = "win" | "loss" | "quit" | "abandoned";
+
+export interface PlayedGame {
+  /** Total game time in seconds, across resumes. */
+  seconds: number;
+  reason: EndReason;
+}
 
 export interface PlayStats {
   started: number;
   finished: number;
   first: number;
   last: number;
+  /** The last KEEP_GAMES ended games, oldest first. */
+  games: PlayedGame[];
 }
+
+const REASONS: readonly EndReason[] = ["win", "loss", "quit", "abandoned"];
 
 export function readPlayStats(): PlayStats | null {
   try {
@@ -21,13 +37,18 @@ export function readPlayStats(): PlayStats | null {
       finished: Number(s.finished) || 0,
       first: Number(s.first) || 0,
       last: Number(s.last) || 0,
+      games: Array.isArray(s.games)
+        ? s.games.filter(
+            (g) => REASONS.includes(g?.reason) && Number.isFinite(g?.seconds),
+          )
+        : [],
     };
   } catch {
     return null;
   }
 }
 
-function bump(field: "started" | "finished"): void {
+function update(change: (s: PlayStats) => void): void {
   try {
     const now = Date.now();
     const s = readPlayStats() ?? {
@@ -35,8 +56,9 @@ function bump(field: "started" | "finished"): void {
       finished: 0,
       first: now,
       last: now,
+      games: [],
     };
-    s[field]++;
+    change(s);
     s.last = now;
     localStorage.setItem(KEY, JSON.stringify(s));
   } catch {
@@ -44,5 +66,38 @@ function bump(field: "started" | "finished"): void {
   }
 }
 
-export const gameStarted = () => bump("started");
-export const gameFinished = () => bump("finished");
+/** A new game began. A resumed game does not call this. */
+export const gameStarted = () =>
+  update((s) => {
+    s.started++;
+  });
+
+/** A game ended for `reason` after `seconds` of game time in total. */
+export const gameEnded = (reason: EndReason, seconds: number) =>
+  update((s) => {
+    if (reason === "win" || reason === "loss") s.finished++;
+    s.games.push({ seconds: Math.max(0, Math.round(seconds)), reason });
+    if (s.games.length > KEEP_GAMES)
+      s.games.splice(0, s.games.length - KEEP_GAMES);
+  });
+
+/**
+ * Median length in minutes of the won or lost games among the last 20, for
+ * the About line. Null below 3 such games; provisional below 10.
+ */
+export function medianGame(
+  stats: PlayStats,
+): { minutes: number; provisional: boolean } | null {
+  const lengths = stats.games
+    .filter((g) => g.reason === "win" || g.reason === "loss")
+    .map((g) => g.seconds)
+    .sort((a, b) => a - b);
+  if (lengths.length < MEDIAN_MIN_GAMES) return null;
+  const mid = lengths.length >> 1;
+  const median =
+    lengths.length % 2 ? lengths[mid] : (lengths[mid - 1] + lengths[mid]) / 2;
+  return {
+    minutes: Math.round(median / 60),
+    provisional: lengths.length < MEDIAN_FINAL_GAMES,
+  };
+}

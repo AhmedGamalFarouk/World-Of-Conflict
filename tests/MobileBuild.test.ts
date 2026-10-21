@@ -6,11 +6,13 @@ import {
   checkMobileDist,
   checkReleaseGate,
   copyMobileResources,
+  versionCodeFor,
 } from "../scripts/mobileBuild";
 import {
   isDevBuild,
   RELEASE_TAG_RE,
-  SOURCE_URL_PLACEHOLDER,
+  SOURCE_URL,
+  sourceLink,
 } from "../src/client/mobile/AppInfo";
 
 let root: string;
@@ -51,6 +53,8 @@ describe("copyMobileResources", () => {
     writeMap(resources, "europe");
     write(path.join(resources, "lang", "en.json"), "{}");
     write(path.join(resources, "public", "robots.txt"), "ok");
+    write(path.join(resources, "public", "press", "kit.zip"), "12 MB");
+    write(path.join(resources, "news.json"), "[]");
     write(path.join(overlay, "fonts", "OpenFront.ttf"), "open font");
     write(path.join(overlay, "README.md"), "docs");
     const dest = path.join(root, "dest");
@@ -64,6 +68,8 @@ describe("copyMobileResources", () => {
     expect(fs.existsSync(path.join(dest, "lang", "en.json"))).toBe(true);
     expect(fs.existsSync(path.join(dest, "robots.txt"))).toBe(true);
     expect(fs.existsSync(path.join(dest, "public"))).toBe(false);
+    expect(fs.existsSync(path.join(dest, "press"))).toBe(false);
+    expect(fs.existsSync(path.join(dest, "news.json"))).toBe(false);
     expect(
       fs.readFileSync(path.join(dest, "fonts", "OpenFront.ttf"), "utf-8"),
     ).toBe("open font");
@@ -110,10 +116,11 @@ describe("checkMobileDist", () => {
 describe("release gate", () => {
   const ok = {
     sourceUrl: "https://github.com/someone/world-of-conflict",
-    placeholderUrl: SOURCE_URL_PLACEHOLDER,
     porcelain: "",
-    exactTag: "v0.1.0",
-    versionName: "0.1.0",
+    exactTag: "v0.2.0",
+    versionName: "0.2.0",
+    versionCode: 200,
+    trackedSecrets: [] as string[],
     tagPattern: RELEASE_TAG_RE,
   };
   const codes = (errors: string[]) => errors.map((e) => e.split(":")[0]);
@@ -122,10 +129,7 @@ describe("release gate", () => {
     expect(checkReleaseGate(ok)).toEqual([]);
   });
 
-  it("refuses the placeholder or a non-GitHub source link", () => {
-    expect(
-      codes(checkReleaseGate({ ...ok, sourceUrl: SOURCE_URL_PLACEHOLDER })),
-    ).toEqual(["WC_GATE_PLACEHOLDER_URL"]);
+  it("refuses a non-GitHub source link", () => {
     expect(
       codes(checkReleaseGate({ ...ok, sourceUrl: "http://example.com/x" })),
     ).toEqual(["WC_GATE_SOURCE_URL"]);
@@ -153,15 +157,42 @@ describe("release gate", () => {
     ]);
   });
 
+  it("a dry run judges an untagged commit by its versionName, other checks stay", () => {
+    const dry = { ...ok, exactTag: null, dryRun: true };
+    expect(checkReleaseGate(dry)).toEqual([]);
+    expect(codes(checkReleaseGate({ ...dry, versionCode: 3 }))).toEqual([
+      "WC_GATE_VERSION_CODE",
+    ]);
+    expect(codes(checkReleaseGate({ ...dry, versionName: null }))).toEqual([
+      "WC_GATE_BAD_TAG",
+    ]);
+  });
+
+  it("refuses a versionCode that is not major*10000+minor*100+patch", () => {
+    const [error] = checkReleaseGate({ ...ok, versionCode: 3 });
+    expect(error).toContain("WC_GATE_VERSION_CODE");
+    expect(error).toContain("expected 200");
+    expect(versionCodeFor("1.12.7")).toBe(11207);
+  });
+
+  it("refuses tracked signing secrets", () => {
+    const [error] = checkReleaseGate({
+      ...ok,
+      trackedSecrets: ["android/upload.jks"],
+    });
+    expect(error).toContain("WC_GATE_KEYSTORE_TRACKED");
+    expect(error).toContain("android/upload.jks");
+  });
+
   it("reports every problem at once", () => {
     const errors = checkReleaseGate({
       ...ok,
-      sourceUrl: SOURCE_URL_PLACEHOLDER,
+      sourceUrl: "http://example.com/x",
       porcelain: "?? x",
       exactTag: null,
     });
     expect(codes(errors)).toEqual([
-      "WC_GATE_PLACEHOLDER_URL",
+      "WC_GATE_SOURCE_URL",
       "WC_GATE_DIRTY",
       "WC_GATE_UNTAGGED",
     ]);
@@ -178,5 +209,13 @@ describe("release gate", () => {
     ]) {
       expect(isDevBuild(v)).toBe(true);
     }
+  });
+});
+
+describe("sourceLink", () => {
+  it("points at the tag in releases and the repo root in dev", () => {
+    expect(sourceLink("v0.2.0")).toBe(`${SOURCE_URL}/tree/v0.2.0`);
+    expect(sourceLink("v0.2.0-3-gabc1234")).toBe(SOURCE_URL);
+    expect(sourceLink("dev")).toBe(SOURCE_URL);
   });
 });

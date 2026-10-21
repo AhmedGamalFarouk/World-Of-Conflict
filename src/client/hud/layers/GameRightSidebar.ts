@@ -1,7 +1,7 @@
 import { GameType } from "@openfront/engine-api/game/GameTypes";
 import { assetUrl } from "@openfront/shared/AssetUrls";
 import { EventBus } from "@openfront/shared/EventBus";
-import { html, LitElement } from "lit";
+import { html, LitElement, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { createNextLobby } from "../../Api";
 import { ClientEnv } from "../../ClientEnv";
@@ -15,8 +15,12 @@ import {
   ReplaySpeedChangeEvent,
   TogglePauseIntentEvent,
 } from "../../InputHandler";
+import { activeAutoSaver } from "../../mobile/AutoSave";
 import { dispatchEscape, MOBILE_BACK_EVENT } from "../../mobile/MobileBack";
 import { isMobileShell } from "../../mobile/MobileShell";
+import { gameEnded } from "../../mobile/PlayStats";
+import { GameResumedEvent } from "../../mobile/SaveEvents";
+import { confirmGone } from "../../mobile/SaveHome";
 import { PauseGameIntentEvent, SendWinnerEvent } from "../../Transport";
 import {
   defaultReplaySpeedMultiplier,
@@ -80,8 +84,11 @@ export class GameRightSidebar extends LitElement implements Controller {
   // The simulation's real pause state: every pause (this button, the settings
   // menu, the keyboard) goes through PauseGameIntentEvent.
   private simPaused = false;
-  private pausedByLifecycle = false;
   private speed: ReplaySpeedMultiplier = defaultReplaySpeedMultiplier;
+  // Set by a resumed game until the player's first RESUME tap.
+  @state() private resumed: { turn: number; savedAt: number } | null = null;
+  // Refreshes the pause card's "Saved N s ago" while it is open.
+  private cardTicker: ReturnType<typeof setInterval> | null = null;
   private spawnBarVisible = false;
   private immunityBarVisible = false;
 
@@ -117,6 +124,15 @@ export class GameRightSidebar extends LitElement implements Controller {
       this.simPaused = e.paused;
     });
 
+    // A resumed game opens paused, with the card saying where it is.
+    this.eventBus.on(GameResumedEvent, (e) => {
+      this.resumed = { turn: e.turn, savedAt: e.savedAt };
+      this.simPaused = true;
+      this.isPaused = true;
+      void gamePortal.gameplayStop();
+      this.startCardTicker();
+    });
+
     this.eventBus.on(ReplaySpeedChangeEvent, (e) => {
       this.speed = e.replaySpeedMultiplier;
       this.requestUpdate();
@@ -146,18 +162,13 @@ export class GameRightSidebar extends LitElement implements Controller {
   };
 
   // Mobile app: Android hides the WebView when the app goes to the background
-  // (a call, an app switch). Pause the local game then, and on return undo
-  // only that pause: one the player chose stays.
+  // (a call, an app switch). Pause the local game then and leave it paused on
+  // return with the pause card up, so the player resumes with a tap.
   private onVisibilityChange = () => {
     if (!isMobileShell() || !this._isSinglePlayer || this.hasWinner) return;
-    if (document.hidden) {
-      if (this.simPaused || !this.game || this.game.inSpawnPhase()) return;
-      this.pausedByLifecycle = true;
-      this.eventBus.emit(new PauseGameIntentEvent(true));
-    } else if (this.pausedByLifecycle) {
-      this.pausedByLifecycle = false;
-      this.eventBus.emit(new PauseGameIntentEvent(false));
-    }
+    if (!document.hidden) return;
+    if (this.simPaused || !this.game || this.game.inSpawnPhase()) return;
+    this.onPauseButtonClick();
   };
 
   // Mobile app, Android back: close the in-game menu if it is open; the pause
@@ -202,6 +213,7 @@ export class GameRightSidebar extends LitElement implements Controller {
     document.removeEventListener("fullscreenchange", this.onFullscreenChange);
     document.removeEventListener("visibilitychange", this.onVisibilityChange);
     window.removeEventListener(MOBILE_BACK_EVENT, this.onMobileBack);
+    this.stopCardTicker();
   }
 
   getTickIntervalMs() {
@@ -300,12 +312,29 @@ export class GameRightSidebar extends LitElement implements Controller {
     );
   }
 
+  private startCardTicker() {
+    if (!isMobileShell() || this.cardTicker !== null) return;
+    this.cardTicker = setInterval(() => this.requestUpdate(), 1000);
+  }
+
+  private stopCardTicker() {
+    if (this.cardTicker !== null) clearInterval(this.cardTicker);
+    this.cardTicker = null;
+  }
+
   private onPauseButtonClick() {
     this.isPaused = !this.isPaused;
     if (this.isPaused) {
       gamePortal.gameplayStop();
+      // Pausing keeps the game: the card then says "Saved 0 s ago".
+      if (isMobileShell() && this._isSinglePlayer) {
+        void activeAutoSaver()?.saveNow();
+        this.startCardTicker();
+      }
     } else {
       gamePortal.gameplayStart();
+      this.resumed = null;
+      this.stopCardTicker();
     }
     this.eventBus.emit(new PauseGameIntentEvent(this.isPaused));
     this.requestUpdate();
@@ -350,7 +379,40 @@ export class GameRightSidebar extends LitElement implements Controller {
     await this.leaveGame();
   }
 
+  // EXIT TO HOME, and every other way out of a running game on the phone,
+  // keeps the game. If it cannot be saved the game is over: a quit.
+  private async keepGameOnExit() {
+    const saver = activeAutoSaver();
+    if (!isMobileShell() || !this._isSinglePlayer || !saver?.active) return;
+    const saved = await Promise.race([
+      saver.saveNow(),
+      new Promise<boolean>((r) => setTimeout(() => r(false), 3000)),
+    ]);
+    if (saved) return;
+    saver.dispose();
+    // An earlier autosave of this game stays, and CONTINUE offers it: the
+    // game's end is counted when that save is played out or discarded.
+    if (saver.lastSavedAt !== null) return;
+    await saver.finish();
+    gameEnded("quit", this.game.ticks() / 10);
+  }
+
+  // ABANDON: confirmed, clears the save, counts as a quit.
+  private async onAbandonClick() {
+    const abandon = await confirmGone({
+      title: translateText("save.abandon_title"),
+      body: translateText("save.abandon_body"),
+      keep: translateText("save.keep_playing"),
+      destroy: translateText("save.abandon"),
+    });
+    if (!abandon) return;
+    await activeAutoSaver()?.finish();
+    gameEnded("quit", this.game.ticks() / 10);
+    await this.leaveGame();
+  }
+
   private async leaveGame() {
+    await this.keepGameOnExit();
     await gamePortal.requestMidgameAd();
     await gamePortal.gameplayStop();
     // redirect to the home page
@@ -536,6 +598,7 @@ export class GameRightSidebar extends LitElement implements Controller {
         aria-labelledby="wc-pause-title"
       >
         <div class="wc-plate wc-pause-card">
+          ${this.renderResumedHeader()}
           <h2 id="wc-pause-title" class="wc-pause-title">
             ${translateText("mobile.paused")}
           </h2>
@@ -545,6 +608,7 @@ export class GameRightSidebar extends LitElement implements Controller {
           >
             ${translateText("mobile.resume")}
           </button>
+          ${this.renderSavedLine()}
           <div class="wc-label">${translateText("mobile.game_speed")}</div>
           <div class="wc-speed" role="group">
             ${speeds.map(
@@ -570,14 +634,58 @@ export class GameRightSidebar extends LitElement implements Controller {
             </button>
             <button
               class="wc-btn wc-btn-steel"
-              @click=${this.onExitButtonClick}
+              @click=${() => void this.leaveGame()}
             >
-              ${translateText("mobile.quit_to_menu")}
+              ${translateText("save.exit_home")}
+            </button>
+            <button
+              class="wc-btn wc-btn-steel"
+              @click=${() => void this.onAbandonClick()}
+            >
+              ${translateText("save.abandon")}
             </button>
           </div>
         </div>
       </div>
     `;
+  }
+
+  // "RESUMED · TURN N · SAVED N MIN AGO", until the first RESUME tap.
+  private renderResumedHeader() {
+    if (!this.resumed) return nothing;
+    const minutes = Math.max(
+      0,
+      Math.round((Date.now() - this.resumed.savedAt) / 60000),
+    );
+    return html`<p class="wc-label wc-resumed">
+        ${translateText("save.resumed_header", {
+          turn: this.resumed.turn,
+          minutes,
+        })}
+      </p>
+      ${this.game.isCatchingUp()
+        ? html`<p class="wc-saved" role="status">
+            ${translateText("save.catching_up")}
+          </p>`
+        : nothing}`;
+  }
+
+  // "Saved N s ago", or Ember "Saving paused" after three failed writes.
+  private renderSavedLine() {
+    const saver = activeAutoSaver();
+    if (!saver?.active) return nothing;
+    if (saver.savingPaused) {
+      return html`<p class="wc-saved wc-saved-paused" role="status">
+        ${translateText("save.saving_paused")}
+      </p>`;
+    }
+    const at = saver.lastSavedAt;
+    if (at === null) return nothing;
+    return html`<p class="wc-saved">
+      ${translateText("save.saved_ago", {
+        seconds: Math.max(0, Math.round((Date.now() - at) / 1000)),
+      })}
+    </p>`;
   }
 
   maybeRenderReplayButtons() {

@@ -25,7 +25,7 @@ import {
   isOffline,
 } from "../../src/client/mobile/MobileShell";
 import {
-  gameFinished,
+  gameEnded,
   gameStarted,
   readPlayStats,
 } from "../../src/client/mobile/PlayStats";
@@ -138,11 +138,14 @@ describe("GameRightSidebar background pause (mobile)", () => {
     document.dispatchEvent(new Event("visibilitychange"));
   }
 
-  it("pauses when the app goes to the background and resumes on return", () => {
+  it("pauses when the app goes to the background and stays paused on return", async () => {
     const { pauses } = mount();
     setHidden(true);
     setHidden(false);
-    expect(pauses).toEqual([true, false]);
+    expect(pauses).toEqual([true]);
+    const el = document.querySelector("game-right-sidebar") as GameRightSidebar;
+    await el.updateComplete;
+    expect(el.querySelector(".wc-pause-card")).not.toBeNull();
   });
 
   it("leaves a pause the player chose in place", () => {
@@ -246,7 +249,7 @@ describe("Android back on the home screen", () => {
 describe("fatal screen", () => {
   afterEach(() => document.getElementById("wc-fatal")?.remove());
 
-  it("ends the game only for the two errors that mean it is over", () => {
+  it("ends the game only for the errors that mean it is over", () => {
     expect(
       fatalForHeading(
         "error_modal.connection_error",
@@ -262,10 +265,10 @@ describe("fatal screen", () => {
         ?.code,
     ).toBe("WC-E04");
     expect(fatalForHeading("error_modal.crashed", "boom")?.code).toBe("WC-E02");
-    // Informational or online-only: upstream's modal stays.
     expect(
-      fatalForHeading("error_modal.spawn_failed.title", "spawn_failed"),
-    ).toBeNull();
+      fatalForHeading("error_modal.spawn_failed.title", "spawn_failed")?.code,
+    ).toBe("WC-E05");
+    // Informational or online-only: upstream's modal stays.
     expect(fatalForHeading("error_modal.desync_notice", "desync")).toBeNull();
   });
 
@@ -331,7 +334,7 @@ describe("About", () => {
   it("shows the play counter once games were played", async () => {
     gameStarted();
     gameStarted();
-    gameFinished();
+    gameEnded("win", 600);
     expect(readPlayStats()).toMatchObject({ started: 2, finished: 1 });
     const el = await openAboutScreen();
     expect(el.querySelector(".wc-about-body")!.textContent).toMatch(

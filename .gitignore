@@ -44,3 +44,8 @@ dist-mobile/
 .impeccable/review/
 .impeccable/questions/
 .impeccable/hook.cache.json
+
+# Android signing secrets (docs/mobile/ANDROID.md)
+keystore.properties
+*.jks
+*.keystore

@@ -29,6 +29,12 @@ import {
   GameSpeedUpIntentEvent,
   ReplaySpeedChangeEvent,
 } from "./InputHandler";
+import { AutoSaver, setActiveAutoSaver } from "./mobile/AutoSave";
+import { appendError } from "./mobile/ErrorLog";
+import { isMobileShell } from "./mobile/MobileShell";
+import { GameOverEvent, GameResumedEvent } from "./mobile/SaveEvents";
+import { homeSaveReady } from "./mobile/SaveHome";
+import { expandTurns } from "./mobile/SaveStore";
 import { startSingleplayerHeartbeat } from "./SingleplayerHeartbeat";
 import {
   defaultReplaySpeedMultiplier,
@@ -56,7 +62,9 @@ export class LocalServer {
   private startedAt: number;
 
   private paused = false;
-  private replaySpeedMultiplier = defaultReplaySpeedMultiplier;
+  private replaySpeedMultiplier: ReplaySpeedMultiplier;
+  // The HUD learns the start speed on the first rejoin (after its init).
+  private announceSpeed: boolean;
 
   private clientID: ClientID | undefined;
   private winner: ClientSendWinnerMessage | null = null;
@@ -69,6 +77,18 @@ export class LocalServer {
   private turnsExecuted = 0;
   private turnStartTime = 0;
 
+  // Mobile solo: autosave, and the hashes a resumed game must reproduce.
+  private saver: AutoSaver | null = null;
+  // [tick, hash] reported every 100 ticks. Kept apart from the turns: the
+  // hash can arrive before the next turn exists.
+  private stateHashes = new Map<number, number>();
+  private resumeHashes = new Map<number, number>();
+  private announceResume: boolean;
+  private onGameOver = (e: GameOverEvent) => {
+    void e;
+    void this.saver?.finish();
+  };
+
   private turnCheckInterval: NodeJS.Timeout;
   private stopHeartbeat: (() => void) | null = null;
   private clientConnect: () => void;
@@ -78,7 +98,24 @@ export class LocalServer {
     private lobbyConfig: LobbyConfig,
     private isReplay: boolean,
     private eventBus: EventBus,
-  ) {}
+  ) {
+    this.replaySpeedMultiplier =
+      lobbyConfig.speed ?? defaultReplaySpeedMultiplier;
+    this.announceSpeed = lobbyConfig.speed !== undefined;
+    // A resumed game starts with every saved turn already in the list, so the
+    // rejoin path feeds them to the worker and live turns follow from turn
+    // `turnCount`. It opens paused, the pause card says why.
+    const resume = lobbyConfig.resume;
+    this.announceResume = resume !== undefined;
+    if (resume) {
+      this.turns = expandTurns(resume.turnCount, resume.turns);
+      this.paused = true;
+      for (const [tick, hash] of resume.hashes) {
+        this.stateHashes.set(tick, hash);
+        this.resumeHashes.set(tick, hash);
+      }
+    }
+  }
 
   public updateCallback(
     clientConnect: () => void,
@@ -136,6 +173,8 @@ export class LocalServer {
     }
 
     this.startedAt = Date.now();
+    // After the boot read of the old save, which may clear it (SaveHome.ts).
+    void homeSaveReady().then(() => this.startSaver());
     this.clientConnect();
     if (this.lobbyConfig.gameRecord) {
       this.replayTurns = decompressGameRecord(
@@ -165,10 +204,44 @@ export class LocalServer {
     }
   }
 
+  // The phone keeps the solo game so a kill or an app switch loses at most
+  // 60 s of game time (AutoSave.ts). Not in replays, not on the web.
+  private startSaver() {
+    const info = this.lobbyConfig.gameStartInfo;
+    if (!isMobileShell() || this.isReplay || !info || this.ended) return;
+    const clientID = info.players[0]?.clientID;
+    if (!clientID) return;
+    this.saver = new AutoSaver({
+      turns: () => this.turns,
+      gameStartInfo: info,
+      clientID,
+      speed: () => this.replaySpeedMultiplier,
+      hashes: () => [...this.stateHashes],
+    });
+    this.saver.listenForBackground();
+    setActiveAutoSaver(this.saver);
+    this.eventBus.on(GameOverEvent, this.onGameOver);
+  }
+
   onMessage(clientMsg: ClientMessage) {
     if (clientMsg.type === "rejoin") {
       if (!this.clientID) {
         throw new Error("missing clientID");
+      }
+      if (this.announceResume && this.lobbyConfig.resume) {
+        this.announceResume = false;
+        this.eventBus.emit(
+          new GameResumedEvent(
+            this.lobbyConfig.resume.turnCount,
+            this.lobbyConfig.resume.savedAt,
+          ),
+        );
+      }
+      if (this.announceSpeed) {
+        this.announceSpeed = false;
+        this.eventBus.emit(
+          new ReplaySpeedChangeEvent(this.replaySpeedMultiplier),
+        );
       }
       this.clientMessage({
         type: "start",
@@ -206,8 +279,14 @@ export class LocalServer {
       this.intents.push(stampedIntent);
     }
     if (clientMsg.type === "hash") {
+      const expected = this.resumeHashes.get(clientMsg.turnNumber);
+      if (expected !== undefined) {
+        this.resumeHashes.delete(clientMsg.turnNumber);
+        if (expected !== clientMsg.hash) this.onResumeDesync(clientMsg);
+      }
       if (!this.lobbyConfig.gameRecord) {
         if (clientMsg.turnNumber % 100 === 0) {
+          this.stateHashes.set(clientMsg.turnNumber, clientMsg.hash);
           // In singleplayer, only store hash every 100 turns to reduce size of game record.
           const turn = this.turns[clientMsg.turnNumber];
           if (turn) {
@@ -245,6 +324,8 @@ export class LocalServer {
     if (clientMsg.type === "winner") {
       this.winner = clientMsg;
       this.allPlayersStats = clientMsg.allPlayersStats;
+      // A decided game has nothing left to resume.
+      void this.saver?.finish();
       if (!this.isReplay) {
         // Archive as soon as the game is decided: endGame() only runs during
         // page teardown, where the auth refresh and upload race document
@@ -277,6 +358,7 @@ export class LocalServer {
       intents: this.intents,
     };
     this.turns.push(pastTurn);
+    this.saver?.onTurn(this.turns.length);
     this.intents = [];
     this.clientMessage({
       type: "turn",
@@ -284,9 +366,27 @@ export class LocalServer {
     });
   }
 
+  // The resumed simulation disagreed with the one that was saved: said once.
+  private onResumeDesync(msg: { turnNumber: number; hash: number }) {
+    if (this.resumeDesyncLogged) return;
+    this.resumeDesyncLogged = true;
+    appendError({
+      code: "resume-desync",
+      turn: msg.turnNumber,
+      message: `hash ${msg.hash}`,
+    });
+  }
+  private resumeDesyncLogged = false;
+
+  private ended = false;
   public endGame() {
     console.log("local server ending game");
+    this.ended = true;
     clearInterval(this.turnCheckInterval);
+    this.eventBus.off(GameOverEvent, this.onGameOver);
+    this.saver?.dispose();
+    this.saver = null;
+    setActiveAutoSaver(null);
     this.stopHeartbeat?.();
     this.stopHeartbeat = null;
     if (this.isReplay) {
@@ -298,7 +398,8 @@ export class LocalServer {
   }
 
   private archiveGameRecord(unloading: boolean) {
-    if (this.archived || this.archiveInFlight) {
+    // Offline there is no archive API; skip it rather than ask for a token.
+    if (isMobileShell() || this.archived || this.archiveInFlight) {
       return;
     }
     const players: PlayerRecord[] = [

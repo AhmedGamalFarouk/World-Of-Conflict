@@ -17,6 +17,7 @@ colors:
   gilt-hairline: "rgb(232 178 74 / 0.5)"
   line: "rgb(255 255 255 / 0.09)"
   troop-blue: "#4a9be8"
+  alarm-red: "#e5484d"
   growth-green: "#3dbe7a"
   ember: "#f0a04b"
   ivory: "#ece8df"
@@ -170,6 +171,7 @@ A night-and-gold palette: deep navy plates carry the UI, gold is the one accent,
 - **Troop Blue** (troop-blue): troops on hand in the economy bar.
 - **Growth Green** (growth-green): a rising troop rate and the gold-gain pop.
 - **Ember** (ember): a falling troop rate and the committed share of the economy bar.
+- **Alarm Red** (alarm-red, `--wc-red` #e5484d): only the critical event plate's top edge and icon. Never a button, a chip or a general error colour.
 
 ### Neutral
 
@@ -283,6 +285,10 @@ The control a player touches all game. A 64px plate on the right edge: the value
 
 Bottom-left. Troops on the left (the TROOPS label with its icon, the Numeral Hero count in white, the rate in Growth Green or Ember, and a 6px bar of troops on hand in Troop Blue against committed troops in Ember), then a Line divider, then gold in Gold Leaf. Gold gains pop above in Growth Green.
 
+### Event Plate
+
+Top-centre, `min(420px, 100vw - 380px)` wide so it clears the rank and timer plates at 640px, 12px plus the safe area from the top, or directly below the Tutorial Banner while that shows. A plate with a 2px Alarm Red top edge, a 22px line icon in Alarm Red per event (radiation mark, broken link, crossed blades) and one Body line at 16px in Ivory. Local-player events only: nuke inbound, an alliance broken against you, a new attack on you. It shows for 4s; a tap or Android back dismisses it. It enters with an 8px rise and a 180ms fade (none under reduced motion). `aria-live` is assertive for a nuke or betrayal, polite for an attack. Vibration (15ms on an attack sent, 40ms when an attack plate shows) goes through `Haptics.ts`; the in-app Vibration setting is the reliable off switch, since Android's own per-app switch is not.
+
 ### Tutorial Banner
 
 Top-centre, at most 420px wide: a plate holding a one-line step clamped with a fade and a Gold Leaf chevron. Tapping expands it and turns the chevron upward. The Skip chip and a 32px close button sit in its header row.
@@ -310,8 +316,7 @@ Top-centre, at most 420px wide: a plate holding a one-line step clamped with a f
 
 These are defects the shipped build carries, not rules to copy.
 
-- The Android system splash's portrait frame draws the mark rotated 90 degrees while the app rotates from portrait to landscape at launch.
-- The brand mark (`android/app/src/main/res/drawable/wc_mark.xml`, a globe with one quarter claimed in Struck Gold and Gold Leaf strokes on Night) is placeholder grade. The splash and the adaptive icon use it until a final mark replaces it.
+- The brand mark (`android/app/src/main/res/drawable/wc_mark.xml`, a globe with one quarter claimed in Struck Gold and Gold Leaf strokes on Night) is placeholder grade. The adaptive icon uses it until a final mark replaces it. The native launch screen is plain Night with no mark (the portrait frame before `sensorLandscape` cannot draw one sideways); the web launch frame fades the wordmark in over 200ms.
 - The solo setup rail leaves empty space above START.
 - The tutorial banner's heading is upstream's yellow "TUTORIAL" title, kept as it is. It is not a label style for new surfaces.
-- `--wc-red` (#e5484d) and `--wc-gold-lo` are declared but unused, and the red-edged critical event plate in the direction contract is not built. The ember (#f0a04b) and the button face and rim colours are literals, not `--wc-*` properties.
+- `--wc-gold-lo` is declared but unused. The ember (#f0a04b) and the button face and rim colours are literals, not `--wc-*` properties.
