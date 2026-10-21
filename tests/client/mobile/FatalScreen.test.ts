@@ -40,7 +40,9 @@ describe("fatal screens write the error log", () => {
 describe("fatals and the saved game", () => {
   it("a crash or failed spawn clears it (a resume would fail again); a map-load failure keeps it", () => {
     const clear = vi.spyOn(saveStore, "clear").mockResolvedValue();
-    showFatal(fatalForHeading("error_modal.connection_error", "Failed to load")!);
+    showFatal(
+      fatalForHeading("error_modal.connection_error", "Failed to load")!,
+    );
     document.getElementById("wc-fatal")?.remove();
     showFatal(fatalForHeading("error_modal.crashed", "")!);
     document.getElementById("wc-fatal")?.remove();

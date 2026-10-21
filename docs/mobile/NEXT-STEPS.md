@@ -143,12 +143,13 @@ Open:
   bots. Decide if that is wanted.
 - `tests/Workflows.test.ts` checks secrets only with a regex (now also no `echo`
   of a `secrets.` expression); a real lint of the workflow YAML is still open.
-- Missing tests: each start entry (PLAY, QUICK GAME, START, Play again) shows
-  the discard dialog; a resumed record replays to the same final hash; saved
-  speed restored end to end; the offline runtime test asserts no non-local
-  request after a finished game; `save.restore_failed` is never logged.
-- Check whether all of `resources/flags/` (26 MB) is needed offline; the
-  AAB limit gate (`WC_GATE_AAB_SIZE`) needs a real build to prove.
+- Tests added in the third pass: every start entry goes through `allowNewGame`
+  (source wiring test), saved speed restored by `LocalServer`, `save.restore_failed`
+  is now logged and tested. Still missing: an offline runtime test asserting no
+  non-local request after a finished game.
+- `dist-mobile/` is 86 MB uncompressed (maps 39, flags 26, images 11), well under
+  the 150 MB AAB gate; `resources/flags/` stays. The gate itself still needs a
+  real release build to prove.
 - B2 (solo rail): the plan's "START directly under the last control" could not
   be reproduced; the rail holds only START and is pinned to the bottom.
   `DESIGN.md` still lists "empty space above START" as an open item.

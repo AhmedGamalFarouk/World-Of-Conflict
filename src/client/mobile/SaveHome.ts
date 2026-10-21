@@ -204,7 +204,11 @@ export async function continueSavedGame(): Promise<void> {
         composed: true,
       }),
     );
-  } catch {
+  } catch (e) {
+    appendError({
+      code: "save.restore_failed",
+      message: e instanceof Error ? `${e.name}: ${e.message}` : String(e),
+    });
     await giveUp();
   }
 }

@@ -27,6 +27,7 @@ vi.mock("../../../src/client/mobile/SaveStore", async (importOriginal) => {
   };
 });
 
+import { ReplaySpeedChangeEvent } from "../../../src/client/InputHandler";
 import { LocalServer } from "../../../src/client/LocalServer";
 import {
   readErrorLog,
@@ -56,6 +57,7 @@ function open(resume?: SavedGame) {
       playerName: "me",
       playerClanTag: null,
       gameStartInfo: save.gameStartInfo,
+      speed: resume?.speed,
       resume,
     } as never,
     false,
@@ -133,6 +135,25 @@ describe("a resumed LocalServer", () => {
     expect(record.map((t) => t.turnNumber)).toEqual(
       Array.from({ length: 51 }, (_, i) => i),
     );
+  });
+
+  it("restores the saved speed: announced on rejoin, and turns come at that pace", () => {
+    open({ ...resume, speed: 0.5 });
+    const speeds: number[] = [];
+    bus.on(ReplaySpeedChangeEvent, (e) => speeds.push(e.replaySpeedMultiplier));
+    server.onMessage({ type: "rejoin", lastTurn: 0 } as never);
+    expect(speeds).toEqual([0.5]);
+
+    server.onMessage({
+      type: "intent",
+      intent: { type: "toggle_pause", paused: false },
+    } as never);
+    // The client has run the 50 saved turns.
+    for (let i = 0; i < 50; i++) server.turnComplete();
+    const before = turnsSent().length;
+    vi.advanceTimersByTime(500);
+    // 100 ms a turn at 1x; half that at 0.5, so about ten turns in 500 ms.
+    expect(turnsSent().length - before).toBeGreaterThanOrEqual(8);
   });
 
   it("logs resume-desync once when the replayed state disagrees, never when it agrees", () => {

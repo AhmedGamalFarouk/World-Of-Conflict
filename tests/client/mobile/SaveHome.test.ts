@@ -31,6 +31,7 @@ import {
   discardSavedGame,
   dismissNotice,
   homeSave,
+  isContinuing,
   loadHomeSave,
   resetHomeSaveForTests,
 } from "../../../src/client/mobile/SaveHome";
@@ -158,6 +159,20 @@ describe("a new game before the boot read finishes", () => {
   });
 });
 
+describe("continueSavedGame failing", () => {
+  it("logs save.restore_failed and gives the card back", async () => {
+    mem.slot.value = makeSave();
+    await loadHomeSave();
+    const read = vi
+      .spyOn(saveStore, "read")
+      .mockRejectedValueOnce(new Error("io"));
+    await continueSavedGame();
+    expect(readErrorLog().map((e) => e.code)).toContain("save.restore_failed");
+    expect(isContinuing()).toBe(false);
+    read.mockRestore();
+  });
+});
+
 describe("confirmGone", () => {
   it("KEEP is the gold face, the destructive button is steel", () => {
     void confirmGone({ title: "t", body: "b", keep: "Keep", destroy: "Go" });
@@ -204,6 +219,8 @@ describe("continueSavedGame", () => {
       speed: 0.5,
     });
     expect(event.detail.resume.turnCount).toBe(save.turnCount);
+    // The title screen is on its way out: no second tap starts a second resume.
+    expect(isContinuing()).toBe(true);
     // CONTINUE does not consume the save.
     expect(await saveStore.read()).not.toBeNull();
   });
