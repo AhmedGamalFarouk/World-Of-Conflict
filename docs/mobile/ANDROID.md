@@ -171,6 +171,17 @@ Run on a 4 GB phone, on Europe (the largest curated map).
 | ------- | ----------------- | ---------- | ------ | ----------- | --------------- | ---- | ----------------- |
 | (owner) |                   |            |        |             |                 |      |                   |
 
+Resume catch-up, measured 2026-10-21 on a vivo V2529 (MediaTek MT6878, 7.3 GB
+RAM, Android 16, WebView 155; above the reference device) with a debug build
+over adb. A real Pangaea save (5 bots, default nations) was edited to claim
+36,000 turns, then force-stopped and resumed: the worker replayed about 190
+ticks a second, so 25 game minutes (15,000 turns) take about 80 s and an hour
+about 3 minutes on this phone. Caveats: the replayed game had no player
+activity and ended by itself (a nation won) at game minute 13, so the long
+runs were never completed, and a 4 GB phone will be slower. The first 1,500
+ticks matched the saved hashes (no `resume-desync`). Fps, background cycles,
+back button and reverse landscape are still unmeasured.
+
 ### Release checklist (on the emulator, from the Release asset)
 
 - About shows the tag, no DEV BUILD line, and the right source link.

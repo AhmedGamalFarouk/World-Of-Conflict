@@ -109,13 +109,24 @@ Europe that could take minutes, and nothing caps or tests it.
 - Play 25+ minutes on Europe, `adb shell am force-stop com.worldofconflict.game`,
   relaunch, CONTINUE. Record catch-up time, whether the camera centres, whether
   the pause card fits, and whether `resume-desync` shows in Copy error log.
+  **Partly measured (2026-10-21, vivo V2529, 7.3 GB, see `ANDROID.md`):** about
+  190 ticks/s, so 25 game minutes catch up in about 80 s and an hour in about
+  3 minutes (no player activity; the game ended at game minute 13, so the
+  long runs were extrapolated). No `resume-desync`; the pause card shows
+  "Catching up…" and the win modal can appear during catch-up. Still to do on
+  the 4 GB phone and with a surviving, active player: the camera centring and a
+  real 25-minute game. Decision pending: 80 s to 3 minutes is long enough to
+  want a cap or a "Catching up" progress line on the pause card.
 - If catch-up is minutes, either cap it (save the turn list but resume only
   from a game under N minutes, otherwise offer to discard), or drop save and
   resume, Quick game and the event plate to v0.2.1 as the old plan's C5 rule
   allowed. An engine snapshot is the proper fix but needs an engine change
   (a full baseline update after restore), which the rules forbid today.
 - Get eliminated, then exit from the win modal and from the pause card: home
-  must show no CONTINUE and PlayStats must count one loss.
+  must show no CONTINUE and PlayStats must count one loss. **Done for the win
+  modal on the phone (2026-10-21):** no CONTINUE, one loss counted (also when a
+  nation won during a resume catch-up). The pause-card exit after elimination
+  is untested.
 - Background the app mid-game for a minute and return: the pause card must show,
   the map behind it must still be drawn (the battery frame skip in
   `ClientGameRunner.ts` never forces a redraw on return), and EXIT and ABANDON
