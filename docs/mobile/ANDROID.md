@@ -167,9 +167,14 @@ release builds). To test a kill: play a minute,
 
 Run on a 4 GB phone, on Europe (the largest curated map).
 
-| Device  | Android / WebView | Median fps | 1% low | Crash / OOM | 10 bg/fg cycles | Back | Reverse landscape |
-| ------- | ----------------- | ---------- | ------ | ----------- | --------------- | ---- | ----------------- |
-| (owner) |                   |            |        |             |                 |      |                   |
+| Device                      | Android / WebView | Median fps                     | 1% low                         | Crash / OOM | 10 bg/fg cycles                                     | Back                           | Reverse landscape       |
+| --------------------------- | ----------------- | ------------------------------ | ------------------------------ | ----------- | --------------------------------------------------- | ------------------------------ | ----------------------- |
+| vivo V2529 (MT6878, 7.3 GB) | 16 / WebView 155  | frame p50 16 ms (about 60 fps) | frame p99 32 ms (about 31 fps) | none seen   | 10 of 10: same process, pause card over a drawn map | back on the pause card resumes | both landscapes upright |
+| (owner, 4 GB phone)         |                   |                                |                                |             |                                                     |                                |                         |
+
+The vivo row is a debug build, 30 s of a Quick game on Pangaea at 2x, measured
+with `dumpsys gfxinfo` (a 120 Hz panel; the frame times are the real
+signal, not the frame count). Process memory after the cycles was 371 MB PSS.
 
 Resume catch-up, measured 2026-10-21 on a vivo V2529 (MediaTek MT6878, 7.3 GB
 RAM, Android 16, WebView 155; above the reference device) with a debug build
