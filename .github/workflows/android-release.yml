@@ -34,7 +34,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - uses: android-actions/setup-android@v3
+      # The ubuntu runner image already ships the Android SDK and its licences.
       - name: Setup npm
         run: npm install --global --ignore-scripts npm@12.1.0
       - run: npm run inst
