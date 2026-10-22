@@ -21,6 +21,7 @@ import { isMobileShell } from "../../mobile/MobileShell";
 import { gameEnded } from "../../mobile/PlayStats";
 import { GameResumedEvent } from "../../mobile/SaveEvents";
 import { confirmGone } from "../../mobile/SaveHome";
+import { catchUpPercent } from "../../mobile/SaveStore";
 import { PauseGameIntentEvent, SendWinnerEvent } from "../../Transport";
 import {
   defaultReplaySpeedMultiplier,
@@ -665,7 +666,9 @@ export class GameRightSidebar extends LitElement implements Controller {
       </p>
       ${this.game.isCatchingUp()
         ? html`<p class="wc-saved" role="status">
-            ${translateText("save.catching_up")}
+            ${translateText("save.catching_up_pct", {
+              percent: catchUpPercent(this.game.ticks(), this.resumed.turn),
+            })}
           </p>`
         : nothing}`;
   }

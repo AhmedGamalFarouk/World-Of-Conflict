@@ -5,8 +5,10 @@ import { getMapName, translateText } from "../Utils";
 import { appendError } from "./ErrorLog";
 import { gameEnded } from "./PlayStats";
 import {
+  catchUpMinutes,
   elapsedSeconds,
   isStale,
+  MAX_RESUME_TURNS,
   type SavedGame,
   SaveError,
   saveStore,
@@ -148,6 +150,19 @@ export function confirmGone(text: ConfirmGoneText): Promise<boolean> {
   });
 }
 
+/** A long game takes minutes to catch up: true when the player goes ahead. */
+function confirmLongResume(save: SavedGame): Promise<boolean> {
+  return confirmGone({
+    title: translateText("save.long_title"),
+    body: translateText("save.long_body", {
+      minutes: Math.round(elapsedSeconds(save) / 60),
+      wait: catchUpMinutes(save.turnCount),
+    }),
+    keep: translateText("save.not_now"),
+    destroy: translateText("save.resume_anyway"),
+  });
+}
+
 /** DISCARD SAVED GAME? Resolves true when the player agrees to destroy it. */
 export function confirmDiscard(): Promise<boolean> {
   return confirmGone({
@@ -191,6 +206,13 @@ export async function continueSavedGame(): Promise<void> {
   try {
     const save = await saveStore.read();
     if (save === null || isStale(save)) return await giveUp();
+    if (save.turnCount > MAX_RESUME_TURNS && !(await confirmLongResume(save))) {
+      // Not now: the save stays, the title screen comes back.
+      overlay?.hide?.();
+      continuing = false;
+      listeners.forEach((cb) => cb());
+      return;
+    }
     document.dispatchEvent(
       new CustomEvent("join-lobby", {
         detail: {

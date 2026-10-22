@@ -159,6 +159,53 @@ describe("a new game before the boot read finishes", () => {
   });
 });
 
+describe("continuing a long game", () => {
+  async function tapContinue() {
+    mem.slot.value = makeSave({ turnCount: 30000 });
+    await loadHomeSave();
+    const joined = vi.fn();
+    document.addEventListener("join-lobby", joined);
+    const done = continueSavedGame();
+    await vi.waitFor(() =>
+      expect(document.getElementById(CONFIRM_ID)).not.toBeNull(),
+    );
+    return {
+      done,
+      joined,
+      stop: () => document.removeEventListener("join-lobby", joined),
+    };
+  }
+
+  it("asks first; NOT NOW keeps the save and the card", async () => {
+    const t = await tapContinue();
+    document.querySelector<HTMLElement>(".wc-keep")!.click();
+    await t.done;
+    t.stop();
+    expect(t.joined).not.toHaveBeenCalled();
+    expect(isContinuing()).toBe(false);
+    expect(homeSave().kind).toBe("save");
+    expect(await saveStore.read()).not.toBeNull();
+  });
+
+  it("CONTINUE ANYWAY joins as usual", async () => {
+    const t = await tapContinue();
+    document.querySelector<HTMLElement>(".wc-destroy")!.click();
+    await t.done;
+    t.stop();
+    expect(t.joined).toHaveBeenCalledOnce();
+  });
+
+  it("a short game goes straight in", async () => {
+    mem.slot.value = makeSave({ turnCount: 600 });
+    await loadHomeSave();
+    const joined = vi.fn();
+    document.addEventListener("join-lobby", joined);
+    await continueSavedGame();
+    document.removeEventListener("join-lobby", joined);
+    expect(joined).toHaveBeenCalledOnce();
+  });
+});
+
 describe("continueSavedGame failing", () => {
   it("logs save.restore_failed and gives the card back", async () => {
     mem.slot.value = makeSave();

@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { Difficulty } from "@openfront/engine-api/game/GameTypes";
 import { GameConfigSchema } from "@openfront/engine-api/Schemas";
 import fs from "fs";
 import path from "path";
@@ -23,13 +24,21 @@ describe("quick game", () => {
 
   it("builds a valid config with 5 bots on one of those maps", () => {
     for (const r of [0, 0.5, 0.999]) {
-      const config = quickGameConfig(() => r);
+      const config = quickGameConfig(Difficulty.Easy, () => r);
       expect(GameConfigSchema.safeParse(config).success).toBe(true);
       expect(config.bots).toBe(QUICK_GAME_BOTS);
     }
     const picked = new Set(
-      [0, 0.4, 0.8].map((r) => quickGameConfig(() => r).gameMap),
+      [0, 0.4, 0.8].map(
+        (r) => quickGameConfig(Difficulty.Easy, () => r).gameMap,
+      ),
     );
     expect(picked.size).toBe(3);
+  });
+
+  it("carries the chosen difficulty into the config", () => {
+    for (const d of Object.values(Difficulty)) {
+      expect(quickGameConfig(d).difficulty).toBe(d);
+    }
   });
 });

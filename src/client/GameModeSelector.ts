@@ -32,7 +32,7 @@ import { PublicLobbySocket } from "./LobbySocket";
 import { JoinLobbyEvent } from "./Main";
 import { openAbout } from "./mobile/About";
 import { isOffline } from "./mobile/MobileShell";
-import { startQuickGame } from "./mobile/QuickGame";
+import { chooseQuickDifficulty, startQuickGame } from "./mobile/QuickGame";
 import {
   allowNewGame,
   confirmDiscard,
@@ -924,8 +924,12 @@ export class GameModeSelector extends LitElement {
     if (await allowNewGame()) this.openSinglePlayerModal();
   };
 
+  // Difficulty first: backing out of it must not cost the player their save.
   private quickGameOffline = async () => {
-    if (await allowNewGame()) startQuickGame();
+    const difficulty = await chooseQuickDifficulty();
+    if (difficulty !== null && (await allowNewGame())) {
+      startQuickGame(difficulty);
+    }
   };
 
   // The CONTINUE plate, or the notice that replaced a save that could not be

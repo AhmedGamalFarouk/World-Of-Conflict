@@ -166,6 +166,17 @@ describe("pause card (mobile)", () => {
     expect(el.querySelector(".wc-pause-card")).toBeNull();
   });
 
+  it("shows catch-up progress while the saved turns replay", async () => {
+    const { el, bus } = await mount();
+    (el.game as unknown as { isCatchingUp: () => boolean }).isCatchingUp = () =>
+      true;
+    bus.emit(new GameResumedEvent(1830, Date.now()));
+    await el.updateComplete;
+    expect(el.querySelector(".wc-pause-card")!.textContent).toContain(
+      "save.catching_up_pct",
+    );
+  });
+
   it("shows the three exits: RESUME gold, EXIT TO HOME and ABANDON steel", async () => {
     activeSaver();
     const { el, bus } = await mount();

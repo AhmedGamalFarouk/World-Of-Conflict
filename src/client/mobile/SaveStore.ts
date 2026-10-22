@@ -60,6 +60,24 @@ export class SaveError extends Error {
 export const elapsedSeconds = (s: Pick<SavedGame, "turnCount">) =>
   s.turnCount / 10;
 
+/**
+ * Resuming replays every saved turn. Measured on a mid-range phone (2026-10-21,
+ * docs/mobile/ANDROID.md): about 190 ticks a second. 150 is the planning rate.
+ */
+const CATCH_UP_TICKS_PER_SECOND = 150;
+/** 40 game minutes: past this CONTINUE asks first, the wait is minutes. */
+export const MAX_RESUME_TURNS = 24000;
+
+/** Minutes the catch-up is expected to take, at least 1. */
+export const catchUpMinutes = (turnCount: number) =>
+  Math.max(1, Math.ceil(turnCount / CATCH_UP_TICKS_PER_SECOND / 60));
+
+/** 0..99 while turns remain, so "100%" is never shown before it is true. */
+export const catchUpPercent = (ticks: number, turnCount: number) =>
+  turnCount <= 0
+    ? 0
+    : Math.max(0, Math.min(99, Math.floor((ticks / turnCount) * 100)));
+
 export function sparseTurns(turns: readonly Turn[]): SavedTurn[] {
   const out: SavedTurn[] = [];
   turns.forEach((t, n) => {
