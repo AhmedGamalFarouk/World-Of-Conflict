@@ -1,27 +1,20 @@
-# World Of Conflict — next steps (toward v0.2.0)
+# World Of Conflict — next steps (after v0.2.0)
 
-Start here in a new session. This replaces the first plan (A to D), which is
-implemented; its history is in git. Reviewed by an Opus 5.5 read-only pass on
-2026-10-21 against the first implementation. Other references: `PRODUCT.md`,
-`DESIGN.md` (authority for UI), `docs/mobile/ANDROID.md` (build, signing, error
-codes, device record), `CLAUDE.md` (repo rules).
+Start here in a new session. Other references: `PRODUCT.md`, `DESIGN.md`
+(authority for UI), `docs/mobile/ANDROID.md` (build, signing, error codes, device
+record), `docs/mobile/STORE-LISTING.md` (Play copy and declarations),
+`CLAUDE.md` (repo rules).
 
 ## Where it stands
 
 - Offline, landscape-locked Android app (Capacitor) adapting OpenFront. Repo
-  `AhmedGamalFarouk/World-Of-Conflict`, branch `main`, v0.1.0 tagged.
-- The first implementation pass is in the working tree, **uncommitted**:
-  release tooling and signing, trimmed CI, event plate, vibration, error log,
-  play stats, Quick game, save and resume, pause-card exits, privacy page.
-- Checks at the end of that pass: `npm run typecheck`, `npm run lint`, prettier
-  and all of `tests/client` pass (130 targeted tests; only the known
-  load-flaky `InventoryModal` timeouts fail).
-- **Second pass (2026-10-21), still uncommitted:** blockers 1 and 2, should-fixes
-  3 to 11 and most of section 4 are implemented and tested (typecheck, lint,
-  prettier, 157 targeted tests pass; title screen and pause card checked at
-  640x320 in the browser preview). Still open: section 3 (needs the A2 device),
-  section 5 (owner actions) and the items marked **open** in section 4. Do not
-  tag until section 3 shows resume is usable.
+  `AhmedGamalFarouk/World-Of-Conflict`, branch `main`, **v0.2.0 tagged and
+  released** (2026-10-22); CI and the release workflow pass. Everything in
+  sections 1 and 2 is committed. Section 3's vivo V2529 numbers are in
+  `ANDROID.md`; catch-up shows a progress line on the pause card and asks before
+  resuming a long game.
+- Remaining work is owner actions (section 5) and the open items in section 4.
+  The README and `STORE-LISTING.md` are ready to publish from.
 
 ## Rules that still bind every step
 
@@ -152,8 +145,9 @@ Open:
 
 - **Owner decision:** Quick game uses `nations: "default"`, which adds AI nations beyond the 5
   bots. Decide if that is wanted.
-- `tests/Workflows.test.ts` checks secrets only with a regex (now also no `echo`
-  of a `secrets.` expression); a real lint of the workflow YAML is still open.
+- `tests/Workflows.test.ts` checks secrets only with a regex. A real YAML lint
+  would need a new dependency (`yaml` is only transitive), and CI parses the
+  workflows on every push, so this is dropped.
 - Tests added in the third pass: every start entry goes through `allowNewGame`
   (source wiring test), saved speed restored by `LocalServer`, `save.restore_failed`
   is now logged and tested. Still missing: an offline runtime test asserting no
@@ -177,7 +171,9 @@ Open:
   `android/keystore.properties`, add the four CI secrets
   (`ANDROID_KEYSTORE_B64`, `_PASSWORD`, `ANDROID_KEY_ALIAS`, `_KEY_PASSWORD`).
 - Turn on GitHub Pages from `main` `/docs` so `docs/privacy.html` is served at
-  the URL About links to.
+  the URL About links to (Play needs this URL before submission; not enabled as
+  of 2026-10-22).
+- Write the v0.2.0 release notes on the GitHub Release (empty now).
 - D4 store assets: screenshots 1920x1080 (home with CONTINUE, mid-game
   territory, event plate, QUICK GAME start, aftergame), feature graphic
   1024x500, content rating, data safety "no data collected". Copy is World Of

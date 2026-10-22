@@ -5,6 +5,15 @@ World Of Conflict is an offline Android real-time strategy game about territoria
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Assets: CC BY-SA 4.0](https://img.shields.io/badge/Assets-CC%20BY--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
 
+## Download
+
+Get the latest APK from the [Releases page](https://github.com/AhmedGamalFarouk/World-Of-Conflict/releases/latest) and install it on an Android 8.0+ phone (landscape only, WebGL2 required). Each release is built by CI from its tag, and About shows that tag and links to the matching source (the AGPL source offer).
+
+- Plays fully offline against bots: Quick game, 15 curated maps, tutorial.
+- Your game is saved automatically. After an interruption, CONTINUE on the home screen replays it (a long game takes a while to catch up).
+- No accounts, no ads, no analytics. See the [privacy policy](https://ahmedgamalfarouk.github.io/World-Of-Conflict/privacy.html).
+- Something broke? Open a [GitHub issue](https://github.com/AhmedGamalFarouk/World-Of-Conflict/issues) and paste About > Copy error log.
+
 ## License
 
 The source code is licensed under the **GNU Affero General Public License v3.0**, inherited from OpenFront.
@@ -51,12 +60,12 @@ npm run dev:mobile
 ### On Android
 
 ```bash
-npm run android:sync
-cd android && ./gradlew assembleDebug
-adb install -r app/build/outputs/apk/debug/app-debug.apk
+npm run android:doctor # checks JDK 21, the SDK and adb, and says how to fix what's missing
+npm run android:debug
+adb install -r dist-mobile/WorldOfConflict-dev.apk
 ```
 
-Run `npm run android:sync` after every web change; it rebuilds `dist-mobile/` and copies it into the Capacitor app. Release builds, signing and the device checklist are in [docs/mobile/ANDROID.md](docs/mobile/ANDROID.md).
+`android:debug` rebuilds `dist-mobile/`, syncs it into the Capacitor app and builds the APK. A debug APK says DEV BUILD in About and must not be shared. Release builds, signing and the device checklist are in [docs/mobile/ANDROID.md](docs/mobile/ANDROID.md); contributor rules are in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ### Upstream web client and server
 
@@ -69,11 +78,11 @@ npm run dev
 ## 🛠️ Development Tools
 
 ```bash
-npm run format     # Prettier
-npm run lint       # Oxlint + ESLint
-npm run lint:fix   # Oxlint + ESLint with auto-fix
-npm run typecheck  # tsc for the root project and each package
-npm test           # Vitest
+npm run format    # Prettier
+npm run lint      # Oxlint + ESLint
+npm run lint:fix  # Oxlint + ESLint with auto-fix
+npm run typecheck # tsc for the root project and each package
+npm test          # Vitest
 ```
 
 ## 🏗️ Project Structure
@@ -88,4 +97,8 @@ npm test           # Vitest
 - `/android` - Capacitor Android project
 - `/mobile` - Mobile-only assets
 - `/resources` - Static assets (images, maps, etc.)
-- `/docs/mobile` - Mobile plan, Android build and playtest docs
+- `/docs/mobile` - Mobile plan, Android build and playtest docs, store listing copy
+
+## Credits
+
+World Of Conflict is a fork of OpenFront.io (AGPL-3.0 code, CC BY-SA 4.0 assets) and is not affiliated with or endorsed by OpenFront. See [CREDITS.md](CREDITS.md).
