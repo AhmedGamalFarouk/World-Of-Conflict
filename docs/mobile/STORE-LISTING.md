@@ -46,7 +46,14 @@ final mark are owner tasks (see NEXT-STEPS.md section 5).
   `https://localhost`) and `VIBRATE` (event alerts).
 - **Requirements**: Android 8.0 (minSdk 26), WebGL2-capable WebView, landscape.
 
-## Assets to capture (1920x1080, landscape)
+## Assets (1920x1080, landscape) — drafts in `docs/mobile/store/`
+
+Captured 2026-10-25 on the Pixel 9 emulator (1920x1080 at 420 dpi) from the
+v0.2.0 build: `01-home`, `02-quick-game` (difficulty picker), `03-spawn`,
+`04-radial-menu`, `05-territory`, and `feature-graphic` (1024x500, cropped from
+the home screen). Retake 03 to 05 on a phone for a wider mid-game view (the
+emulator is slow and the camera starts zoomed in); item 5 below (aftergame) is
+not captured yet. Wanted shots:
 
 1. Home with CONTINUE visible.
 2. Mid-game territory on Europe.
