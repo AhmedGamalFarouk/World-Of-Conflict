@@ -27,6 +27,7 @@ describe("WinModal offline", () => {
     Object.assign(modal, {
       game: {
         ticks: () => 600,
+        gameID: () => "test-game",
         config: () => ({ gameConfig: () => ({}) }),
       },
       eventBus: { emit },

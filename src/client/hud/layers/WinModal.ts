@@ -30,6 +30,7 @@ import {
 } from "../../Cosmetics";
 import { isDesktopShell } from "../../DesktopShell";
 import { gamePortal } from "../../GamePortal";
+import { dailyEnded } from "../../mobile/DailyChallenge";
 import { isOffline } from "../../mobile/MobileShell";
 import { gameEnded } from "../../mobile/PlayStats";
 import { GameOverEvent } from "../../mobile/SaveEvents";
@@ -623,6 +624,7 @@ export class WinModal extends LitElement implements Controller {
       // 10 ticks a second, whatever the speed: total game time, resumes included.
       const reason = this.isWin ? "win" : "loss";
       gameEnded(reason, this.game.ticks() / 10);
+      dailyEnded(this.game.gameID(), reason, this.game.ticks() / 10);
       // Elimination ends the player's game too: nothing left to resume.
       this.eventBus.emit(new GameOverEvent(reason));
     }

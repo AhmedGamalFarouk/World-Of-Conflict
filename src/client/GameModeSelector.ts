@@ -31,6 +31,7 @@ import { whenModalLoaded } from "./LazyModals";
 import { PublicLobbySocket } from "./LobbySocket";
 import { JoinLobbyEvent } from "./Main";
 import { openAbout } from "./mobile/About";
+import { dailyStatus, startDailyChallenge } from "./mobile/DailyChallenge";
 import { isOffline } from "./mobile/MobileShell";
 import { chooseQuickDifficulty, startQuickGame } from "./mobile/QuickGame";
 import {
@@ -723,6 +724,13 @@ export class GameModeSelector extends LitElement {
             ${translateText("main.play")}
           </button>
           <button
+            class="wc-btn wc-btn-steel wc-daily"
+            ?disabled=${isContinuing()}
+            @click=${this.dailyOffline}
+          >
+            ${this.dailyLabel()}
+          </button>
+          <button
             class="wc-btn wc-btn-steel wc-quick"
             ?disabled=${isContinuing()}
             @click=${this.quickGameOffline}
@@ -931,6 +939,16 @@ export class GameModeSelector extends LitElement {
       startQuickGame(difficulty);
     }
   };
+
+  private dailyOffline = async () => {
+    if (await allowNewGame()) startDailyChallenge();
+  };
+
+  private dailyLabel() {
+    const { doneToday, streak } = dailyStatus();
+    if (streak > 0) return translateText("main.daily_streak", { days: streak });
+    return translateText(doneToday ? "main.daily_done" : "main.daily");
+  }
 
   // The CONTINUE plate, or the notice that replaced a save that could not be
   // restored. At most 360px wide and 96px high (DESIGN.md).

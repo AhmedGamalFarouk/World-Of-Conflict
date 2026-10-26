@@ -207,7 +207,9 @@ signed release APK passed a full offline game plus resume after force-stop.
 - iOS (research AGPL vs App Store terms first).
 - On-demand map downloads beyond the 15 curated maps.
 - In-app "Report a problem" to a prefilled GitHub issue.
-- Daily seeded challenge map.
+- Daily seeded challenge: built (`src/client/mobile/DailyChallenge.ts`, game ID
+  `D<yyyymmdd>` UTC seeds the engine; local streak only). Untested on a device
+  and with a CONTINUE plate at 640x320.
 - Monthly upstream merge from OpenFrontIO with the gate rerun.
 - Engine snapshot resume (needs a baseline-update engine change; see section 3).
 

@@ -641,6 +641,11 @@ export class SinglePlayerModal extends BaseModal {
     // attempts dispatch join-lobby with different gameIDs and whichever
     // resolves last wins, which can be the one the player abandoned.
     this.startAttempt++;
+    // A retired replay must not leak its config or pinned (daily) game ID
+    // into the next start from the setup screen.
+    this.replayConfig = null;
+    this.replaySpeed = undefined;
+    this.replayGameID = undefined;
     // If the retired attempt still owned the starting overlay it never
     // dispatched join-lobby, so nothing downstream will hide it: without
     // this, dismissing the modal mid-preparation leaves a full-screen
@@ -712,6 +717,7 @@ export class SinglePlayerModal extends BaseModal {
     if (replay !== null) {
       this.replayConfig = replay.config;
       this.replaySpeed = replay.speed;
+      this.replayGameID = replay.gameID;
       void this.startGame();
       return;
     }
@@ -1059,6 +1065,7 @@ export class SinglePlayerModal extends BaseModal {
 
   private replayConfig: GameConfig | null = null;
   private replaySpeed: ReplaySpeedMultiplier | undefined;
+  private replayGameID: string | undefined;
 
   private async startGame() {
     // A second click while the first is still resolving would dispatch a
@@ -1107,7 +1114,7 @@ export class SinglePlayerModal extends BaseModal {
         `Starting single player game with map: ${GameMapType[this.selectedMap as keyof typeof GameMapType]}${this.useRandomMap ? " (Randomly selected)" : ""}`,
       );
       const clientID = generateID();
-      const gameID = generateID();
+      const gameID = this.replayGameID ?? generateID();
 
       const usernameInput = document.querySelector(
         "username-input",
@@ -1223,6 +1230,7 @@ export class SinglePlayerModal extends BaseModal {
       this.dispatchEvent(joinEvent);
       this.replayConfig = null;
       this.replaySpeed = undefined;
+      this.replayGameID = undefined;
       if (isOffline()) {
         rememberSoloConfig(joinEvent.detail.gameStartInfo.config);
       }

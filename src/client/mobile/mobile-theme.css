@@ -294,6 +294,11 @@ body.mobile-theme .wc-title-actions > :not(.wc-quick, .wc-tutorial) {
   font-size: 16px;
   white-space: nowrap;
 }
+.wc-daily {
+  min-height: 44px;
+  font-size: 16px;
+  white-space: nowrap;
+}
 .wc-play {
   min-height: 72px;
   font-size: 30px;
@@ -378,6 +383,9 @@ body.mobile-theme .wc-save-notice {
   .wc-play {
     min-height: 56px;
     font-size: 26px;
+  }
+  .wc-daily {
+    min-height: 36px;
   }
   body.mobile-theme .wc-title-actions {
     gap: 8px;
