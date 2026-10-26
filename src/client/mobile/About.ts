@@ -314,6 +314,13 @@ export function openAbout(): void {
  */
 export async function askAnalyticsConsent(): Promise<void> {
   if (!analyticsAvailable() || analyticsConsent() !== null) return;
+  // translateText echoes the key until <lang-selector> has its files (see
+  // BootInterrupts.claimPromptStringsReady). Not ready in 10 s: ask next launch.
+  const key = "mobile.analytics_title";
+  for (let i = 0; i < 100 && translateText(key) === key; i++) {
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  if (translateText(key) === key) return;
   setAnalyticsConsent(
     await confirmGone({
       title: translateText("mobile.analytics_title"),
