@@ -66,12 +66,14 @@
     </ul>
     <p>
       It does not send an account, player name, device ID, advertising ID,
-      location, error messages, stack traces or game contents. The request
-      itself reaches Aptabase's servers, so they see your IP address as any web
-      request does; see
+      location, error messages, stack traces or game contents. Aptabase's
+      servers see your IP address and user agent with each request; per
       <a href="https://aptabase.com/legal/privacy">Aptabase's privacy policy</a>
-      for how they handle it. Events made while offline are kept on the device
-      (at most 100) and sent later.
+      they process them only in memory and never store them. Aptabase keeps the
+      events for up to 5 years and cannot tell which events came from you, so
+      they cannot be deleted per person; turning the stats off stops all further
+      events. Events made while offline are kept on the device (at most 100) and
+      sent later.
     </p>
     <h2>What stays on your phone</h2>
     <p>

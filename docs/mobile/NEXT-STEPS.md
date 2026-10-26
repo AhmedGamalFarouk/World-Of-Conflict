@@ -172,9 +172,9 @@ Open:
 - D1: create the upload keystore (outside the repo), back it up, fill
   `android/keystore.properties`, add the four CI secrets
   (`ANDROID_KEYSTORE_B64`, `_PASSWORD`, `ANDROID_KEY_ALIAS`, `_KEY_PASSWORD`).
-- Turn on GitHub Pages from `main` `/docs` so `docs/privacy.html` is served at
-  the URL About links to (Play needs this URL before submission; not enabled as
-  of 2026-10-22).
+- GitHub Pages serves `main` `/docs` (checked 2026-10-26), so
+  `docs/privacy.html` is live at the URL About links to; each push to `main`
+  republishes it.
 - Write the v0.2.0 release notes on the GitHub Release (empty now).
 - D4 store assets: screenshots 1920x1080 (home with CONTINUE, mid-game
   territory, event plate, QUICK GAME start, aftergame), feature graphic
@@ -187,9 +187,9 @@ Open:
   14 continuous days before production. Recruit now. Feedback via GitHub issues
   with pasted Copy error log; enable pre-launch reports; recheck targetSdk at
   upload.
-- Usage stats: create an Aptabase app (EU region recommended), set the repo
-  variable `WC_APTABASE_KEY`, update the Play Data safety form (see
-  `STORE-LISTING.md`), and republish `docs/privacy.html` via GitHub Pages.
+- Usage stats: create an Aptabase Cloud app (EU region), set the repo variable
+  `WC_APTABASE_KEY` to its `A-EU-…` key, and fill the Play Data safety form
+  from `STORE-LISTING.md`.
 - Time a clean clone to `android:debug` to install once and record the minutes
   (target 15 or less after JDK and SDK install) in `CONTRIBUTING.md`.
 

@@ -46,8 +46,9 @@ final mark are owner tasks (see NEXT-STEPS.md section 5).
   interactions" and "App info and performance > Crash logs / Diagnostics"
   (error codes only): collected = yes, shared = no, processed ephemerally = no,
   optional (user can choose) = yes, purpose = Analytics, encrypted in transit =
-  yes. TODO (owner): check Aptabase's deletion process before answering the
-  "user can request deletion" question.
+  yes. User can request deletion = no: there are no accounts and Aptabase
+  cannot link events to a person (aptabase.com/legal/privacy: IP and user
+  agent are processed in memory only, events kept up to 5 years).
 - **Permissions**: `INTERNET` (the WebView, and the optional usage stats to
   Aptabase; otherwise no requests beyond `https://localhost`) and `VIBRATE` (event alerts).
 - **Requirements**: Android 8.0 (minSdk 26), WebGL2-capable WebView, landscape.
