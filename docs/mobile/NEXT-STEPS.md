@@ -175,7 +175,7 @@ Open:
 - GitHub Pages serves `main` `/docs` (checked 2026-10-26), so
   `docs/privacy.html` is live at the URL About links to; each push to `main`
   republishes it.
-- Write the v0.2.0 release notes on the GitHub Release (empty now).
+- v0.2.0 release notes: done, written on the GitHub Release (checked 2026-10-26).
 - D4 store assets: screenshots 1920x1080 (home with CONTINUE, mid-game
   territory, event plate, QUICK GAME start, aftergame), feature graphic
   1024x500, content rating, data safety (usage stats declarations, see
@@ -219,8 +219,11 @@ signed release APK passed a full offline game plus resume after force-stop.
 - On-demand map downloads beyond the 15 curated maps.
 - In-app "Report a problem" to a prefilled GitHub issue.
 - Daily seeded challenge: built (`src/client/mobile/DailyChallenge.ts`, game ID
-  `D<yyyymmdd>` UTC seeds the engine; local streak only). Untested on a device
-  and with a CONTINUE plate at 640x320.
+  `D<yyyymmdd>` UTC seeds the engine; local streak only). Checked in the mobile
+  preview at 640x320 with and without a save (2026-10-26): the button pushed
+  QUICK GAME and TUTORIAL off screen with a save; at max-height 340px the name
+  field now sits under the wordmark and all four buttons fit. Untested on a
+  device.
 - Monthly upstream merge from OpenFrontIO with the gate rerun.
 - Engine snapshot resume (needs a baseline-update engine change; see section 3).
 

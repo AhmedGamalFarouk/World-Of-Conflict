@@ -376,16 +376,24 @@ body.mobile-theme .wc-save-notice {
 /* Short phones: the save card, PLAY, QUICK GAME and TUTORIAL must all fit. */
 @media (max-height: 340px) {
   body.mobile-theme #page-play:not(.hidden) {
+    /* The commander name moves under the wordmark so the right column starts
+       below the top icons and holds the save card and four buttons. */
+    grid-template-areas:
+      "word actions"
+      "name actions";
     row-gap: 8px;
     padding-top: calc(env(safe-area-inset-top) + 56px);
     padding-bottom: calc(env(safe-area-inset-bottom) + 12px);
+  }
+  body.mobile-theme #page-play div:has(> news-box) {
+    align-self: start;
   }
   .wc-play {
     min-height: 56px;
     font-size: 26px;
   }
   .wc-daily {
-    min-height: 36px;
+    min-height: 44px;
   }
   body.mobile-theme .wc-title-actions {
     gap: 8px;
