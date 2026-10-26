@@ -187,9 +187,14 @@ Open:
   14 continuous days before production. Recruit now. Feedback via GitHub issues
   with pasted Copy error log; enable pre-launch reports; recheck targetSdk at
   upload.
-- Usage stats: create an Aptabase Cloud app (EU region), set the repo variable
-  `WC_APTABASE_KEY` to its `A-EU-…` key, and fill the Play Data safety form
-  from `STORE-LISTING.md`.
+- Usage stats: done 2026-10-26. Aptabase Cloud app (EU), repo variable
+  `WC_APTABASE_KEY` set; checked in the mobile preview (Aptabase answers 200).
+- Play Console (developer account "Caffeine Code", ahmedgamalfarouk0@gmail.com),
+  done 2026-10-26: app World Of Conflict created (`com.worldofconflict.game`,
+  game, free; Play App Signing ToS accepted). Saved: Data safety (as in
+  `STORE-LISTING.md`), privacy policy URL, Ads (none), Sign in details (nothing
+  restricted), Target audience 13+. Still to do: content rating, store listing
+  and assets, then send for review from Publishing overview.
 - Time a clean clone to `android:debug` to install once and record the minutes
   (target 15 or less after JDK and SDK install) in `CONTRIBUTING.md`.
 
