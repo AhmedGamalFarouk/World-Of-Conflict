@@ -1,9 +1,11 @@
 // A small on-device error log testers paste into a GitHub issue (About >
-// Copy error log). There is no telemetry offline, so this is the only crash
-// report we get. Homepage chunk: no game-client imports.
+// Copy error log). Opted-in players also send each code (only the code) as
+// an anonymous usage event (Analytics.ts). Homepage chunk: no game-client
+// imports.
 //
 // localStorage "wc-errlog": JSON array, last 200 entries, each <= 2 KB,
 // written at most once a second; the memory buffer is always current.
+import { trackError } from "./Analytics";
 import { appVersion, buildCommit } from "./AppInfo";
 import { readPlayStats } from "./PlayStats";
 
@@ -72,6 +74,7 @@ export function appendError(entry: Omit<ErrorEntry, "time">): void {
   list.push(fitEntry({ ...entry, time: Date.now() }));
   if (list.length > MAX_ENTRIES) list.splice(0, list.length - MAX_ENTRIES);
   schedulePersist();
+  trackError(entry.code);
 }
 
 export function readErrorLog(): readonly ErrorEntry[] {

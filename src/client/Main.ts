@@ -137,6 +137,8 @@ import {
   type TurnstileApi,
   type TurnstileToken,
 } from "./TurnstileToken";
+import { askAnalyticsConsent } from "./mobile/About";
+import { track } from "./mobile/Analytics";
 import { installErrorLog } from "./mobile/ErrorLog";
 import { installBackButton } from "./mobile/MobileBack";
 import { isMobileShell, isOffline } from "./mobile/MobileShell";
@@ -2279,6 +2281,8 @@ const bootstrap = () => {
   if (isMobileShell()) {
     installErrorLog();
     void loadHomeSave();
+    // One event per launch gives retention; asked first on a first launch.
+    void askAnalyticsConsent().then(() => track("app_open"));
   }
 
   // Also hide elements after a short delay to catch late-rendered components

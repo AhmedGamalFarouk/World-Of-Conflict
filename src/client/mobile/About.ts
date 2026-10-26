@@ -6,6 +6,11 @@ import { html, LitElement, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { translateText } from "../Utils";
 import {
+  analyticsAvailable,
+  analyticsConsent,
+  setAnalyticsConsent,
+} from "./Analytics";
+import {
   AGPL_URL,
   appVersion,
   CC_BY_SA_URL,
@@ -18,6 +23,7 @@ import { appendError, errorLogReport } from "./ErrorLog";
 import { medianGame, readPlayStats } from "./PlayStats";
 import {
   confirmDiscard,
+  confirmGone,
   discardSavedGame,
   homeSave,
   onHomeSaveChange,
@@ -227,6 +233,22 @@ export class WcAbout extends LitElement {
             </button>`
           : nothing}
         ${this.link(PRIVACY_URL, translateText("mobile.about_privacy"))}
+        ${analyticsAvailable()
+          ? html`<button
+              class="wc-about-link"
+              aria-pressed=${analyticsConsent() === "on"}
+              @click=${() => {
+                setAnalyticsConsent(analyticsConsent() !== "on");
+                this.requestUpdate();
+              }}
+            >
+              ${translateText(
+                analyticsConsent() === "on"
+                  ? "mobile.about_analytics_on"
+                  : "mobile.about_analytics_off",
+              )}
+            </button>`
+          : nothing}
       </div>
       <p class="wc-about-muted" role="status" aria-live="polite">
         ${this.toast ?? nothing}
@@ -284,6 +306,22 @@ function aboutElement(): WcAbout {
 
 export function openAbout(): void {
   aboutElement().show();
+}
+
+/**
+ * First launch of a build with analytics: asks once. NO THANKS is the gold
+ * face and what Android back does, so backing out never opts in.
+ */
+export async function askAnalyticsConsent(): Promise<void> {
+  if (!analyticsAvailable() || analyticsConsent() !== null) return;
+  setAnalyticsConsent(
+    await confirmGone({
+      title: translateText("mobile.analytics_title"),
+      body: translateText("mobile.analytics_body"),
+      keep: translateText("mobile.analytics_no"),
+      destroy: translateText("mobile.analytics_yes"),
+    }),
+  );
 }
 
 /** Android back: true when About (or its licenses pane) took it. */

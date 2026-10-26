@@ -567,6 +567,10 @@ export default defineConfig(({ mode, command }) => {
     define: {
       __ASSET_MANIFEST__: JSON.stringify(assetManifest),
       __WC_VERSION__: JSON.stringify(wcVersion),
+      // Opt-in usage stats (src/client/mobile/Analytics.ts); empty = off.
+      __WC_APTABASE_KEY__: JSON.stringify(
+        isMobile ? (env.WC_APTABASE_KEY ?? "") : "",
+      ),
       "process.env.WEBSOCKET_URL": JSON.stringify(
         isProduction || isMobile ? "" : "localhost:3000",
       ),

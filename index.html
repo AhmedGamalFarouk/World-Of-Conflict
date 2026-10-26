@@ -11,12 +11,13 @@
     <% } else { %>
     <title data-i18n="main.title">OpenFront (ALPHA)</title>
     <% } %> <% if (locals.mobile) { %>
-    <!-- Mobile app (docs/mobile/PLAN.md): nothing leaves the device. The
+    <!-- Mobile app (docs/mobile/PLAN.md): nothing leaves the device except
+         opt-in usage stats to Aptabase (src/client/mobile/Analytics.ts). The
          engine worker is a blob: URL. Inline scripts are allowed because the
          threat is egress, not injection (no user content, no server). -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self' blob: data:; connect-src 'self' blob: data:; img-src 'self' blob: data:; media-src 'self' blob: data:; font-src 'self' data:; script-src 'self' 'unsafe-inline' blob:; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'"
+      content="default-src 'self' blob: data:; connect-src 'self' blob: data: https://eu.aptabase.com https://us.aptabase.com; img-src 'self' blob: data:; media-src 'self' blob: data:; font-src 'self' data:; script-src 'self' 'unsafe-inline' blob:; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'"
     />
     <script>
       // Runs before the module bundle, which needs Chrome 107+ (vite.config.ts

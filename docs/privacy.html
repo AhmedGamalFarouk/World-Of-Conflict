@@ -28,9 +28,50 @@
   <body>
     <h1>World Of Conflict: privacy policy</h1>
     <p>
-      World Of Conflict is an offline Android game. It makes no network requests
-      and collects no data. There are no accounts, no analytics, no advertising
-      and no third-party services.
+      World Of Conflict is an offline Android game. It is fully playable without
+      a connection. There are no accounts and no advertising. By default it
+      makes no network requests and collects no data. The only exception is
+      anonymous usage stats, which are off unless you choose to share them.
+    </p>
+    <h2>Optional usage stats</h2>
+    <p>
+      On first launch (in builds that have this enabled) the app asks
+      <em>Help improve the game?</em> The default, and what Android back does,
+      is <em>No thanks</em>. You can switch it any time in About (<em
+        >Usage stats: on/off</em
+      >); turning it off deletes unsent queued events. Builds without a key send
+      nothing and show no prompt.
+    </p>
+    <p>
+      If you share, the app sends these to
+      <a href="https://aptabase.com">Aptabase</a>, an analytics service:
+    </p>
+    <ul>
+      <li>the event name and a timestamp,</li>
+      <li>
+        a random session ID made for one app launch (it is not a device ID, and
+        is kept on the device only inside events waiting to be sent),
+      </li>
+      <li>
+        your device language setting, the app version, and whether it is a
+        development build,
+      </li>
+      <li>
+        event details: the map, difficulty and whether it was the daily
+        challenge when a game starts; how it ended (win, loss, quit or
+        abandoned) and its length in minutes; the daily challenge result; and
+        the code of an error, such as <code>save.damaged</code> (never the
+        message or stack), at most once per code per launch.
+      </li>
+    </ul>
+    <p>
+      It does not send an account, player name, device ID, advertising ID,
+      location, error messages, stack traces or game contents. The request
+      itself reaches Aptabase's servers, so they see your IP address as any web
+      request does; see
+      <a href="https://aptabase.com/legal/privacy">Aptabase's privacy policy</a>
+      for how they handle it. Events made while offline are kept on the device
+      (at most 100) and sent later.
     </p>
     <h2>What stays on your phone</h2>
     <p>
@@ -48,9 +89,10 @@
     </ul>
     <h2>Permissions</h2>
     <p>
-      The app declares the INTERNET permission only because the Android web view
-      requires it; it makes no requests. It also uses VIBRATE for haptic
-      feedback, which you can switch off in settings.
+      The app declares the INTERNET permission because the Android web view
+      requires it and for the optional usage stats above; without opt-in it
+      makes no requests. It also uses VIBRATE for haptic feedback, which you can
+      switch off in settings.
     </p>
     <h2>Source and contact</h2>
     <p>

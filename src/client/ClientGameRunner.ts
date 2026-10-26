@@ -82,6 +82,8 @@ import { WorkerClient } from "./WorkerClient";
 import { MapLayerController } from "./controllers/MapLayerController";
 import { createRenderer, GameRenderer } from "./hud/GameRenderer";
 import { goldRateTracker } from "./hud/layers/lib/GoldRateTracker";
+import { track } from "./mobile/Analytics";
+import { isDailyId } from "./mobile/DailyChallenge";
 import { fatalForHeading, GL_LOST, showFatal } from "./mobile/FatalScreen";
 import { vibrate } from "./mobile/Haptics";
 import { isMobileShell } from "./mobile/MobileShell";
@@ -307,7 +309,16 @@ export function joinLobby(
         .then((r) => {
           currentGameRunner = r;
           // A resumed game was counted when it first started.
-          if (isMobileShell() && !lobbyConfig.resume) gameStarted();
+          if (isMobileShell() && lobbyConfig.resume) track("game_resume");
+          else if (isMobileShell()) {
+            gameStarted();
+            const { config, gameID } = message.gameStartInfo;
+            track("game_start", {
+              map: config.gameMap,
+              difficulty: config.difficulty,
+              daily: isDailyId(gameID) ? 1 : 0,
+            });
+          }
           r.start();
         })
         .catch((e) => {

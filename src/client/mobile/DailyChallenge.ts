@@ -1,8 +1,8 @@
 // Daily challenge: one fixed game per UTC day, the same for every player. The
 // engine seeds its PRNG from the game ID, so an ID derived from the date pins
 // the whole game (spawns, bots, nations). Map, difficulty and bots are derived
-// from the date too. Results live in localStorage (no telemetry offline); the
-// streak counts consecutive days with a finished game.
+// from the date too. Results live in localStorage (and go to the opt-in usage
+// stats); the streak counts consecutive days with a finished game.
 import {
   Difficulty,
   GameMapSize,
@@ -14,6 +14,7 @@ import {
 import type { GameConfig } from "@openfront/engine-api/Schemas";
 import { simpleHash } from "@openfront/engine-lib/Util";
 import { ReplaySpeedMultiplier } from "../utilities/ReplaySpeedMultiplier";
+import { track } from "./Analytics";
 import { rememberSoloConfig, requestSoloReplay } from "./SoloReplay";
 
 // Mid-size curated maps: World, Europe, EuropeClassic and Mars are left out so
@@ -96,6 +97,7 @@ export function dailyEnded(
     const day = idToDay(gameId);
     if (days[day] !== undefined) return;
     days[day] = { result, seconds: Math.max(0, Math.round(seconds)) };
+    track("daily_end", { result });
     const kept = Object.keys(days).sort().slice(-KEEP_DAYS);
     localStorage.setItem(
       KEY,

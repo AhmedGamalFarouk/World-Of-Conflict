@@ -16,7 +16,7 @@ final mark are owner tasks (see NEXT-STEPS.md section 5).
   attack, hold to open the radial menu, build cities, ports and defences, make
   alliances, and watch the front line move.
 
-  • Fully offline: no account, no connection, no ads.
+  • Fully offline: no account, plays without a connection, no ads.
   • Quick game: a ready-made match in one tap, or tune the map, bots and difficulty.
   • 15 maps of real geography, from Europe to the whole World.
   • Built for landscape phones: a troop-ratio rail (25/50/75/100%), event alerts
@@ -41,9 +41,15 @@ final mark are owner tasks (see NEXT-STEPS.md section 5).
   theme, no gore).
 - **Content rating**: stylised strategy-map violence; no blood, gambling,
   user-generated content or chat. Answer the IARC questionnaire on that basis.
-- **Data safety**: collects no data, shares none. Nothing leaves the device.
-- **Permissions**: `INTERNET` (the WebView; the app makes no requests beyond
-  `https://localhost`) and `VIBRATE` (event alerts).
+- **Data safety**: opt-in anonymous usage stats to Aptabase (off by default;
+  builds without `WC_APTABASE_KEY` send nothing). Declare "App activity > App
+  interactions" and "App info and performance > Crash logs / Diagnostics"
+  (error codes only): collected = yes, shared = no, processed ephemerally = no,
+  optional (user can choose) = yes, purpose = Analytics, encrypted in transit =
+  yes. TODO (owner): check Aptabase's deletion process before answering the
+  "user can request deletion" question.
+- **Permissions**: `INTERNET` (the WebView, and the optional usage stats to
+  Aptabase; otherwise no requests beyond `https://localhost`) and `VIBRATE` (event alerts).
 - **Requirements**: Android 8.0 (minSdk 26), WebGL2-capable WebView, landscape.
 
 ## Assets (1920x1080, landscape) — drafts in `docs/mobile/store/`

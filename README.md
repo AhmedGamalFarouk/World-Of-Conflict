@@ -11,7 +11,7 @@ Get the latest APK from the [Releases page](https://github.com/AhmedGamalFarouk/
 
 - Plays fully offline against bots: Quick game, 15 curated maps, tutorial.
 - Your game is saved automatically. After an interruption, CONTINUE on the home screen replays it (a long game takes a while to catch up).
-- No accounts, no ads, no analytics. See the [privacy policy](https://ahmedgamalfarouk.github.io/World-Of-Conflict/privacy.html).
+- No accounts, no ads. Anonymous usage stats are off unless you opt in. See the [privacy policy](https://ahmedgamalfarouk.github.io/World-Of-Conflict/privacy.html).
 - Something broke? Open a [GitHub issue](https://github.com/AhmedGamalFarouk/World-Of-Conflict/issues) and paste About > Copy error log.
 
 ## License

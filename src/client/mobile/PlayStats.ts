@@ -1,6 +1,8 @@
 // Local count of games started and finished, shown in About so playtesters
-// can report it (there is no telemetry offline). Storage can be blocked or
-// full; then nothing is counted and About hides the lines.
+// can report it. Game ends also go to the opt-in usage stats (Analytics.ts).
+// Storage can be blocked or full; then nothing is counted and About hides
+// the lines.
+import { track } from "./Analytics";
 
 const KEY = "wc.playStats";
 const KEEP_GAMES = 20;
@@ -73,13 +75,15 @@ export const gameStarted = () =>
   });
 
 /** A game ended for `reason` after `seconds` of game time in total. */
-export const gameEnded = (reason: EndReason, seconds: number) =>
+export const gameEnded = (reason: EndReason, seconds: number) => {
+  track("game_end", { reason, minutes: Math.round(seconds / 60) });
   update((s) => {
     if (reason === "win" || reason === "loss") s.finished++;
     s.games.push({ seconds: Math.max(0, Math.round(seconds)), reason });
     if (s.games.length > KEEP_GAMES)
       s.games.splice(0, s.games.length - KEEP_GAMES);
   });
+};
 
 /**
  * Median length in minutes of the won or lost games among the last 20, for

@@ -1,4 +1,5 @@
 import { GameMapType, maps } from "@openfront/engine-api/game/GameTypes";
+import { ANALYTICS_ORIGINS } from "./Analytics";
 import { CURATED_MAP_IDS } from "./CuratedMaps";
 
 const CURATED_MAPS: ReadonlySet<GameMapType> = new Set(
@@ -13,7 +14,8 @@ export function isMobileShell(): boolean {
   return import.meta.env.MODE === "mobile";
 }
 
-// "offline": single-player only, nothing leaves the device.
+// "offline": single-player only; nothing leaves the device except opt-in
+// usage stats (Analytics.ts).
 // "own-server" is reserved for the online milestone (docs/mobile/NEXT-STEPS.md, Later); one switch
 // instead of scattered isMobileShell() checks at every online caller.
 export type NetworkMode = "online" | "offline";
@@ -31,14 +33,19 @@ export function isOffline(): boolean {
  * letting it hit the page's CSP (index.html), which would reject it with a
  * console error. Upstream callers already fall back on a failed response, so
  * this one guard covers the API, news, cosmetics, auth and any caller added
- * later. Same-origin requests (maps, lang files, sounds) pass through.
+ * later. Same-origin requests (maps, lang files, sounds) pass through, and so
+ * do the opt-in usage stats (Analytics.ts), which send only after consent.
  */
 export function installOfflineNetworkGuard(): void {
   if (!isOffline()) return;
   const realFetch = window.fetch.bind(window);
   window.fetch = (input, init) => {
     const href = input instanceof Request ? input.url : String(input);
-    if (new URL(href, window.location.href).origin !== window.location.origin) {
+    const origin = new URL(href, window.location.href).origin;
+    if (
+      origin !== window.location.origin &&
+      !(ANALYTICS_ORIGINS as readonly string[]).includes(origin)
+    ) {
       console.debug("offline: blocked", href);
       return Promise.resolve(
         new Response(null, { status: 503, statusText: "Offline" }),

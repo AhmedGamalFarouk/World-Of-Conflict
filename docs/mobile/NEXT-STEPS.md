@@ -158,6 +158,8 @@ Open:
 - B2 (solo rail): the plan's "START directly under the last control" could not
   be reproduced; the rail holds only START and is pinned to the bottom.
   `DESIGN.md` still lists "empty space above START" as an open item.
+- Opt-in usage stats (Aptabase) are built; the events list lives in the callers
+  of `src/client/mobile/Analytics.ts`. Off by default, no key means no sends.
 - `E1` was named in the first plan's Order but never defined; nothing built.
 
 ## 5. Owner actions (give each a date in `ANDROID.md`)
@@ -176,7 +178,8 @@ Open:
 - Write the v0.2.0 release notes on the GitHub Release (empty now).
 - D4 store assets: screenshots 1920x1080 (home with CONTINUE, mid-game
   territory, event plate, QUICK GAME start, aftergame), feature graphic
-  1024x500, content rating, data safety "no data collected". Copy is World Of
+  1024x500, content rating, data safety (usage stats declarations, see
+  `STORE-LISTING.md`). Copy is World Of
   Conflict only; "OpenFront" appears only as the CC BY-SA and AGPL credit.
   Offline single player vs bots, quick game, resume after interruption;
   non-monetized; minSdk 26 with a WebGL2 WebView; AGPL source link.
@@ -184,6 +187,9 @@ Open:
   14 continuous days before production. Recruit now. Feedback via GitHub issues
   with pasted Copy error log; enable pre-launch reports; recheck targetSdk at
   upload.
+- Usage stats: create an Aptabase app (EU region recommended), set the repo
+  variable `WC_APTABASE_KEY`, update the Play Data safety form (see
+  `STORE-LISTING.md`), and republish `docs/privacy.html` via GitHub Pages.
 - Time a clean clone to `android:debug` to install once and record the minutes
   (target 15 or less after JDK and SDK install) in `CONTRIBUTING.md`.
 

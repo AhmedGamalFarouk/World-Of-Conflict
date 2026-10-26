@@ -47,6 +47,9 @@ jobs:
           STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          # Aptabase app key (public in the APK anyway, so a variable). Unset
+          # builds ship with usage stats off.
+          WC_APTABASE_KEY: ${{ vars.WC_APTABASE_KEY }}
           WC_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && '1' || '' }}
         run: |
           # Java properties: a backslash must be doubled to read back as one.
