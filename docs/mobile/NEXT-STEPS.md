@@ -158,6 +158,11 @@ Open:
 - B2 (solo rail): the plan's "START directly under the last control" could not
   be reproduced; the rail holds only START and is pinned to the bottom.
   `DESIGN.md` still lists "empty space above START" as an open item.
+- Arabic (2026-10-26): 285 keys added to `ar.json` by hand (mobile, save, main
+  menu, tutorial, build menu, win modal, in-game events, six curated map
+  names), checked in the preview at 640x320. Machine-drafted: needs a native
+  reader before the store listing claims Arabic. Other languages still fall
+  back to English for every `mobile.*`, `save.*` and daily string.
 - Opt-in usage stats (Aptabase) are built; the events list lives in the callers
   of `src/client/mobile/Analytics.ts`. Off by default, no key means no sends.
 - `E1` was named in the first plan's Order but never defined; nothing built.
