@@ -775,7 +775,19 @@ export class GameModeSelector extends LitElement {
           aria-label=${translateText("mobile.about")}
           @click=${openAbout}
         >
-          i
+          <svg
+            viewBox="0 0 24 24"
+            width="24"
+            height="24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 11v5.5M12 7.5h.01" />
+          </svg>
         </button>
       </div>`;
     }

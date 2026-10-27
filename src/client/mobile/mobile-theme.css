@@ -1423,10 +1423,6 @@ body.mobile-theme settings-modal h2 {
   background: rgb(20 27 45 / 0.85);
   border: 1px solid var(--wc-gilt);
   color: var(--wc-ivory);
-  font-family: var(--wc-display);
-  font-weight: 800;
-  font-size: 22px;
-  font-style: italic;
 }
 .wc-about {
   z-index: 2100;
