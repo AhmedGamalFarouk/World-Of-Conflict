@@ -15,6 +15,10 @@ record), `docs/mobile/STORE-LISTING.md` (Play copy and declarations),
   resuming a long game.
 - Remaining work is owner actions (section 5) and the open items in section 4.
   The README and `STORE-LISTING.md` are ready to publish from.
+- Gamification and UX pass (2026-10-27, pushed): one-tap PLAY, land goal bar,
+  aftergame recap, tutorial in chapters, milestone plates, daily challenge
+  strip, commander record and titles, resume standing. Status and open items in
+  `docs/mobile/GAMIFICATION-TASKS.md`.
 
 ## Rules that still bind every step
 
@@ -55,6 +59,8 @@ record), `docs/mobile/STORE-LISTING.md` (Play copy and declarations),
 4. **Title screen at 640x320 with a save**: QUICK GAME and TUTORIAL sit at
    y 308 to 356, off screen (PLAY stays visible). Put CONTINUE beside the map
    info in the short media query, or shrink the rows, so all four fit.
+   Follow-up (2026-10-27): the query was `max-height: 340px`, which no phone
+   matched (the vivo is 392px tall in landscape); it is now 430px.
 5. **A resume counts as a started game** (`ClientGameRunner.ts`, the
    `gameStarted()` call). Guard with `!lobbyConfig.resume`, with a test.
 6. **Event plate fires on old events during catch-up** (`CriticalEventPlate.ts`
@@ -224,11 +230,10 @@ signed release APK passed a full offline game plus resume after force-stop.
 - On-demand map downloads beyond the 15 curated maps.
 - In-app "Report a problem" to a prefilled GitHub issue.
 - Daily seeded challenge: built (`src/client/mobile/DailyChallenge.ts`, game ID
-  `D<yyyymmdd>` UTC seeds the engine; local streak only). Checked in the mobile
-  preview at 640x320 with and without a save (2026-10-26): the button pushed
-  QUICK GAME and TUTORIAL off screen with a save; at max-height 340px the name
-  field now sits under the wordmark and all four buttons fit. Untested on a
-  device.
+  `D<yyyymmdd>` UTC seeds the engine; local streak with one grace day a week,
+  today's map, 7-day strip, best time). Checked on the vivo V2529 with a save
+  (2026-10-27): the title screen fits with the short layout (up to 430px tall).
+  A daily game has not been played through on a device.
 - Monthly upstream merge from OpenFrontIO with the gate rerun.
 - Engine snapshot resume (needs a baseline-update engine change; see section 3).
 
@@ -243,7 +248,14 @@ npx -y npm@12 ci --ignore-scripts
   after each change and add `?v=N` to bust the cache. For quick save tests set
   `localStorage["wc.dev.autosaveSeconds"]` (dev builds only).
 - APK: `npm run android:doctor`, `npm run android:debug`,
-  `adb install -r dist-mobile/WorldOfConflict-dev.apk`.
+  `adb install -r dist-mobile/WorldOfConflict-dev.apk`. The build needs JDK 21:
+  if `java` on PATH is older, set `JAVA_HOME` to Android Studio's `jbr`.
+- Driving the app on a phone: the debug build's WebView is inspectable;
+  `adb forward tcp:9333 localabstract:webview_devtools_remote_<pid>` (pid from
+  `adb shell pidof com.worldofconflict.game`), then CDP `Runtime.evaluate` over
+  `ws` (already installed). Take visuals with `adb exec-out screencap -p`: CDP
+  screenshots squash some elements. Keep the phone unlocked; a sleeping phone
+  stalls the WebView.
 - Emulator: AVD `Pixel_9_API_Baklava`; prefix adb commands that take
   `/sdcard/…` with `MSYS_NO_PATHCONV=1` in Git Bash.
 - Known noise: 18 `update.sh` tests fail on Windows on clean `main`; some

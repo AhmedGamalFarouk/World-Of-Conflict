@@ -10,16 +10,16 @@ least 40% start a second. No playtest data exists yet; do not invent any.
 
 ## Start here (new session)
 
-**State (2026-10-27):** every task but #9 is done and committed on `main`;
-#9 waits for playtest data. Pushed to `origin/main` (2026-10-27). Checked on a phone (vivo V2529, 870x392 CSS px, debug APK
-driven over WebView DevTools): the home screen with a save, record plate and
-daily strip (sample data, removed after), the pause card's standing line after
-a real resume, the milestone plate, the tutorial chapter banner. Fixed from
-that: the short title layout now applies up to 430px tall (`c1ae8b6`; at
-340px it never reached a phone), the event plate is opaque, and the weapons
-button moves below the tutorial banner (it covered the step text). Not yet
-seen on the device: a whole first game with the tutorial live, a milestone
-firing in play.
+**State (2026-10-27):** every task but #9 is done and pushed to
+`origin/main`; #9 waits for playtest data. Checked on a phone (vivo V2529,
+870x392 CSS px, debug APK driven over WebView DevTools): the home screen with a
+save, the record plate and daily strip (sample data, removed after), the pause
+card's standing line after a real resume, the milestone plate, the tutorial
+chapter banner. Fixed from that: the short title layout now applies up to 430px
+tall (at 340px it never reached a phone), the event plate is opaque, the
+weapons button moves below the tutorial banner (it covered the step text), and
+the About button is a centred line icon. Not yet seen on a device: a whole first
+game with the tutorial live, a milestone firing in play.
 
 | Commit    | What                                        |
 | --------- | ------------------------------------------- |
@@ -29,6 +29,10 @@ firing in play.
 | `21baf01` | #4 tutorial in chapters                     |
 | `338d77f` | #5 milestone plates                         |
 | `cd39cc0` | #6 daily challenge                          |
+| `02cd9f7` | #7 record, #8 titles, #10 resume standing   |
+| `c1ae8b6` | Title layout up to 430px tall (device)      |
+| `e20c1ec` | Weapons button clears banner, opaque plate  |
+| `4a1f421` | About button centred icon                   |
 
 **Code map (all mobile layer, `src/client/mobile/` unless noted):**
 
@@ -48,7 +52,8 @@ firing in play.
 
 **Gotchas learned:**
 
-- At 640x320 everything must fit. In `mobile-theme.css`, a `@media` block placed
+- Everything must fit at 640x320 and at a real phone's height (360px to 412px;
+  the short-screen query is `max-height: 430px`). In `mobile-theme.css`, a `@media` block placed
   _before_ the base rule loses (same specificity, source order decides): put
   compact rules after the base rules.
 - HUD text at least 14px, numbers at least 16px, touch targets at least 48px.
@@ -98,10 +103,10 @@ firing in play.
 | 4   | Tutorial in chapters                              | High          | Medium          | Done (`21baf01`)         |
 | 5   | Positive milestone plates                         | Medium        | Small           | Done (`338d77f`)         |
 | 6   | Daily challenge: preview, best time, streak grace | Medium        | Small to medium | Done (`cd39cc0`)         |
-| 7   | Commander record and map medals on home           | Medium        | Medium          | Done                     |
-| 8   | Earned commander titles                           | Low to medium | Small           | Done                     |
+| 7   | Commander record and map medals on home           | Medium        | Medium          | Done (`02cd9f7`)         |
+| 8   | Earned commander titles                           | Low to medium | Small           | Done (`02cd9f7`)         |
 | 9   | Map campaign ladder                               | High          | Large           | Blocked on playtest data |
-| 10  | Resume recap line after catch-up                  | Low           | Small           | Done                     |
+| 10  | Resume recap line after catch-up                  | Low           | Small           | Done (`02cd9f7`)         |
 
 ## Done
 
@@ -142,9 +147,9 @@ War (8, Defense Post to SAM). One chapter per game, the first unfinished one
 affordable, War once a Missile Silo is. The heading reads "EXPAND · 2 OF 6";
 the body shows the first sentence whole, a chevron and a tap show the rest. A
 finished chapter that isn't the last closes for the game, it does not set
-`tutorialDismissed`. Tests: `TutorialChapters.test.ts`. Not checked in the
-640x320 preview (no browser in that session): check the banner height with a
-long first sentence (`capture_tribes` runs to about four lines at 260px).
+`tutorialDismissed`. Tests: `TutorialChapters.test.ts`. Seen on the phone (paused game, panel
+stepped by hand): "EXPAND · 2 OF 6" and the first sentence fit in a 68px
+banner; the weapons button now moves below it.
 Known ceiling: when no step of a chapter applies (every War unit disabled),
 "chapter done" shows for 5s with nothing taught.
 
@@ -156,8 +161,8 @@ quarter and half of the land, largest nation, one rival left. Checked once a
 second after the spawn phase; each once per game, so five at most. Shows only
 on an empty slot and any alarm replaces it (`PlateGate`). Milestones already
 reached when a resume goes live never show. Tests in
-`CriticalEventPlate.test.ts`. Not seen in the preview (no browser in that
-session). Known ceiling: after a resume, "you conquered" shows at your next
+`CriticalEventPlate.test.ts`. Look checked on the phone (rendered by hand, not
+fired in play); the plate is now opaque. Known ceiling: after a resume, "you conquered" shows at your next
 nation conquest even if it was not your first.
 
 ### 6. Daily challenge (`cd39cc0`)
@@ -168,10 +173,10 @@ dots, and the streak or, once played today, the day's best time
 result still decides the streak and `daily_end`). One missed day per 7 is
 forgiven: it doesn't count and doesn't break the run, so opening the app the
 day after a miss still shows the streak. Copy never warns about losing it.
-Tests in `DailyChallenge.test.ts`. Not seen at 640x320 with a save: the button
-is now two lines (16px name, 14px dots and status) in 44px.
+Tests in `DailyChallenge.test.ts`. Seen on the phone with a save and sample
+history: two lines (16px name, 14px dots and status) fit in 44px.
 
-### 7 and 8. Commander record and titles
+### 7 and 8. Commander record and titles (`02cd9f7`)
 
 A record plate under the name (`GameModeSelector.renderRecord`, data from
 `Recap.commanderRecord`): title, WINS, BEST (fastest win anywhere), MAPS N/15,
@@ -179,15 +184,17 @@ a medal per curated map won. Hidden before the first finished game. `wc.best`
 now counts `wins` per map; older records with a win time count as one win.
 Titles, highest first: World Conqueror (every curated map), Warlord of {map}
 (3 wins on one map), Unbroken (daily streak of 7), Victor (any win). Earned
-only. Tests in `Recap.test.ts`. Not seen at 640x320: on short screens the
-plate takes a third row in the left column, under the name.
+only. Tests in `Recap.test.ts`. Seen on the phone with a save and sample records:
+on screens up to 430px tall the plate takes a third row in the left column,
+under the name, and the page still fits 392px.
 
-### 10. Resume recap
+### 10. Resume recap (`02cd9f7`)
 
 Once a resumed game has caught up, the pause card's catch-up line becomes
 "You're #2 with 31% of the land" (rank by land among the living, share from
 `landProgress`). The turn was already in the RESUMED header. Test in
-`AboutAndPauseCard.test.ts`.
+`AboutAndPauseCard.test.ts`. Seen on the phone after a real resume ("You're #4
+with 14% of the land").
 
 ## Remaining
 
@@ -212,5 +219,6 @@ dependency), so reasons to return stay inside the app.
   like 3/472 in a custom game.
 - Screenshots `04-quick-game` and the home shot in `docs/mobile/store/play/`
   show the old buttons; retake before submitting the listing.
-- Nothing from this work has been tried on a phone; the checks were the 640x320
-  browser preview and unit tests.
+- Still untested on a device: a whole first game with the tutorial live, a
+  milestone firing in play. The funnel events have not been seen arriving at
+  Aptabase.
