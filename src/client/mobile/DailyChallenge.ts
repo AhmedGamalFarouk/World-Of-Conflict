@@ -2,7 +2,8 @@
 // engine seeds its PRNG from the game ID, so an ID derived from the date pins
 // the whole game (spawns, bots, nations). Map, difficulty and bots are derived
 // from the date too. Results live in localStorage (and go to the opt-in usage
-// stats); the streak counts consecutive days with a finished game.
+// stats); the streak counts consecutive days with a finished game, forgiving
+// one missed day a week.
 import {
   Difficulty,
   GameMapSize,
@@ -42,6 +43,8 @@ export type DailyResult = "win" | "loss";
 export interface DailyDay {
   result: DailyResult;
   seconds: number;
+  /** Fastest win that day, seconds (replays of the day count). */
+  best?: number;
 }
 type DailyDays = Record<string, DailyDay>;
 
@@ -85,7 +88,10 @@ function readDays(): DailyDays {
   }
 }
 
-/** Records a finished daily game; the first result of a day stands. */
+/**
+ * Records a finished daily game. The first result of a day stands; a win,
+ * first or replayed, can only lower the day's best time.
+ */
 export function dailyEnded(
   gameId: string,
   result: DailyResult,
@@ -95,9 +101,15 @@ export function dailyEnded(
   try {
     const days = readDays();
     const day = idToDay(gameId);
-    if (days[day] !== undefined) return;
-    days[day] = { result, seconds: Math.max(0, Math.round(seconds)) };
-    track("daily_end", { result });
+    const secs = Math.max(0, Math.round(seconds));
+    const prior = days[day];
+    const faster = result === "win" && secs < (prior?.best ?? Infinity);
+    if (prior !== undefined && !faster) return;
+    if (prior === undefined) {
+      days[day] = { result, seconds: secs };
+      track("daily_end", { result });
+    }
+    if (faster) days[day].best = secs;
     const kept = Object.keys(days).sort().slice(-KEEP_DAYS);
     localStorage.setItem(
       KEY,
@@ -110,9 +122,19 @@ export function dailyEnded(
 
 export interface DailyStatus {
   doneToday: boolean;
-  /** Consecutive days with a finished game, ending today or yesterday. */
+  /**
+   * Days with a finished game in a row, ending today or yesterday. One missed
+   * day a week is forgiven (it does not count, it does not break the run).
+   */
   streak: number;
+  /** Today's fastest win, seconds. */
+  best?: number;
+  /** The last 7 days, oldest first, today last: each day's first result. */
+  week: (DailyResult | null)[];
 }
+
+/** One missed day is forgiven per this many days of a streak. */
+const GRACE_EVERY = 7;
 
 export function dailyStatus(now: Date = new Date()): DailyStatus {
   const days = readDays();
@@ -120,10 +142,20 @@ export function dailyStatus(now: Date = new Date()): DailyStatus {
     new Date(now.getTime() - offset * DAY_MS).toISOString().slice(0, 10);
   const doneToday = days[at(0)] !== undefined;
   let streak = 0;
+  let grace = -Infinity;
   // A streak is still alive until today ends, so start from yesterday if
   // today is not played yet.
-  for (let i = doneToday ? 0 : 1; days[at(i)] !== undefined; i++) streak++;
-  return { doneToday, streak };
+  for (let i = doneToday ? 0 : 1; ; i++) {
+    if (days[at(i)] !== undefined) {
+      streak++;
+    } else if (i - grace >= GRACE_EVERY && days[at(i + 1)] !== undefined) {
+      grace = i;
+    } else {
+      break;
+    }
+  }
+  const week = [6, 5, 4, 3, 2, 1, 0].map((i) => days[at(i)]?.result ?? null);
+  return { doneToday, streak, best: days[at(0)]?.best, week };
 }
 
 export function startDailyChallenge(): void {

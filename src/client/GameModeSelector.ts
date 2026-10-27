@@ -1,5 +1,6 @@
 import { GameMapType, GameType } from "@openfront/engine-api/game/GameTypes";
 import { UserMeResponse } from "@openfront/shared/ApiSchemas";
+import { assetUrl } from "@openfront/shared/AssetUrls";
 import { PublicGameInfo, PublicGames } from "@openfront/shared/WireSchemas";
 import { html, LitElement, nothing, type TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
@@ -31,7 +32,12 @@ import { whenModalLoaded } from "./LazyModals";
 import { PublicLobbySocket } from "./LobbySocket";
 import { JoinLobbyEvent } from "./Main";
 import { openAbout } from "./mobile/About";
-import { dailyStatus, startDailyChallenge } from "./mobile/DailyChallenge";
+import {
+  dailyConfig,
+  dailyId,
+  dailyStatus,
+  startDailyChallenge,
+} from "./mobile/DailyChallenge";
 import { isOffline } from "./mobile/MobileShell";
 import {
   chooseQuickDifficulty,
@@ -39,6 +45,7 @@ import {
   lastDifficulty,
   startQuickGame,
 } from "./mobile/QuickGame";
+import { formatDuration } from "./mobile/Recap";
 import {
   allowNewGame,
   confirmDiscard,
@@ -65,7 +72,9 @@ import {
   calculateServerTimeOffset,
   getGameModeLabel,
   getGamesPlayed,
+  getMapName,
   getSecondsUntilServerTimestamp,
+  normaliseMapKey,
   reloadForUpdate,
   renderDuration,
   showToast,
@@ -740,13 +749,7 @@ export class GameModeSelector extends LitElement {
               ${this.quickDifficultyName()}<span aria-hidden="true">▾</span>
             </button>
           </div>
-          <button
-            class="wc-btn wc-btn-steel wc-daily"
-            ?disabled=${isContinuing()}
-            @click=${this.dailyOffline}
-          >
-            ${this.dailyLabel()}
-          </button>
+          ${this.renderDaily()}
           <button
             class="wc-btn wc-btn-steel wc-custom"
             ?disabled=${isContinuing()}
@@ -971,10 +974,43 @@ export class GameModeSelector extends LitElement {
     if (await allowNewGame()) startDailyChallenge();
   };
 
-  private dailyLabel() {
-    const { doneToday, streak } = dailyStatus();
-    if (streak > 0) return translateText("main.daily_streak", { days: streak });
-    return translateText(doneToday ? "main.daily_done" : "main.daily");
+  // Today's map (name and thumbnail), the last 7 days as dots (today last),
+  // and the streak or, once played, the day's best time.
+  private renderDaily() {
+    const { doneToday, streak, best, week } = dailyStatus();
+    const map = dailyConfig(dailyId()).gameMap;
+    const status = doneToday
+      ? best !== undefined
+        ? translateText("main.daily_best", { time: formatDuration(best) })
+        : translateText("main.daily_done")
+      : streak > 0
+        ? translateText("main.daily_streak", { days: streak })
+        : "";
+    return html`<button
+      class="wc-btn wc-btn-steel wc-daily"
+      ?disabled=${isContinuing()}
+      @click=${this.dailyOffline}
+    >
+      <img
+        class="wc-daily-thumb"
+        src=${assetUrl(`maps/${normaliseMapKey(map)}/thumbnail.webp`)}
+        alt=""
+      />
+      <span class="wc-daily-text">
+        <span class="wc-daily-title"
+          >${translateText("main.daily_map", {
+            map: getMapName(map) ?? "",
+          })}</span
+        >
+        <span class="wc-daily-sub"
+          ><span class="wc-daily-week" aria-hidden="true"
+            >${week.map(
+              (r) => html`<i class="wc-day-${r ?? "none"}"></i>`,
+            )}</span
+          >${status}</span
+        >
+      </span>
+    </button>`;
   }
 
   // The CONTINUE plate, or the notice that replaced a save that could not be

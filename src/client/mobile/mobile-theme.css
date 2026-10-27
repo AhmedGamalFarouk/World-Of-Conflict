@@ -294,10 +294,65 @@ body.mobile-theme .wc-title-actions > :not(.wc-custom, .wc-tutorial) {
   font-size: 16px;
   white-space: nowrap;
 }
+/* DAILY: today's map thumbnail, its name, then the last 7 days as dots
+   (gold a win, ivory a loss, hollow unplayed; today last) and the streak or
+   the day's best time. */
 .wc-daily {
   min-height: 44px;
+  justify-content: flex-start;
+  gap: 10px;
+  padding-block: 4px;
+  padding-inline: 4px 12px;
   font-size: 16px;
   white-space: nowrap;
+}
+.wc-daily-thumb {
+  flex: none;
+  width: 56px;
+  height: 36px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+.wc-daily-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  line-height: 1.1;
+}
+.wc-daily-title {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wc-daily-sub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--wc-body);
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--wc-mute);
+}
+.wc-daily-week {
+  display: flex;
+  gap: 3px;
+}
+.wc-daily-week i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid rgb(255 255 255 / 0.3);
+}
+.wc-daily-week .wc-day-win {
+  background: var(--wc-gold-hi);
+  border-color: var(--wc-gold-hi);
+}
+.wc-daily-week .wc-day-loss {
+  background: var(--wc-ivory);
+  border-color: var(--wc-ivory);
 }
 .wc-play {
   min-height: 72px;

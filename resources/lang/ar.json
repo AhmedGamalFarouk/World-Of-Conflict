@@ -18,9 +18,8 @@
     "how_to_play": "كيفية اللعب",
     "wiki": "الويكي",
     "play": "العب",
-    "daily": "التحدي اليومي",
-    "daily_done": "اليومي · أُنجز اليوم",
-    "daily_streak": "اليومي · {days} يوم متتالٍ",
+    "daily_done": "أُنجز اليوم",
+    "daily_streak": "{days} يوم متتالٍ",
     "custom_game": "لعبة مخصصة",
     "tutorial": "الدرس التعليمي",
     "solo": "فردي",
@@ -29,7 +28,9 @@
     "settings": "الإعدادات",
     "quit": "الخروج من اللعبة",
     "leaderboard": "لوحة المتصدرين",
-    "privacy_policy": "سياسة الخصوصية"
+    "privacy_policy": "سياسة الخصوصية",
+    "daily_best": "الأفضل {time}",
+    "daily_map": "اليومي · {map}"
   },
   "help_modal": {
     "hotkeys": "اختصارات",

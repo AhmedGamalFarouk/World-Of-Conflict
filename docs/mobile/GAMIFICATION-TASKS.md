@@ -10,9 +10,12 @@ least 40% start a second. No playtest data exists yet; do not invent any.
 
 ## Start here (new session)
 
-**State (2026-10-27):** tasks #0 to #5 are done and committed on `main`. Next
-up is **#6, daily challenge**. `main` is ahead of `origin/main`: push only when
-the owner says so.
+**State (2026-10-27):** tasks #0 to #6 are done and committed on `main`. Next
+up is **#7, commander record on home**. `main` is ahead of `origin/main`: push
+only when the owner says so. #4 to #6 have not been seen in the 640x320
+preview yet (that session had no browser): check the tutorial banner, a
+milestone plate and the DAILY button with a save loaded before #7, which adds
+to the same crowded title screen.
 
 | Commit    | What                                        |
 | --------- | ------------------------------------------- |
@@ -20,6 +23,7 @@ the owner says so.
 | `7666c32` | #0 funnel events, this task list            |
 | `5e6abb6` | #3 aftergame recap                          |
 | `21baf01` | #4 tutorial in chapters                     |
+| `338d77f` | #5 milestone plates                         |
 
 **Code map (all mobile layer, `src/client/mobile/` unless noted):**
 
@@ -87,9 +91,9 @@ the owner says so.
 | 2   | Land plate shows the 80% goal and a progress bar  | High          | Small           | Done (`abc2d86`)         |
 | 3   | Aftergame recap and personal best                 | High          | Small to medium | Done (`5e6abb6`)         |
 | 4   | Tutorial in chapters                              | High          | Medium          | Done (`21baf01`)         |
-| 5   | Positive milestone plates                         | Medium        | Small           | Done                     |
-| 6   | Daily challenge: preview, best time, streak grace | Medium        | Small to medium | **Next**                 |
-| 7   | Commander record and map medals on home           | Medium        | Medium          | Todo                     |
+| 5   | Positive milestone plates                         | Medium        | Small           | Done (`338d77f`)         |
+| 6   | Daily challenge: preview, best time, streak grace | Medium        | Small to medium | Done                     |
+| 7   | Commander record and map medals on home           | Medium        | Medium          | **Next**                 |
 | 8   | Earned commander titles                           | Low to medium | Small           | Todo                     |
 | 9   | Map campaign ladder                               | High          | Large           | Blocked on playtest data |
 | 10  | Resume recap line after catch-up                  | Low           | Small           | Todo                     |
@@ -139,7 +143,7 @@ long first sentence (`capture_tribes` runs to about four lines at 260px).
 Known ceiling: when no step of a chapter applies (every War unit disabled),
 "chapter done" shows for 5s with nothing taught.
 
-### 5. Positive milestone plates
+### 5. Positive milestone plates (`338d77f`)
 
 `CriticalEventPlate` gained a `milestone` kind (gold top edge and star, 15ms
 haptic): first nation conquered (by you, from `ConquestEvent`, not tribes), a
@@ -151,16 +155,20 @@ reached when a resume goes live never show. Tests in
 session). Known ceiling: after a resume, "you conquered" shows at your next
 nation conquest even if it was not your first.
 
+### 6. Daily challenge
+
+The DAILY button shows today's map (thumbnail and name), the last 7 days as
+dots, and the streak or, once played today, the day's best time
+(`DailyDay.best`, the fastest win of that day, replays included; the first
+result still decides the streak and `daily_end`). One missed day per 7 is
+forgiven: it doesn't count and doesn't break the run, so opening the app the
+day after a miss still shows the streak. Copy never warns about losing it.
+Tests in `DailyChallenge.test.ts`. Not seen at 640x320 with a save: the button
+is now two lines (16px name, 14px dots and status) in 44px.
+
 ## Remaining
 
-### 6. Daily challenge (next)
-
-Show today's map name and thumbnail on the button. Store a best time per daily.
-Show a 7-day strip. One grace day per week. No "you'll lose your streak" copy.
-Starts in `DailyChallenge.ts` (`dailyStatus`, `dailyEnded`, `wc.daily`). The
-title button is `.wc-daily` in `GameModeSelector.ts`; check 640x320 with a save.
-
-### 7. Commander record on home
+### 7. Commander record on home (next)
 
 One plate under the name: wins, best time, maps conquered N/15, a medal per
 curated map won (`CuratedMaps.ts`; `wc.best` from `Recap.ts` already holds the
