@@ -1209,6 +1209,8 @@ body.mobile-theme .wc-event-plate {
   font-size: 16px;
   line-height: 1.25;
   color: var(--wc-ivory);
+  /* Opaque: it sits over the weapons button, which ghosts through 95%. */
+  background: linear-gradient(180deg, rgb(30 40 66), rgb(16 22 38));
   border-top: 2px solid var(--wc-red);
   animation: wc-event-in 180ms var(--wc-ease);
 }

@@ -89,6 +89,20 @@ export class PlateGate {
   }
 }
 
+/**
+ * A `top` 8px below the tutorial banner while it shows, else null. Top-centre
+ * HUD (event plate, weapons button) moves there: the banner sits in an
+ * upstream container stacked at z-index 200, below them.
+ */
+export function belowTutorialBanner(): string | null {
+  const banner = document
+    .querySelector("tutorial-panel > div")
+    ?.getBoundingClientRect();
+  return banner && banner.height > 0
+    ? `${Math.ceil(banner.bottom) + 8}px`
+    : null;
+}
+
 export function truncateName(name: string): string {
   const chars = Array.from(name);
   return chars.length > NAME_MAX
@@ -264,15 +278,8 @@ export class CriticalEventPlate implements Controller {
     el.addEventListener("click", () => this.hide(true));
 
     // Directly below the tutorial banner while that shows.
-    const banner = document
-      .querySelector("tutorial-panel > div")
-      ?.getBoundingClientRect();
-    if (banner && banner.height > 0) {
-      el.style.setProperty(
-        "--wc-event-top",
-        `${Math.ceil(banner.bottom) + 8}px`,
-      );
-    }
+    const below = belowTutorialBanner();
+    if (below !== null) el.style.setProperty("--wc-event-top", below);
     document.body.append(el);
     this.el = el;
     this.timer = setTimeout(() => this.hide(true), SHOW_MS);

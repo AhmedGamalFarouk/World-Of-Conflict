@@ -12,10 +12,15 @@ least 40% start a second. No playtest data exists yet; do not invent any.
 
 **State (2026-10-27):** every task but #9 is done and committed on `main`;
 #9 waits for playtest data. `main` is ahead of `origin/main`: push only when
-the owner says so. #4 to #8 and #10 have not been seen in the 640x320 preview
-(those sessions had no browser). Check, with a save loaded and after a few
-finished games: the tutorial banner, a milestone plate, the DAILY button, the
-record plate under the name, and the pause card after a resume.
+the owner says so. Checked on a phone (vivo V2529, 870x392 CSS px, debug APK
+driven over WebView DevTools): the home screen with a save, record plate and
+daily strip (sample data, removed after), the pause card's standing line after
+a real resume, the milestone plate, the tutorial chapter banner. Fixed from
+that: the short title layout now applies up to 430px tall (`c1ae8b6`; at
+340px it never reached a phone), the event plate is opaque, and the weapons
+button moves below the tutorial banner (it covered the step text). Not yet
+seen on the device: a whole first game with the tutorial live, a milestone
+firing in play.
 
 | Commit    | What                                        |
 | --------- | ------------------------------------------- |

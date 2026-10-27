@@ -8,6 +8,7 @@ import { assetUrl } from "@openfront/shared/AssetUrls";
 import { EventBus } from "@openfront/shared/EventBus";
 import { Controller } from "../Controller";
 import { StartAimEvent } from "../controllers/BuildPreviewController";
+import { belowTutorialBanner } from "../mobile/CriticalEventPlate";
 import { UIState } from "../UIState";
 import { translateText } from "../Utils";
 import { GameView } from "../view";
@@ -68,6 +69,7 @@ export class WeaponsButton implements Controller {
       this.uiState.ghostStructure === null &&
       silos + ports > 0;
     this.root.style.display = show ? "" : "none";
+    this.root.style.top = (show ? belowTutorialBanner() : null) ?? "";
     if (!show || me === null) {
       this.list.classList.remove("open");
       return;
