@@ -1,6 +1,9 @@
 import { Difficulty } from "@openfront/engine-api/game/GameTypes";
 import { afterEach, describe, expect, it } from "vitest";
-import { chooseQuickDifficulty } from "../../../src/client/mobile/QuickGame";
+import {
+  chooseQuickDifficulty,
+  lastDifficulty,
+} from "../../../src/client/mobile/QuickGame";
 
 const buttons = () => [
   ...document.querySelectorAll<HTMLElement>(".wc-confirm button"),
@@ -62,6 +65,18 @@ describe("chooseQuickDifficulty", () => {
     hard.click();
     expect(await answer).toBe(Difficulty.Hard);
     expect(document.querySelector(".wc-confirm")).toBeNull();
+  });
+
+  it("lastDifficulty: Medium until a pick, then the pick; junk falls back", async () => {
+    expect(lastDifficulty()).toBe(Difficulty.Medium);
+    const answer = chooseQuickDifficulty();
+    buttons()
+      .filter((b) => b.classList.contains("wc-pick"))[2]
+      .click();
+    await answer;
+    expect(lastDifficulty()).toBe(Difficulty.Hard);
+    localStorage.setItem("wc-quick-difficulty", "Nonsense");
+    expect(lastDifficulty()).toBe(Difficulty.Medium);
   });
 
   it("resolves null on cancel", async () => {

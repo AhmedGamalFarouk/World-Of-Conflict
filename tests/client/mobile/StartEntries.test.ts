@@ -16,12 +16,19 @@ describe("new game entries ask before replacing a save", () => {
   const method = (name: string) =>
     selector.slice(selector.indexOf(`private ${name} =`)).split("};")[0];
 
-  it("PLAY, QUICK GAME and TUTORIAL", () => {
-    for (const name of ["playOffline", "quickGameOffline", "startTutorial"]) {
+  it("PLAY, CUSTOM GAME and TUTORIAL", () => {
+    for (const name of ["playOffline", "customGameOffline", "startTutorial"]) {
       expect(method(name), name).toContain("allowNewGame()");
     }
     expect(selector).toMatch(/@click=\$\{this\.playOffline\}/);
-    expect(selector).toMatch(/@click=\$\{this\.quickGameOffline\}/);
+    expect(selector).toMatch(/@click=\$\{this\.customGameOffline\}/);
+  });
+
+  it("PLAY is one tap: a quick game at the remembered difficulty", () => {
+    expect(method("playOffline")).toContain("startQuickGame(lastDifficulty())");
+    expect(method("playOffline")).not.toContain("chooseQuickDifficulty");
+    // The chip only changes the difficulty; it never starts a game.
+    expect(method("pickQuickDifficulty")).not.toMatch(/startQuickGame|allow/);
   });
 
   it("START in the solo modal (also Play again and QUICK GAME's start)", () => {

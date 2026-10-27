@@ -182,7 +182,7 @@ Open:
   republishes it.
 - v0.2.0 release notes: done, written on the GitHub Release (checked 2026-10-26).
 - D4 store assets: screenshots 1920x1080 (home with CONTINUE, mid-game
-  territory, event plate, QUICK GAME start, aftergame), feature graphic
+  territory, event plate, PLAY (quick game) start, aftergame), feature graphic
   1024x500, content rating, data safety (usage stats declarations, see
   `STORE-LISTING.md`). Copy is World Of
   Conflict only; "OpenFront" appears only as the CC BY-SA and AGPL credit.

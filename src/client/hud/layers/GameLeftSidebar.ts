@@ -29,11 +29,31 @@ function formatLandShare(share: number): string {
   return share.toFixed(share < 10 ? 1 : 0);
 }
 
+/**
+ * Your share of the land and the share that wins, both in percent and
+ * measured as the win check does (land without fallout; the goal drops in
+ * overtime). Null when you have no living nation.
+ */
+export function landProgress(
+  game: GameView,
+): { share: number; goal: number } | null {
+  const me = game.myPlayer();
+  if (!me?.isAlive()) return null;
+  const land = Math.max(game.numLandTiles() - game.numTilesWithFallout(), 1);
+  return {
+    share: (me.numTilesOwned() / land) * 100,
+    goal: game
+      .config()
+      .percentageTilesOwnedToWin(Math.floor(game.elapsedGameSeconds())),
+  };
+}
+
 @customElement("game-left-sidebar")
 export class GameLeftSidebar extends LitElement implements Controller {
-  // Mobile app: your share of the land, shown on the leaderboard button.
+  // Mobile app: your share of the land and the winning share, shown on the
+  // leaderboard button.
   @state()
-  private landShare: number | null = null;
+  private land: { share: number; goal: number } | null = null;
   @state()
   private isPlayerStatsShown = false;
   @state()
@@ -101,14 +121,7 @@ export class GameLeftSidebar extends LitElement implements Controller {
 
     this.playerStats?.refresh();
     this.teamStats?.refresh();
-    if (isMobileShell()) this.landShare = this.computeLandShare();
-  }
-
-  private computeLandShare(): number | null {
-    if (this.game === null) return null;
-    const me = this.game.myPlayer();
-    if (!me?.isAlive()) return null;
-    return (me.numTilesOwned() / Math.max(this.game.numLandTiles(), 1)) * 100;
+    if (isMobileShell()) this.land = landProgress(this.game);
   }
 
   private get barOffset(): number {
@@ -157,14 +170,27 @@ export class GameLeftSidebar extends LitElement implements Controller {
               width="20"
               height="20"
             />
-            ${this.landShare !== null
+            ${this.land !== null
               ? html`<span class="wc-rank"
-                  ><span class="wc-num"
-                    >${formatLandShare(this.landShare)}%</span
-                  ><span class="wc-label"
-                    >${translateText("mobile.land")}</span
-                  ></span
-                >`
+                    ><span class="wc-num"
+                      >${formatLandShare(this.land.share)}%</span
+                    ><span class="wc-rank-labels"
+                      ><span class="wc-label"
+                        >${translateText("mobile.land")}</span
+                      ><span class="wc-label wc-rank-goal"
+                        >${translateText("mobile.land_goal", {
+                          percent: this.land.goal,
+                        })}</span
+                      ></span
+                    ></span
+                  ><span class="wc-land-bar" aria-hidden="true"
+                    ><span
+                      style="width: ${Math.min(
+                        (this.land.share / Math.max(this.land.goal, 1)) * 100,
+                        100,
+                      )}%"
+                    ></span
+                  ></span>`
               : null}
           </div>
           ${this.isTeamGame

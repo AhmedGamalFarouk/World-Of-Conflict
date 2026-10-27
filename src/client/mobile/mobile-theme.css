@@ -283,12 +283,12 @@ body.mobile-theme .wc-title-actions {
   width: 100%;
   max-width: 360px;
 }
-/* PLAY, the CONTINUE plate and notices take the full row; QUICK GAME and
+/* PLAY, the CONTINUE plate and notices take the full row; CUSTOM GAME and
    TUTORIAL share the next one, so PLAY stays on screen at 640x320. */
-body.mobile-theme .wc-title-actions > :not(.wc-quick, .wc-tutorial) {
+body.mobile-theme .wc-title-actions > :not(.wc-custom, .wc-tutorial) {
   grid-column: 1 / -1;
 }
-.wc-quick,
+.wc-custom,
 .wc-tutorial {
   padding: 0 8px;
   font-size: 16px;
@@ -303,6 +303,44 @@ body.mobile-theme .wc-title-actions > :not(.wc-quick, .wc-tutorial) {
   min-height: 72px;
   font-size: 30px;
   letter-spacing: 0.12em;
+}
+/* PLAY reads left, its difficulty chip sits on the right of the same face
+   (a sibling button: buttons can't nest). */
+.wc-play-wrap {
+  position: relative;
+  display: grid;
+}
+.wc-play-wrap .wc-play {
+  justify-content: flex-start;
+  padding-left: 24px;
+}
+.wc-play-difficulty {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 48px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: rgb(0 0 0 / 0.14);
+  font-family: var(--wc-display);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wc-ivory);
+  cursor: pointer;
+}
+.wc-btn-gold + .wc-play-difficulty {
+  color: var(--wc-gold-ink);
+}
+.wc-play-difficulty:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
 /* CONTINUE plate: top of the right column, at most 360px by 96px. */
@@ -918,6 +956,7 @@ body.mobile-theme
   aside
   > div:first-child
   > div[role="button"] {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -938,11 +977,37 @@ body.mobile-theme
 .wc-rank {
   display: flex;
   align-items: baseline;
-  gap: 6px;
+  gap: 4px;
 }
 .wc-rank .wc-num {
   font-size: 22px;
   color: #fff;
+}
+/* LAND over the winning share, stacked so the plate stays narrow at 640px. */
+.wc-rank-labels {
+  display: flex;
+  flex-direction: column;
+  align-self: center;
+  line-height: 1.05;
+}
+.wc-rank-goal {
+  color: var(--wc-gold-hi);
+}
+/* Progress toward the winning share along the plate's bottom edge. */
+.wc-land-bar {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 5px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--wc-line);
+  overflow: hidden;
+}
+.wc-land-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--wc-gold);
 }
 body.mobile-theme game-left-sidebar player-stats,
 body.mobile-theme game-left-sidebar team-stats {

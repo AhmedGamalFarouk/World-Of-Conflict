@@ -33,7 +33,12 @@ import { JoinLobbyEvent } from "./Main";
 import { openAbout } from "./mobile/About";
 import { dailyStatus, startDailyChallenge } from "./mobile/DailyChallenge";
 import { isOffline } from "./mobile/MobileShell";
-import { chooseQuickDifficulty, startQuickGame } from "./mobile/QuickGame";
+import {
+  chooseQuickDifficulty,
+  DIFFICULTY_CHOICES,
+  lastDifficulty,
+  startQuickGame,
+} from "./mobile/QuickGame";
 import {
   allowNewGame,
   confirmDiscard,
@@ -714,15 +719,27 @@ export class GameModeSelector extends LitElement {
         </h1>
         <div class="wc-title-actions">
           ${this.renderSaveCard()}
-          <button
-            class="wc-btn ${homeSave().kind === "save"
-              ? "wc-btn-steel"
-              : "wc-btn-gold"} wc-play"
-            ?disabled=${isContinuing()}
-            @click=${this.playOffline}
-          >
-            ${translateText("main.play")}
-          </button>
+          <div class="wc-play-wrap">
+            <button
+              class="wc-btn ${homeSave().kind === "save"
+                ? "wc-btn-steel"
+                : "wc-btn-gold"} wc-play"
+              ?disabled=${isContinuing()}
+              @click=${this.playOffline}
+            >
+              ${translateText("main.play")}
+            </button>
+            <button
+              class="wc-play-difficulty"
+              aria-label="${translateText(
+                "difficulty.difficulty",
+              )}: ${this.quickDifficultyName()}"
+              ?disabled=${isContinuing()}
+              @click=${this.pickQuickDifficulty}
+            >
+              ${this.quickDifficultyName()}<span aria-hidden="true">▾</span>
+            </button>
+          </div>
           <button
             class="wc-btn wc-btn-steel wc-daily"
             ?disabled=${isContinuing()}
@@ -731,11 +748,11 @@ export class GameModeSelector extends LitElement {
             ${this.dailyLabel()}
           </button>
           <button
-            class="wc-btn wc-btn-steel wc-quick"
+            class="wc-btn wc-btn-steel wc-custom"
             ?disabled=${isContinuing()}
-            @click=${this.quickGameOffline}
+            @click=${this.customGameOffline}
           >
-            ${translateText("main.quick_game")}
+            ${translateText("main.custom_game")}
           </button>
           <button
             class="wc-btn wc-btn-steel wc-tutorial"
@@ -928,17 +945,27 @@ export class GameModeSelector extends LitElement {
   };
 
   // Mobile: every new game start asks first when a saved game exists.
+  // PLAY is one tap into a quick game at the remembered difficulty; the full
+  // setup screen is CUSTOM GAME.
   private playOffline = async () => {
+    if (await allowNewGame()) startQuickGame(lastDifficulty());
+  };
+
+  private customGameOffline = async () => {
     if (await allowNewGame()) this.openSinglePlayerModal();
   };
 
-  // Difficulty first: backing out of it must not cost the player their save.
-  private quickGameOffline = async () => {
-    const difficulty = await chooseQuickDifficulty();
-    if (difficulty !== null && (await allowNewGame())) {
-      startQuickGame(difficulty);
-    }
+  // Only changes the remembered difficulty; PLAY starts the game.
+  private pickQuickDifficulty = async () => {
+    await chooseQuickDifficulty();
+    this.requestUpdate();
   };
+
+  private quickDifficultyName() {
+    const difficulty = lastDifficulty();
+    const key = DIFFICULTY_CHOICES.find(([d]) => d === difficulty)![1];
+    return translateText(key);
+  }
 
   private dailyOffline = async () => {
     if (await allowNewGame()) startDailyChallenge();

@@ -56,7 +56,7 @@ export const QUICK_DIFFICULTY_KEY = "wc-quick-difficulty";
 
 // Medium is what public free-for-all games use. Storage can be missing or
 // hold anything, so a read that isn't a known difficulty falls back to it.
-function lastDifficulty(): Difficulty {
+export function lastDifficulty(): Difficulty {
   try {
     const stored = localStorage.getItem(QUICK_DIFFICULTY_KEY);
     return (
@@ -75,7 +75,7 @@ function rememberDifficulty(difficulty: Difficulty): void {
   }
 }
 
-const DIFFICULTY_CHOICES = [
+export const DIFFICULTY_CHOICES = [
   [Difficulty.Easy, "difficulty.easy"],
   [Difficulty.Medium, "difficulty.medium"],
   [Difficulty.Hard, "difficulty.hard"],

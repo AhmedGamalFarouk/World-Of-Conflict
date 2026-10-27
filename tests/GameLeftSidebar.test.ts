@@ -1,7 +1,10 @@
 // @vitest-environment jsdom
 import { GameMode } from "@openfront/engine-api/game/GameTypes";
 import { EventBus } from "@openfront/shared/EventBus";
-import { GameLeftSidebar } from "../src/client/hud/layers/GameLeftSidebar";
+import {
+  GameLeftSidebar,
+  landProgress,
+} from "../src/client/hud/layers/GameLeftSidebar";
 import type { PlayerStats } from "../src/client/hud/layers/PlayerStats";
 import type { TeamStats } from "../src/client/hud/layers/TeamStats";
 import { UserSettings } from "../src/client/UserSettings";
@@ -88,6 +91,26 @@ describe("GameLeftSidebar", () => {
     expect(playerStats.querySelector(".stats-table-row")).not.toBeNull();
 
     sidebar.remove();
+  });
+
+  it("landProgress measures land as the win check does", () => {
+    const seen: number[] = [];
+    const game = (alive: boolean) =>
+      ({
+        myPlayer: () => ({ isAlive: () => alive, numTilesOwned: () => 45 }),
+        numLandTiles: () => 100,
+        numTilesWithFallout: () => 10,
+        elapsedGameSeconds: () => 61.7,
+        config: () => ({
+          percentageTilesOwnedToWin: (s: number) => (seen.push(s), 72),
+        }),
+      }) as unknown as GameView;
+
+    // 45 of the 90 tiles without fallout; the goal comes from the config
+    // with whole seconds, like WinCheckExecution.
+    expect(landProgress(game(true))).toEqual({ share: 50, goal: 72 });
+    expect(seen).toEqual([61]);
+    expect(landProgress(game(false))).toBeNull();
   });
 
   it("stacks the player and team stats tables vertically at every width", async () => {
