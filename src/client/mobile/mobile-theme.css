@@ -195,11 +195,10 @@ body.mobile-theme #page-play:not(.hidden) {
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
   grid-template-areas:
     "word name"
-    "word record"
     "word actions";
   /* Auto rows, centred as one block: a CONTINUE plate above PLAY makes the
      right column taller without pushing the name field down a half-row. */
-  grid-template-rows: auto auto auto;
+  grid-template-rows: auto auto;
   align-content: center;
   column-gap: 40px;
   row-gap: 16px;
@@ -208,6 +207,14 @@ body.mobile-theme #page-play:not(.hidden) {
     calc(env(safe-area-inset-right) + 32px)
     calc(env(safe-area-inset-bottom) + 32px)
     calc(env(safe-area-inset-left) + 40px);
+}
+/* The record row exists only with a record: an empty row still adds a gap. */
+body.mobile-theme #page-play:not(.hidden):has(.wc-record) {
+  grid-template-areas:
+    "word name"
+    "word record"
+    "word actions";
+  grid-template-rows: auto auto auto;
 }
 body.mobile-theme #page-play > div:has(news-box),
 body.mobile-theme game-mode-selector,
@@ -511,18 +518,24 @@ body.mobile-theme .wc-save-notice {
   cursor: pointer;
   overflow: hidden;
 }
-/* Short phones: the save card, PLAY, QUICK GAME and TUTORIAL must all fit. */
-@media (max-height: 340px) {
+/* Phones in landscape (about 360px to 412px tall, 320px at the smallest): the
+   save card, PLAY, DAILY, CUSTOM GAME and TUTORIAL must all fit. */
+@media (max-height: 430px) {
   body.mobile-theme #page-play:not(.hidden) {
     /* The commander name moves under the wordmark so the right column starts
        below the top icons and holds the save card and four buttons. */
     grid-template-areas:
       "word actions"
-      "name actions"
-      "record actions";
+      "name actions";
     row-gap: 8px;
     padding-top: calc(env(safe-area-inset-top) + 56px);
     padding-bottom: calc(env(safe-area-inset-bottom) + 12px);
+  }
+  body.mobile-theme #page-play:not(.hidden):has(.wc-record) {
+    grid-template-areas:
+      "word actions"
+      "name actions"
+      "record actions";
   }
   body.mobile-theme #page-play div:has(> news-box) {
     align-self: start;
