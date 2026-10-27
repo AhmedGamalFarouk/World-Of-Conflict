@@ -10,12 +10,12 @@ least 40% start a second. No playtest data exists yet; do not invent any.
 
 ## Start here (new session)
 
-**State (2026-10-27):** tasks #0 to #6 are done and committed on `main`. Next
-up is **#7, commander record on home**. `main` is ahead of `origin/main`: push
-only when the owner says so. #4 to #6 have not been seen in the 640x320
-preview yet (that session had no browser): check the tutorial banner, a
-milestone plate and the DAILY button with a save loaded before #7, which adds
-to the same crowded title screen.
+**State (2026-10-27):** every task but #9 is done and committed on `main`;
+#9 waits for playtest data. `main` is ahead of `origin/main`: push only when
+the owner says so. #4 to #8 and #10 have not been seen in the 640x320 preview
+(those sessions had no browser). Check, with a save loaded and after a few
+finished games: the tutorial banner, a milestone plate, the DAILY button, the
+record plate under the name, and the pause card after a resume.
 
 | Commit    | What                                        |
 | --------- | ------------------------------------------- |
@@ -24,6 +24,7 @@ to the same crowded title screen.
 | `5e6abb6` | #3 aftergame recap                          |
 | `21baf01` | #4 tutorial in chapters                     |
 | `338d77f` | #5 milestone plates                         |
+| `cd39cc0` | #6 daily challenge                          |
 
 **Code map (all mobile layer, `src/client/mobile/` unless noted):**
 
@@ -92,11 +93,11 @@ to the same crowded title screen.
 | 3   | Aftergame recap and personal best                 | High          | Small to medium | Done (`5e6abb6`)         |
 | 4   | Tutorial in chapters                              | High          | Medium          | Done (`21baf01`)         |
 | 5   | Positive milestone plates                         | Medium        | Small           | Done (`338d77f`)         |
-| 6   | Daily challenge: preview, best time, streak grace | Medium        | Small to medium | Done                     |
-| 7   | Commander record and map medals on home           | Medium        | Medium          | **Next**                 |
-| 8   | Earned commander titles                           | Low to medium | Small           | Todo                     |
+| 6   | Daily challenge: preview, best time, streak grace | Medium        | Small to medium | Done (`cd39cc0`)         |
+| 7   | Commander record and map medals on home           | Medium        | Medium          | Done                     |
+| 8   | Earned commander titles                           | Low to medium | Small           | Done                     |
 | 9   | Map campaign ladder                               | High          | Large           | Blocked on playtest data |
-| 10  | Resume recap line after catch-up                  | Low           | Small           | Todo                     |
+| 10  | Resume recap line after catch-up                  | Low           | Small           | Done                     |
 
 ## Done
 
@@ -155,7 +156,7 @@ reached when a resume goes live never show. Tests in
 session). Known ceiling: after a resume, "you conquered" shows at your next
 nation conquest even if it was not your first.
 
-### 6. Daily challenge
+### 6. Daily challenge (`cd39cc0`)
 
 The DAILY button shows today's map (thumbnail and name), the last 7 days as
 dots, and the streak or, once played today, the day's best time
@@ -166,30 +167,31 @@ day after a miss still shows the streak. Copy never warns about losing it.
 Tests in `DailyChallenge.test.ts`. Not seen at 640x320 with a save: the button
 is now two lines (16px name, 14px dots and status) in 44px.
 
+### 7 and 8. Commander record and titles
+
+A record plate under the name (`GameModeSelector.renderRecord`, data from
+`Recap.commanderRecord`): title, WINS, BEST (fastest win anywhere), MAPS N/15,
+a medal per curated map won. Hidden before the first finished game. `wc.best`
+now counts `wins` per map; older records with a win time count as one win.
+Titles, highest first: World Conqueror (every curated map), Warlord of {map}
+(3 wins on one map), Unbroken (daily streak of 7), Victor (any win). Earned
+only. Tests in `Recap.test.ts`. Not seen at 640x320: on short screens the
+plate takes a third row in the left column, under the name.
+
+### 10. Resume recap
+
+Once a resumed game has caught up, the pause card's catch-up line becomes
+"You're #2 with 31% of the land" (rank by land among the living, share from
+`landProgress`). The turn was already in the RESUMED header. Test in
+`AboutAndPauseCard.test.ts`.
+
 ## Remaining
-
-### 7. Commander record on home (next)
-
-One plate under the name: wins, best time, maps conquered N/15, a medal per
-curated map won (`CuratedMaps.ts`; `wc.best` from `Recap.ts` already holds the
-per-map win time). Replaces nothing; test at 640x320 with a save loaded (the
-title screen already runs out of room there).
-
-### 8. Earned commander titles
-
-Title under the name from the record ("Warlord of the Caucasus", "Unbroken").
-Earned only, never bought.
 
 ### 9. Map campaign ladder (blocked)
 
 Order the 15 curated maps by difficulty, unlock each by winning the previous.
 Needs real game lengths and win rates: build after the closed test. Every map
 stays open in CUSTOM GAME.
-
-### 10. Resume recap
-
-After catch-up, one line before play: "Turn 4,200 · you're #2 with 31% of the
-land." Catch-up state is in `SaveStore.ts` / the pause card (`GameRightSidebar.ts`).
 
 ## Left out on purpose
 

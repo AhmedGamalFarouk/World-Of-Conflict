@@ -1,4 +1,8 @@
-import { GameMapType, GameType } from "@openfront/engine-api/game/GameTypes";
+import {
+  GameMapType,
+  GameType,
+  maps,
+} from "@openfront/engine-api/game/GameTypes";
 import { UserMeResponse } from "@openfront/shared/ApiSchemas";
 import { assetUrl } from "@openfront/shared/AssetUrls";
 import { PublicGameInfo, PublicGames } from "@openfront/shared/WireSchemas";
@@ -32,6 +36,7 @@ import { whenModalLoaded } from "./LazyModals";
 import { PublicLobbySocket } from "./LobbySocket";
 import { JoinLobbyEvent } from "./Main";
 import { openAbout } from "./mobile/About";
+import { CURATED_MAP_IDS } from "./mobile/CuratedMaps";
 import {
   dailyConfig,
   dailyId,
@@ -45,7 +50,7 @@ import {
   lastDifficulty,
   startQuickGame,
 } from "./mobile/QuickGame";
-import { formatDuration } from "./mobile/Recap";
+import { commanderRecord, formatDuration } from "./mobile/Recap";
 import {
   allowNewGame,
   confirmDiscard,
@@ -726,6 +731,7 @@ export class GameModeSelector extends LitElement {
           <span>World</span><span class="wc-wordmark-of">of</span
           ><span>Conflict</span>
         </h1>
+        ${this.renderRecord()}
         <div class="wc-title-actions">
           ${this.renderSaveCard()}
           <div class="wc-play-wrap">
@@ -1011,6 +1017,47 @@ export class GameModeSelector extends LitElement {
         >
       </span>
     </button>`;
+  }
+
+  // Under the commander name: the earned title, wins, fastest win, curated
+  // maps won, and a medal per curated map (gold once won). Hidden before the
+  // first finished game.
+  private renderRecord() {
+    const curated = CURATED_MAP_IDS.map(
+      (id) => maps.find((m) => m.id === id)?.type ?? id,
+    );
+    const record = commanderRecord(curated, dailyStatus().streak);
+    if (record === null) return nothing;
+    const { title } = record;
+    const conquered = curated.filter((m) => record.won.has(m)).length;
+    return html`<div class="wc-plate wc-record">
+      ${title
+        ? html`<span class="wc-record-title"
+            >${translateText(title.key, {
+              map: getMapName(String(title.params.map)) ?? "",
+            })}</span
+          >`
+        : nothing}
+      <span class="wc-record-stats">
+        ${translateText("mobile.record_wins")}
+        <span class="wc-num">${record.wins}</span>
+        ${record.best !== undefined
+          ? html`· ${translateText("mobile.record_best")}
+              <span class="wc-num">${formatDuration(record.best)}</span>`
+          : nothing}
+        · ${translateText("mobile.record_maps")}
+        <span class="wc-num">${conquered}/${curated.length}</span>
+      </span>
+      <span class="wc-record-medals" aria-hidden="true"
+        >${curated.map(
+          (m) =>
+            html`<i
+              class=${record.won.has(m) ? "wc-medal-won" : ""}
+              title=${getMapName(m) ?? m}
+            ></i>`,
+        )}</span
+      >
+    </div>`;
   }
 
   // The CONTINUE plate, or the notice that replaced a save that could not be

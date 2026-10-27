@@ -1,6 +1,7 @@
 import { PlayerType } from "@openfront/engine-api/game/GameTypes";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
+  commanderRecord,
   formatDuration,
   notePeakLand,
   recordGame,
@@ -121,5 +122,48 @@ describe("formatDuration", () => {
     expect(formatDuration(0)).toBe("0:00");
     expect(formatDuration(65)).toBe("1:05");
     expect(formatDuration(3725.4)).toBe("62:05");
+  });
+});
+
+describe("commanderRecord", () => {
+  const maps = ["europe", "mars"];
+  const play = (map: string, won: boolean, seconds = 600) =>
+    recordGame(game({ id: `${map}${seconds}${won}`, map, won, seconds }), none);
+
+  it("is null before the first finished game", () => {
+    expect(commanderRecord(maps, 0)).toBeNull();
+  });
+
+  it("counts wins, the fastest win and the maps won", () => {
+    play("europe", false);
+    expect(commanderRecord(maps, 0)).toMatchObject({ wins: 0, title: null });
+    play("europe", true, 500);
+    play("europe", true, 400);
+    const r = commanderRecord(maps, 0)!;
+    expect([r.wins, r.best, [...r.won]]).toEqual([2, 400, ["europe"]]);
+    expect(r.title?.key).toBe("mobile.title_victor");
+  });
+
+  it("titles are earned, highest first", () => {
+    play("europe", true);
+    expect(commanderRecord(maps, 7)?.title?.key).toBe("mobile.title_unbroken");
+    play("europe", true, 500);
+    play("europe", true, 400);
+    expect(commanderRecord(maps, 7)?.title).toEqual({
+      key: "mobile.title_warlord",
+      params: { map: "europe" },
+    });
+    play("mars", true);
+    expect(commanderRecord(maps, 0)?.title?.key).toBe("mobile.title_conqueror");
+  });
+
+  it("an old record with a win time counts one win", () => {
+    localStorage.setItem(
+      "wc.best",
+      JSON.stringify({
+        europe: { games: 3, win: 300, longest: 900, peak: 80 },
+      }),
+    );
+    expect(commanderRecord(maps, 0)?.wins).toBe(1);
   });
 });

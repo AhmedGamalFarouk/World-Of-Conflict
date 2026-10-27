@@ -412,7 +412,14 @@
     "send_ratio": "نسبة القوات المرسلة",
     "spawn_failed": "تعذّر الانتشار",
     "spawn_failed_body": "تعذّر وضعك على الخريطة. ابدأ لعبة جديدة من الرئيسية.",
-    "victory": "نصر"
+    "victory": "نصر",
+    "record_best": "الأفضل",
+    "record_maps": "الخرائط",
+    "record_wins": "الانتصارات",
+    "title_conqueror": "فاتح العالم",
+    "title_unbroken": "الذي لا ينكسر",
+    "title_victor": "المنتصر",
+    "title_warlord": "سيد الحرب في {map}"
   },
   "save": {
     "abandon": "التخلي",
@@ -436,7 +443,8 @@
     "saved_ago": "حُفظت قبل {seconds} ث",
     "saved_min_ago": "حُفظت قبل {minutes} دقيقة",
     "saving_paused": "الحفظ متوقف مؤقتًا",
-    "stale": "لعبتك المحفوظة من إصدار أقدم وتعذّرت استعادتها"
+    "stale": "لعبتك المحفوظة من إصدار أقدم وتعذّرت استعادتها",
+    "resume_standing": "أنت في المركز {rank} بنسبة {percent}% من الأرض"
   },
   "win_modal": {
     "died": "لقد هُزمت",

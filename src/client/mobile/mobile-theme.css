@@ -195,10 +195,11 @@ body.mobile-theme #page-play:not(.hidden) {
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
   grid-template-areas:
     "word name"
+    "word record"
     "word actions";
   /* Auto rows, centred as one block: a CONTINUE plate above PLAY makes the
      right column taller without pushing the name field down a half-row. */
-  grid-template-rows: auto auto;
+  grid-template-rows: auto auto auto;
   align-content: center;
   column-gap: 40px;
   row-gap: 16px;
@@ -293,6 +294,50 @@ body.mobile-theme .wc-title-actions > :not(.wc-custom, .wc-tutorial) {
   padding: 0 8px;
   font-size: 16px;
   white-space: nowrap;
+}
+/* Commander record under the name: the earned title in Gold Leaf, then
+   wins, fastest win and curated maps won, then one medal per curated map. */
+.wc-record {
+  grid-area: record;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  max-width: 360px;
+  padding: 6px 12px;
+  font-family: var(--wc-body);
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.2;
+  color: var(--wc-mute);
+}
+.wc-record-title {
+  font-family: var(--wc-display);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wc-gold-hi);
+}
+.wc-record-stats .wc-num {
+  font-size: 16px;
+  color: var(--wc-ivory);
+}
+.wc-record-medals {
+  display: flex;
+  gap: 3px;
+  margin-top: 2px;
+}
+.wc-record-medals i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid rgb(255 255 255 / 0.3);
+}
+.wc-record-medals .wc-medal-won {
+  background: var(--wc-gold-hi);
+  border-color: var(--wc-gold-hi);
 }
 /* DAILY: today's map thumbnail, its name, then the last 7 days as dots
    (gold a win, ivory a loss, hollow unplayed; today last) and the streak or
@@ -473,7 +518,8 @@ body.mobile-theme .wc-save-notice {
        below the top icons and holds the save card and four buttons. */
     grid-template-areas:
       "word actions"
-      "name actions";
+      "name actions"
+      "record actions";
     row-gap: 8px;
     padding-top: calc(env(safe-area-inset-top) + 56px);
     padding-bottom: calc(env(safe-area-inset-bottom) + 12px);

@@ -11,6 +11,8 @@ const KEEP_MAPS = 40;
 
 interface MapBest {
   games: number;
+  /** Games won; absent in records from before it was counted. */
+  wins?: number;
   /** Fastest win, seconds. */
   win?: number;
   /** Longest game, seconds. */
@@ -107,6 +109,7 @@ export function recordGame(
   try {
     bests[game.map] = {
       games: (prior?.games ?? 0) + 1,
+      wins: winsOn(prior) + (game.won ? 1 : 0),
       win: game.won
         ? Math.min(prior?.win ?? Infinity, game.seconds)
         : prior?.win,
@@ -119,6 +122,56 @@ export function recordGame(
     // Blocked or full storage: no comparison next time.
   }
   return { seconds: game.seconds, peak, ...rivals, note };
+}
+
+/** Wins on a map; an old record with a win time counts as one. */
+function winsOn(b: MapBest | undefined): number {
+  return b?.wins ?? (b?.win !== undefined ? 1 : 0);
+}
+
+export interface CommanderRecord {
+  wins: number;
+  /** Fastest win on any map, seconds. */
+  best?: number;
+  /** Map (GameMapType value) → won there at least once. */
+  won: Set<string>;
+  /** An earned title (`mobile.title_*` key and params), or null. */
+  title: RecapNote | null;
+}
+
+/**
+ * The home screen's record, from the per-map bests; null before the first
+ * finished game. `maps` are the curated map types (the medals),
+ * `dailyStreak` the current daily streak. Titles are earned, highest first.
+ */
+export function commanderRecord(
+  maps: readonly string[],
+  dailyStreak: number,
+): CommanderRecord | null {
+  const entries = Object.entries(readBests());
+  if (entries.length === 0) return null;
+  let wins = 0;
+  let best: number | undefined;
+  let top: [string, number] = ["", 0];
+  const won = new Set<string>();
+  for (const [map, b] of entries) {
+    const w = winsOn(b);
+    wins += w;
+    if (w > 0) won.add(map);
+    if (b.win !== undefined) best = Math.min(best ?? Infinity, b.win);
+    if (w > top[1]) top = [map, w];
+  }
+  let title: RecapNote | null = null;
+  if (maps.length > 0 && maps.every((m) => won.has(m))) {
+    title = { key: "mobile.title_conqueror", params: {} };
+  } else if (top[1] >= 3) {
+    title = { key: "mobile.title_warlord", params: { map: top[0] } };
+  } else if (dailyStreak >= 7) {
+    title = { key: "mobile.title_unbroken", params: {} };
+  } else if (wins > 0) {
+    title = { key: "mobile.title_victor", params: {} };
+  }
+  return { wins, best, won, title };
 }
 
 /** m:ss, for a game length. */

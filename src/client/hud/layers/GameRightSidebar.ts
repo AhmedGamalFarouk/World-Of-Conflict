@@ -30,6 +30,7 @@ import {
 } from "../../utilities/ReplaySpeedMultiplier";
 import { homeHref, showToast, translateText } from "../../Utils";
 import { GameView } from "../../view";
+import { landProgress } from "./GameLeftSidebar";
 import { ImmunityBarVisibleEvent } from "./ImmunityTimer";
 import { ShowReplayPanelEvent } from "./ReplayPanel";
 import { type SettingsModal, ShowSettingsModalEvent } from "./SettingsModal";
@@ -652,7 +653,8 @@ export class GameRightSidebar extends LitElement implements Controller {
     `;
   }
 
-  // "RESUMED · TURN N · SAVED N MIN AGO", until the first RESUME tap.
+  // "RESUMED · TURN N · SAVED N MIN AGO", until the first RESUME tap; then
+  // the catch-up progress, and once caught up where the player stands.
   private renderResumedHeader() {
     if (!this.resumed) return nothing;
     const minutes = Math.max(
@@ -671,7 +673,25 @@ export class GameRightSidebar extends LitElement implements Controller {
               percent: catchUpPercent(this.game.ticks(), this.resumed.turn),
             })}
           </p>`
-        : nothing}`;
+        : this.renderStanding()}`;
+  }
+
+  // "You're #2 with 31% of the land."
+  private renderStanding() {
+    const land = landProgress(this.game);
+    const me = this.game.myPlayer();
+    if (land === null || me === null) return nothing;
+    const mine = me.numTilesOwned();
+    const rank =
+      1 +
+      this.game.players().filter((p) => p.isAlive() && p.numTilesOwned() > mine)
+        .length;
+    return html`<p class="wc-saved" role="status">
+      ${translateText("save.resume_standing", {
+        rank,
+        percent: Math.round(land.share),
+      })}
+    </p>`;
   }
 
   // "Saved N s ago", or Ember "Saving paused" after three failed writes.

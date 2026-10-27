@@ -177,6 +177,29 @@ describe("pause card (mobile)", () => {
     );
   });
 
+  it("once caught up, says where the player stands", async () => {
+    const { el, bus } = await mount();
+    const player = (tiles: number) => ({
+      isAlive: () => true,
+      numTilesOwned: () => tiles,
+    });
+    const me = player(310);
+    Object.assign(el.game, {
+      myPlayer: () => me,
+      players: () => [me, player(500), player(100)],
+      numLandTiles: () => 1000,
+      numTilesWithFallout: () => 0,
+    });
+    Object.assign((el.game as GameView).config(), {
+      percentageTilesOwnedToWin: () => 80,
+    });
+    bus.emit(new GameResumedEvent(1830, Date.now()));
+    await el.updateComplete;
+    expect(el.querySelector(".wc-pause-card")!.textContent).toContain(
+      "save.resume_standing",
+    );
+  });
+
   it("shows the three exits: RESUME gold, EXIT TO HOME and ABANDON steel", async () => {
     activeSaver();
     const { el, bus } = await mount();
