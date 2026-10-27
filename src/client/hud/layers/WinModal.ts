@@ -8,6 +8,7 @@ import { customElement, state } from "lit/decorators.js";
 import {
   DESKTOP_TUTORIAL_VIDEO_URL,
   getGamesPlayed,
+  getMapName,
   getTranslatedPlayerTeamLabel,
   homeHref,
   isInIframe,
@@ -34,6 +35,12 @@ import { dailyEnded } from "../../mobile/DailyChallenge";
 import { landPercent } from "../../mobile/Funnel";
 import { isOffline } from "../../mobile/MobileShell";
 import { gameEnded } from "../../mobile/PlayStats";
+import {
+  formatDuration,
+  type Recap,
+  recordGame,
+  rivalCount,
+} from "../../mobile/Recap";
 import { GameOverEvent } from "../../mobile/SaveEvents";
 import { requestSoloReplay } from "../../mobile/SoloReplay";
 import {
@@ -158,6 +165,7 @@ export class WinModal extends LitElement implements Controller {
           ${this.resultHeadline() !== this._title
             ? html`<p class="wc-result-sub">${this._title}</p>`
             : null}
+          ${this.renderRecap()}
           <button
             class="wc-btn wc-btn-gold wc-result-again"
             @click=${this.playAgain}
@@ -180,6 +188,28 @@ export class WinModal extends LitElement implements Controller {
         </div>
       </div>
     `;
+  }
+
+  private renderRecap() {
+    const r = this.recap;
+    if (r === null) return null;
+    const stat = (value: string, label: string) =>
+      html`<div class="wc-recap-stat">
+        <span class="wc-num">${value}</span
+        ><span class="wc-label">${translateText(label)}</span>
+      </div>`;
+    return html`<div class="wc-recap">
+      <div class="wc-recap-row">
+        ${stat(formatDuration(r.seconds), "mobile.recap_time")}
+        ${stat(`${r.peak}%`, "mobile.recap_peak_land")}
+        ${stat(`${r.out}/${r.total}`, "mobile.recap_nations_out")}
+      </div>
+      ${r.note
+        ? html`<p class="wc-recap-note">
+            ${translateText(r.note.key, r.note.params)}
+          </p>`
+        : null}
+    </div>`;
   }
 
   // Victory or defeat leads; upstream's sentence ("Nation X has won!") sits
@@ -618,13 +648,29 @@ export class WinModal extends LitElement implements Controller {
 
   // show() can run again in the same game (e.g. a later team result).
   private finishCounted = false;
+  // The offline aftergame's numbers; null until the first show().
+  @state()
+  private recap: Recap | null = null;
 
   async show() {
     if (isOffline() && !this.finishCounted) {
       this.finishCounted = true;
       // 10 ticks a second, whatever the speed: total game time, resumes included.
       const reason = this.isWin ? "win" : "loss";
-      gameEnded(reason, this.game.ticks() / 10, landPercent(this.game));
+      const land = landPercent(this.game);
+      const map = this.game.config().gameConfig().gameMap;
+      this.recap = recordGame(
+        {
+          id: this.game.gameID(),
+          map,
+          mapName: getMapName(map) ?? map,
+          seconds: this.game.ticks() / 10,
+          won: this.isWin,
+          land,
+        },
+        rivalCount(this.game),
+      );
+      gameEnded(reason, this.game.ticks() / 10, land);
       dailyEnded(this.game.gameID(), reason, this.game.ticks() / 10);
       // Elimination ends the player's game too: nothing left to resume.
       this.eventBus.emit(new GameOverEvent(reason));

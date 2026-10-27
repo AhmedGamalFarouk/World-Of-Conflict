@@ -29,7 +29,7 @@ least 40% start a second. No playtest data exists yet; do not invent any.
 | 0   | Funnel events (opt-in)                            | High          | Small           | Done (uncommitted)       |
 | 1   | PLAY starts a quick game in one tap               | High          | Small           | Done (`abc2d86`)         |
 | 2   | Land plate shows the 80% goal and a progress bar  | High          | Small           | Done (`abc2d86`)         |
-| 3   | Aftergame recap and personal best                 | High          | Small to medium | Todo                     |
+| 3   | Aftergame recap and personal best                 | High          | Small to medium | Done (uncommitted)       |
 | 4   | Tutorial in chapters                              | High          | Medium          | Todo                     |
 | 5   | Positive milestone plates                         | Medium        | Small           | Todo                     |
 | 6   | Daily challenge: preview, best time, streak grace | Medium        | Small to medium | Todo                     |
@@ -48,6 +48,11 @@ can be read as a funnel: launch, spawn, 5 minutes, finish, second game.
 Risk: keep it to these events; do not widen what is collected.
 
 ### 3. Aftergame recap and personal best
+
+Built (`src/client/mobile/Recap.ts`, `WinModal.ts`): time, peak land %, nations
+out (nations only, not tribes), and one comparison line per map from bests kept
+in `wc.best` (since this shipped, not all time). Known ceiling: peak land
+restarts if a game is resumed after a restart. Original spec:
 
 Under VICTORY or DEFEAT show time, peak land %, nations conquered (or "outlived
 N of M bots"). Add one comparison line from `PlayStats` ("Your longest game

@@ -29,6 +29,7 @@ describe("WinModal offline", () => {
         ticks: () => 600,
         gameID: () => "test-game",
         myPlayer: () => ({ isAlive: () => false }),
+        players: () => [],
         config: () => ({ gameConfig: () => ({}) }),
       },
       eventBus: { emit },

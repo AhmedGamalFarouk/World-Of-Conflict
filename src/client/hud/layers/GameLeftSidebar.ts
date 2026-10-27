@@ -7,6 +7,7 @@ import { customElement, property, query, state } from "lit/decorators.js";
 import type { Controller } from "../../Controller";
 import { trackSpawn } from "../../mobile/Funnel";
 import { isMobileShell } from "../../mobile/MobileShell";
+import { notePeakLand } from "../../mobile/Recap";
 import { Platform } from "../../Platform";
 import { themeProvider } from "../../theme/ThemeProvider";
 import { getTranslatedPlayerTeamLabel, translateText } from "../../Utils";
@@ -126,6 +127,7 @@ export class GameLeftSidebar extends LitElement implements Controller {
       this.land = landProgress(this.game);
       if (this.land !== null && !this.game.inSpawnPhase()) {
         trackSpawn(this.game.gameID());
+        notePeakLand(this.game.gameID(), this.land.share);
       }
     }
   }
