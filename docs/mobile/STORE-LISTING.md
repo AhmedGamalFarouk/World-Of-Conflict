@@ -53,23 +53,26 @@ final mark are owner tasks (see NEXT-STEPS.md section 5).
   Aptabase; otherwise no requests beyond `https://localhost`) and `VIBRATE` (event alerts).
 - **Requirements**: Android 8.0 (minSdk 26), WebGL2-capable WebView, landscape.
 
-## Assets (1920x1080, landscape) — drafts in `docs/mobile/store/`
+## Assets (1920x1080, landscape) — `docs/mobile/store/play/`
 
-Captured 2026-10-25 on the Pixel 9 emulator (1920x1080 at 420 dpi) from the
-v0.2.0 build: `01-home`, `02-quick-game` (difficulty picker), `03-spawn`,
-`04-radial-menu`, `05-territory`, and `feature-graphic` (1024x500, cropped from
-the home screen). Retake 03 to 05 on a phone for a wider mid-game view (the
-emulator is slow and the camera starts zoomed in); item 5 below (aftergame) is
-not captured yet. Wanted shots:
+Six screenshots and the 1024x500 feature graphic, composed 2026-10-26 from real
+captures of the mobile build (Chrome at 1920x1080 on a real GPU, not a phone):
+`01-conquer-the-real-world` (World map, HUD hidden), `02-out-expand-every-nation`
+(late-game spectator view of a Europe game, after the scripted player was
+eliminated), `03-tap-to-attack` (own territory and the 25/50/75/100 rail),
+`04-quick-game` (difficulty picker), `05-pick-a-real-map` (map picker, Featured
+tab) and `06-pick-up-where-you-left-off` (home with CONTINUE, a 3:00 save).
+Headlines and claims stay within what the build does (offline, 15 maps, save and
+resume). Set in Barlow Condensed on Night with Gold emphasis, as in `DESIGN.md`.
 
-1. Home with CONTINUE visible.
-2. Mid-game territory on Europe.
-3. Event plate (an attack or a nuke warning).
-4. QUICK GAME start screen.
-5. Aftergame screen.
+Not covered yet: an event plate shot ("Germany is attacking you" appears in a
+game but was not caught cleanly), an aftergame screen, and a capture from a
+phone. Shots 02 and 03 are the first to retake on the vivo when you have a
+good mid-game of your own. The older emulator drafts in `docs/mobile/store/`
+(`01-home` to `05-territory`, `feature-graphic`) are superseded.
 
-Feature graphic: 1024x500. App icon: the adaptive icon (replace
-`res/drawable/wc_mark.xml` first if the final mark exists).
+App icon: the adaptive icon (replace `res/drawable/wc_mark.xml` first if the
+final mark exists). Not generated here: the mark (B8) is still open.
 
 ## Closed test (new personal accounts)
 
