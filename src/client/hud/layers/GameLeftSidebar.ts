@@ -5,6 +5,7 @@ import { Colord } from "colord";
 import { html, LitElement } from "lit";
 import { customElement, property, query, state } from "lit/decorators.js";
 import type { Controller } from "../../Controller";
+import { trackSpawn } from "../../mobile/Funnel";
 import { isMobileShell } from "../../mobile/MobileShell";
 import { Platform } from "../../Platform";
 import { themeProvider } from "../../theme/ThemeProvider";
@@ -121,7 +122,12 @@ export class GameLeftSidebar extends LitElement implements Controller {
 
     this.playerStats?.refresh();
     this.teamStats?.refresh();
-    if (isMobileShell()) this.land = landProgress(this.game);
+    if (isMobileShell()) {
+      this.land = landProgress(this.game);
+      if (this.land !== null && !this.game.inSpawnPhase()) {
+        trackSpawn(this.game.gameID());
+      }
+    }
   }
 
   private get barOffset(): number {

@@ -16,6 +16,7 @@ import {
   TogglePauseIntentEvent,
 } from "../../InputHandler";
 import { activeAutoSaver } from "../../mobile/AutoSave";
+import { landPercent } from "../../mobile/Funnel";
 import { dispatchEscape, MOBILE_BACK_EVENT } from "../../mobile/MobileBack";
 import { isMobileShell } from "../../mobile/MobileShell";
 import { gameEnded } from "../../mobile/PlayStats";
@@ -395,7 +396,7 @@ export class GameRightSidebar extends LitElement implements Controller {
     // game's end is counted when that save is played out or discarded.
     if (saver.lastSavedAt !== null) return;
     await saver.finish();
-    gameEnded("quit", this.game.ticks() / 10);
+    gameEnded("quit", this.game.ticks() / 10, landPercent(this.game));
   }
 
   // ABANDON: confirmed, clears the save, counts as a quit.
@@ -408,7 +409,7 @@ export class GameRightSidebar extends LitElement implements Controller {
     });
     if (!abandon) return;
     await activeAutoSaver()?.finish();
-    gameEnded("quit", this.game.ticks() / 10);
+    gameEnded("quit", this.game.ticks() / 10, landPercent(this.game));
     await this.leaveGame();
   }
 

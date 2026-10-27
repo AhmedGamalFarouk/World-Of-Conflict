@@ -8,6 +8,8 @@ import { EventBus } from "@openfront/shared/EventBus";
 import { LitElement, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { Controller } from "../../Controller";
+import { trackTutorialStep } from "../../mobile/Funnel";
+import { isMobileShell } from "../../mobile/MobileShell";
 import { Platform } from "../../Platform";
 import { GoToPlayerEvent } from "../../TransformHandler";
 import { UIState } from "../../UIState";
@@ -173,6 +175,7 @@ export class TutorialPanel extends LitElement implements Controller {
       return;
     }
     const step = this.progress.current();
+    if (step && isMobileShell()) trackTutorialStep(step.id);
     if (step && (step.id === "capture_tribes" || COAST_STEPS.has(step.id))) {
       this.refreshBordering(player);
     }

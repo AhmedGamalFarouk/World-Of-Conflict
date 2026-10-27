@@ -72,11 +72,22 @@ function update(change: (s: PlayStats) => void): void {
 export const gameStarted = () =>
   update((s) => {
     s.started++;
+    // The playtest gate's second game: once per install, at the second start.
+    if (s.started === 2) track("second_game");
   });
 
 /** A game ended for `reason` after `seconds` of game time in total. */
-export const gameEnded = (reason: EndReason, seconds: number) => {
-  track("game_end", { reason, minutes: Math.round(seconds / 60) });
+export const gameEnded = (
+  reason: EndReason,
+  seconds: number,
+  /** Whole percent of the land held at the end, when known. */
+  landPct?: number,
+) => {
+  track("game_end", {
+    reason,
+    minutes: Math.round(seconds / 60),
+    ...(landPct === undefined ? {} : { land: landPct }),
+  });
   update((s) => {
     if (reason === "win" || reason === "loss") s.finished++;
     s.games.push({ seconds: Math.max(0, Math.round(seconds)), reason });
