@@ -5,11 +5,17 @@ import {
 } from "@openfront/engine-api/game/GameTypes";
 import { renderNumber } from "@openfront/engine-lib/Format";
 import { EventBus } from "@openfront/shared/EventBus";
-import { LitElement, html, nothing } from "lit";
+import { html, LitElement, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { Controller } from "../../Controller";
 import { trackTutorialStep } from "../../mobile/Funnel";
 import { isMobileShell } from "../../mobile/MobileShell";
+import {
+  finishChapter,
+  firstSentence,
+  nextChapter,
+  TutorialChapter,
+} from "../../mobile/TutorialChapters";
 import { Platform } from "../../Platform";
 import { GoToPlayerEvent } from "../../TransformHandler";
 import { UIState } from "../../UIState";
@@ -105,6 +111,10 @@ export class TutorialPanel extends LitElement implements Controller {
   @state() private ctx: TutorialContext | null = null;
 
   private progress = new TutorialProgress();
+  /** Mobile: the chapter this game teaches (null on desktop, full tutorial). */
+  private chapter: TutorialChapter | null = null;
+  /** Mobile: hidden until the chapter is relevant (see `opens`). */
+  @state() private waiting = false;
   private started = false;
   private costs = new Map<UnitType, bigint>();
   private keybinds: Record<string, { key?: string }> | null = null;
@@ -140,7 +150,16 @@ export class TutorialPanel extends LitElement implements Controller {
     // subscribed to TutorialStateEvent.
     if (!this.started) {
       this.started = true;
-      this.setActive(!this.userSettings.tutorialDismissed());
+      let on = !this.userSettings.tutorialDismissed();
+      if (on && isMobileShell()) {
+        this.chapter = nextChapter();
+        on = this.chapter !== null;
+        if (this.chapter) {
+          this.progress = new TutorialProgress(this.chapter.steps);
+          this.waiting = true;
+        }
+      }
+      this.setActive(on);
     }
     if (!this.active) return;
 
@@ -155,7 +174,10 @@ export class TutorialPanel extends LitElement implements Controller {
     }
 
     if (this.completeTicks !== null) {
-      if (++this.completeTicks >= COMPLETE_LINGER_TICKS) this.dismissForever();
+      if (++this.completeTicks < COMPLETE_LINGER_TICKS) return;
+      // Mobile: the next chapter waits for a later game.
+      if (this.chapter && nextChapter()) this.setActive(false);
+      else this.dismissForever();
       return;
     }
 
@@ -166,11 +188,18 @@ export class TutorialPanel extends LitElement implements Controller {
     }
 
     const ctx = this.buildContext(player);
+    if (this.waiting) {
+      const siloCost = this.costs.get(UnitType.MissileSilo) ?? null;
+      if (!this.chapter!.opens(ctx, siloCost)) return;
+      this.waiting = false;
+      this.classList.remove("hidden");
+    }
     this.progress.update(ctx);
     this.ctx = ctx;
 
     if (this.progress.finished()) {
       this.completeTicks = 0;
+      if (this.chapter) finishChapter(this.chapter);
       this.setHighlight(null);
       return;
     }
@@ -406,7 +435,7 @@ export class TutorialPanel extends LitElement implements Controller {
     this.active = active;
     // The host sits in the bottom HUD column above the control panel; leave
     // the flow when hidden so it doesn't add a gap there.
-    this.classList.toggle("hidden", !active);
+    this.classList.toggle("hidden", !active || this.waiting);
     if (!active) {
       this.setHighlight(null);
       this.syncMapMarkers(null);
@@ -420,7 +449,10 @@ export class TutorialPanel extends LitElement implements Controller {
   }
 
   render() {
-    if (!this.active) return nothing;
+    if (!this.active || this.waiting) return nothing;
+    const [body, more] = this.confirmingClose
+      ? [nothing, false]
+      : this.renderStep();
     return html`
       <div
         dir=${textDirection()}
@@ -430,11 +462,13 @@ export class TutorialPanel extends LitElement implements Controller {
         <div class="flex items-center justify-between gap-2 mb-1">
           <span
             class="font-bold text-cyber-yellow uppercase tracking-wide text-sm"
-            >${translateText("tutorial.title")}</span
+            >${this.chapter
+              ? this.chapterTitle()
+              : translateText("tutorial.title")}</span
           >
           <span class="flex items-center gap-2 text-sm text-gray-300">
             ${this.confirmingClose ? nothing : this.renderHeaderActions()}
-            ${this.ctx && !this.progress.finished()
+            ${this.ctx && !this.progress.finished() && !this.chapter
               ? translateText("tutorial.step_counter", {
                   current: this.progress.position(this.ctx),
                   total: this.progress.total(this.ctx),
@@ -464,10 +498,12 @@ export class TutorialPanel extends LitElement implements Controller {
         ${this.confirmingClose
           ? this.renderCloseChoice()
           : html`<div
-              class="tutorial-step-body ${this.expanded ? "expanded" : ""}"
+              class="tutorial-step-body ${this.expanded
+                ? "expanded"
+                : ""} ${more ? "has-more" : ""}"
               @click=${() => (this.expanded = !this.expanded)}
             >
-              ${this.renderStep()}
+              ${body}
             </div>`}
       </div>
     `;
@@ -528,21 +564,50 @@ export class TutorialPanel extends LitElement implements Controller {
     `;
   }
 
-  private renderStep() {
+  /** Mobile title: "Expand · 2 of 6", or the chapter name between steps. */
+  private chapterTitle(): string {
+    const chapter = translateText(`tutorial.chapter.${this.chapter!.id}`);
+    return this.ctx && !this.progress.finished()
+      ? translateText("tutorial.chapter_counter", {
+          chapter,
+          current: this.progress.position(this.ctx),
+          total: this.progress.total(this.ctx),
+        })
+      : chapter;
+  }
+
+  /** The step body, and whether a tap shows more (mobile shows less first). */
+  private renderStep(): [unknown, boolean] {
     if (this.completeTicks !== null) {
-      return html`<p>${translateText("tutorial.complete")}</p>`;
+      // finishChapter already ran, so a next chapter means this wasn't the last.
+      const text =
+        this.chapter && nextChapter()
+          ? translateText("tutorial.chapter_done", {
+              chapter: translateText(`tutorial.chapter.${this.chapter.id}`),
+            })
+          : translateText("tutorial.complete");
+      return [html`<p>${text}</p>`, false];
     }
     const step = this.progress.current();
-    if (step === null) return nothing;
+    if (step === null) return [nothing, false];
     const done = this.progress.stepDone();
-    return html`
+    const short = this.chapter !== null && !this.expanded;
+    let more = this.chapter !== null && (step.bullets?.length ?? 0) > 1;
+    const bullets = short ? step.bullets?.slice(0, 1) : step.bullets;
+    let text = step.bullets ? "" : this.stepText(step, done);
+    if (this.chapter !== null && !step.bullets) {
+      const [first, rest] = firstSentence(text);
+      more = rest;
+      if (short) text = first;
+    }
+    const tpl = html`
       <p class="flex gap-1.5 ${done ? "text-green-400" : ""}">
         ${step.bullets && !done
           ? nothing
           : html`<span class="shrink-0">${done ? "✓" : "•"}</span>`}
-        ${step.bullets
+        ${bullets
           ? html`<ul class="list-disc ms-4 flex flex-col gap-1">
-              ${step.bullets.map(
+              ${bullets.map(
                 // dir=auto keeps step text on its content's side while the
                 // panel chrome mirrors — untranslated steps (English fallback)
                 // then keep their punctuation on the correct end.
@@ -552,9 +617,10 @@ export class TutorialPanel extends LitElement implements Controller {
                   </li>`,
               )}
             </ul>`
-          : html`<span dir="auto">${this.stepText(step, done)}</span>`}
+          : html`<span dir="auto">${text}</span>`}
       </p>
     `;
+    return [tpl, more];
   }
 
   private stepText(step: TutorialStep, done: boolean): string {

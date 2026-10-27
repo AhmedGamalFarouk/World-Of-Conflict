@@ -2559,6 +2559,13 @@
     "yes": "Yes"
   },
   "tutorial": {
+    "chapter": {
+      "build": "Build",
+      "expand": "Expand",
+      "war": "War"
+    },
+    "chapter_counter": "{chapter} · {current} of {total}",
+    "chapter_done": "{chapter} chapter done. The next one starts in a later game.",
     "close": "Close tutorial",
     "complete": "You're ready! Good luck out there.",
     "go_to": "Go to",

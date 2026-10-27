@@ -291,7 +291,7 @@ Top-centre, `min(420px, 100vw - 380px)` wide so it clears the rank and timer pla
 
 ### Tutorial Banner
 
-Top-centre, at most 420px wide: a plate holding a one-line step clamped with a fade and a Gold Leaf chevron. Tapping expands it and turns the chevron upward. The Skip chip and a 32px close button sit in its header row.
+Top-centre, at most 420px wide: a plate holding the step's first sentence, whole (never clamped mid-sentence). When more follows, a Gold Leaf chevron sits at the end; tapping shows the rest and turns the chevron upward. The heading reads the chapter and the step within it ("EXPAND · 2 OF 6"); the Skip chip and a 32px close button sit in the same header row. The tutorial runs in three chapters, one per game: Expand from the first game, Build once the player can afford a City, War once they can afford a Missile Silo (`TutorialChapters.ts`).
 
 ## Do's and Don'ts
 
@@ -318,5 +318,5 @@ These are defects the shipped build carries, not rules to copy.
 
 - The brand mark (`android/app/src/main/res/drawable/wc_mark.xml`, a globe with one quarter claimed in Struck Gold and Gold Leaf strokes on Night) is placeholder grade. The adaptive icon uses it until a final mark replaces it. The native launch screen is plain Night with no mark (the portrait frame before `sensorLandscape` cannot draw one sideways); the web launch frame fades the wordmark in over 200ms.
 - The solo setup rail leaves empty space above START.
-- The tutorial banner's heading is upstream's yellow "TUTORIAL" title, kept as it is. It is not a label style for new surfaces.
+- The tutorial banner's heading keeps upstream's yellow title style (now carrying the chapter counter). It is not a label style for new surfaces.
 - `--wc-gold-lo` is declared but unused. The ember (#f0a04b) and the button face and rim colours are literals, not `--wc-*` properties.

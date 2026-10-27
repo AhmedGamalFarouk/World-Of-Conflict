@@ -1153,33 +1153,26 @@ body.mobile-theme settings-modal .bg-slate-700 {
   background-color: var(--wc-plate-hi);
 }
 
-/* Tutorial step: one line until tapped; Skip as a chip, not a link. */
-/* Clamped to one line with a fade and a gold chevron that say "tap for
-   more"; open, the chevron points up. */
+/* Tutorial step: the first sentence whole until tapped; Skip as a chip, not
+   a link. A gold chevron says "tap for more" when more follows; open, it
+   points up. */
 body.mobile-theme tutorial-panel .tutorial-step-body {
   position: relative;
   padding-right: 28px;
   cursor: pointer;
 }
-body.mobile-theme tutorial-panel .tutorial-step-body:not(.expanded) {
-  max-height: 1.35em;
-  overflow: hidden;
-}
-body.mobile-theme tutorial-panel .tutorial-step-body::after {
+body.mobile-theme tutorial-panel .tutorial-step-body.has-more::after {
   content: "";
   position: absolute;
   right: 0;
   bottom: 0;
-  width: 64px;
+  width: 24px;
   height: 1.35em;
   pointer-events: none;
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23f6d27a' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E")
-      right center / 16px no-repeat,
-    linear-gradient(90deg, rgb(20 28 48 / 0), rgb(20 28 48) 55%);
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23f6d27a' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E")
+    right center / 16px no-repeat;
 }
 body.mobile-theme tutorial-panel .tutorial-step-body.expanded::after {
-  width: 24px;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23f6d27a' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 10l4-4 4 4'/%3E%3C/svg%3E")
     right center / 16px no-repeat;
 }
