@@ -11,8 +11,7 @@ least 40% start a second. No playtest data exists yet; do not invent any.
 ## Start here (new session)
 
 **State (2026-10-27):** every task but #9 is done and committed on `main`;
-#9 waits for playtest data. `main` is ahead of `origin/main`: push only when
-the owner says so. Checked on a phone (vivo V2529, 870x392 CSS px, debug APK
+#9 waits for playtest data. Pushed to `origin/main` (2026-10-27). Checked on a phone (vivo V2529, 870x392 CSS px, debug APK
 driven over WebView DevTools): the home screen with a save, record plate and
 daily strip (sample data, removed after), the pause card's standing line after
 a real resume, the milestone plate, the tutorial chapter banner. Fixed from
