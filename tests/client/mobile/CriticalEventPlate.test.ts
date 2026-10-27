@@ -1,9 +1,10 @@
-import { MessageType } from "@openfront/engine-api/game/GameTypes";
+import { MessageType, PlayerType } from "@openfront/engine-api/game/GameTypes";
 import { GameUpdateType } from "@openfront/engine-api/game/GameUpdates";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ATTACK_COOLDOWN_TICKS,
   CriticalEventPlate,
+  milestonesReached,
   PLATE_ID,
   PlateGate,
   SHOW_MS,
@@ -52,11 +53,46 @@ describe("PlateGate", () => {
     expect(g.offer("attack", 9000, "a3")).toBe(false);
   });
 
+  it("a milestone waits for an empty slot and anything replaces it", () => {
+    const g = new PlateGate();
+    expect(g.offer("milestone", 0)).toBe(true);
+    expect(g.offer("milestone", 1)).toBe(false);
+    expect(g.offer("attack", 2, "a")).toBe(true);
+    expect(g.offer("milestone", 3)).toBe(false);
+    g.clear();
+    expect(g.offer("milestone", 4)).toBe(true);
+    expect(g.offer("nuke", 5)).toBe(true);
+  });
+
   it("a new event after the plate left shows again", () => {
     const g = new PlateGate();
     expect(g.offer("nuke", 0)).toBe(true);
     g.clear();
     expect(g.offer("betrayal", 1)).toBe(true);
+  });
+});
+
+describe("milestonesReached", () => {
+  const base = { conquered: false, share: 1, out: 0, total: 5, leading: false };
+  it("nothing at the start of a game", () => {
+    expect(milestonesReached(base)).toEqual([]);
+  });
+  it("lists every milestone reached, in order", () => {
+    expect(
+      milestonesReached({
+        conquered: true,
+        share: 50,
+        out: 4,
+        total: 5,
+        leading: true,
+      }),
+    ).toEqual(["first_nation", "land_25", "land_50", "leader", "last_rival"]);
+  });
+  it("one rival from the start is not a last rival left", () => {
+    expect(milestonesReached({ ...base, total: 1 })).toEqual([]);
+    expect(milestonesReached({ ...base, share: 25, out: 2 })).toEqual([
+      "land_25",
+    ]);
   });
 });
 
@@ -73,14 +109,30 @@ function fakeGame(over: {
   updates?: Record<number, unknown[]>;
   tick?: number;
   catchingUp?: () => boolean;
+  inSpawnPhase?: boolean;
 }) {
   const me = {
+    id: () => "me",
     isAlive: () => true,
     smallID: () => 1,
+    numTilesOwned: () => 1,
     incomingAttacks: () => over.attacks ?? [],
   };
-  const other = { isPlayer: () => true, displayName: () => "Rival" };
+  const other = {
+    isPlayer: () => true,
+    isAlive: () => true,
+    numTilesOwned: () => 10,
+    type: () => PlayerType.Nation,
+    displayName: () => "Rival",
+  };
   const game = {
+    inSpawnPhase: () => over.inSpawnPhase ?? false,
+    players: () => [me, other],
+    player: () => other,
+    numLandTiles: () => 1000,
+    numTilesWithFallout: () => 0,
+    elapsedGameSeconds: () => 60,
+    config: () => ({ percentageTilesOwnedToWin: () => 80 }),
     myPlayer: () => me,
     ticks: () => over.tick ?? 0,
     isCatchingUp: over.catchingUp ?? (() => false),
@@ -165,6 +217,34 @@ describe("CriticalEventPlate", () => {
       100,
     );
     early.tick();
+    expect(document.getElementById(PLATE_ID)).toBeNull();
+  });
+
+  it("marks the first nation we conquer with a gold plate, once", () => {
+    const shown = vi.fn();
+    const updates = {
+      [GameUpdateType.ConquestEvent]: [
+        { conquerorId: "me", conqueredId: "x", gold: 0n },
+      ],
+    };
+    const plate = new CriticalEventPlate(fakeGame({ updates }), shown);
+    plate.tick();
+    const el = document.getElementById(PLATE_ID)!;
+    expect(el.classList.contains("wc-milestone")).toBe(true);
+    expect(el.getAttribute("aria-live")).toBe("polite");
+    expect(shown).toHaveBeenCalledWith("milestone");
+    vi.advanceTimersByTime(SHOW_MS);
+    plate.tick();
+    expect(document.getElementById(PLATE_ID)).toBeNull();
+  });
+
+  it("no milestones during the spawn phase", () => {
+    const updates = {
+      [GameUpdateType.ConquestEvent]: [
+        { conquerorId: "me", conqueredId: "x", gold: 0n },
+      ],
+    };
+    new CriticalEventPlate(fakeGame({ updates, inSpawnPhase: true })).tick();
     expect(document.getElementById(PLATE_ID)).toBeNull();
   });
 

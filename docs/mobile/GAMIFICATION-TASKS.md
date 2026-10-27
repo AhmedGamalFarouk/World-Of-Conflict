@@ -10,16 +10,16 @@ least 40% start a second. No playtest data exists yet; do not invent any.
 
 ## Start here (new session)
 
-**State (2026-10-27):** tasks #0 to #3 are done and committed on `main`; #4
-(tutorial in chapters) is done but not committed yet. Next up is **#5, positive
-milestone plates**. `main` is ahead of `origin/main`: push only
-when the owner says so.
+**State (2026-10-27):** tasks #0 to #5 are done and committed on `main`. Next
+up is **#6, daily challenge**. `main` is ahead of `origin/main`: push only when
+the owner says so.
 
 | Commit    | What                                        |
 | --------- | ------------------------------------------- |
 | `abc2d86` | #1 PLAY one tap, #2 land plate goal and bar |
 | `7666c32` | #0 funnel events, this task list            |
 | `5e6abb6` | #3 aftergame recap                          |
+| `21baf01` | #4 tutorial in chapters                     |
 
 **Code map (all mobile layer, `src/client/mobile/` unless noted):**
 
@@ -86,9 +86,9 @@ when the owner says so.
 | 1   | PLAY starts a quick game in one tap               | High          | Small           | Done (`abc2d86`)         |
 | 2   | Land plate shows the 80% goal and a progress bar  | High          | Small           | Done (`abc2d86`)         |
 | 3   | Aftergame recap and personal best                 | High          | Small to medium | Done (`5e6abb6`)         |
-| 4   | Tutorial in chapters                              | High          | Medium          | Done (uncommitted)       |
-| 5   | Positive milestone plates                         | Medium        | Small           | **Next**                 |
-| 6   | Daily challenge: preview, best time, streak grace | Medium        | Small to medium | Todo                     |
+| 4   | Tutorial in chapters                              | High          | Medium          | Done (`21baf01`)         |
+| 5   | Positive milestone plates                         | Medium        | Small           | Done                     |
+| 6   | Daily challenge: preview, best time, streak grace | Medium        | Small to medium | **Next**                 |
 | 7   | Commander record and map medals on home           | Medium        | Medium          | Todo                     |
 | 8   | Earned commander titles                           | Low to medium | Small           | Todo                     |
 | 9   | Map campaign ladder                               | High          | Large           | Blocked on playtest data |
@@ -124,7 +124,7 @@ when true, nothing on a first game on a map. Bests are since this shipped, not
 all time. Known ceiling: peak land restarts if a game is resumed after an app
 restart. Compact layout for 640x320 (card 243px). Tests: `Recap.test.ts`.
 
-### 4. Tutorial in chapters (uncommitted)
+### 4. Tutorial in chapters (`21baf01`)
 
 Mobile only (`TutorialChapters.ts`; `Tutorial.ts` untouched, desktop keeps the
 22-step flow). Expand (6 steps, spawn to tribes), Build (8, City to port info),
@@ -139,17 +139,21 @@ long first sentence (`capture_tribes` runs to about four lines at 260px).
 Known ceiling: when no step of a chapter applies (every War unit disabled),
 "chapter done" shows for 5s with nothing taught.
 
+### 5. Positive milestone plates
+
+`CriticalEventPlate` gained a `milestone` kind (gold top edge and star, 15ms
+haptic): first nation conquered (by you, from `ConquestEvent`, not tribes), a
+quarter and half of the land, largest nation, one rival left. Checked once a
+second after the spawn phase; each once per game, so five at most. Shows only
+on an empty slot and any alarm replaces it (`PlateGate`). Milestones already
+reached when a resume goes live never show. Tests in
+`CriticalEventPlate.test.ts`. Not seen in the preview (no browser in that
+session). Known ceiling: after a resume, "you conquered" shows at your next
+nation conquest even if it was not your first.
+
 ## Remaining
 
-### 5. Positive milestone plates (next)
-
-Reuse `CriticalEventPlate` with a gold top edge: first nation conquered, 25%
-and 50% of the land, rank #1, last rival left. Short haptic (`Haptics.ts`). Go
-through `PlateGate` priority so a nuke always wins. Cap at a handful per game,
-once each. `landProgress()` and `rivalCount()` already give the inputs. Update
-`DESIGN.md` "Event Plate" (it says Alarm Red only; gold is a new variant).
-
-### 6. Daily challenge
+### 6. Daily challenge (next)
 
 Show today's map name and thumbnail on the button. Store a best time per daily.
 Show a 7-day strip. One grace day per week. No "you'll lose your streak" copy.

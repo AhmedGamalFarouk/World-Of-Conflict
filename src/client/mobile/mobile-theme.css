@@ -1110,6 +1110,13 @@ body.mobile-theme .wc-event-icon {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+/* Milestone: the same plate, gold-edged, for a good moment. */
+body.mobile-theme .wc-event-plate.wc-milestone {
+  border-top-color: var(--wc-gold-hi);
+}
+body.mobile-theme .wc-milestone .wc-event-icon {
+  stroke: var(--wc-gold-hi);
+}
 @keyframes wc-event-in {
   from {
     opacity: 0;

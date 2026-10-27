@@ -884,6 +884,11 @@
   "event_plate": {
     "attack": "{name} is attacking you",
     "betrayal": "{name} broke your alliance",
+    "milestone_first_nation": "You conquered {name}",
+    "milestone_land_25": "You hold a quarter of the land",
+    "milestone_land_50": "You hold half the land",
+    "milestone_last_rival": "Only {name} is left",
+    "milestone_leader": "Yours is the largest nation",
     "nuke": "Nuke inbound from {name}",
     "someone": "Someone"
   },

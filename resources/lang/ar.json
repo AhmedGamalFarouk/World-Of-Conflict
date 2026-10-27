@@ -646,5 +646,16 @@
     "team": "الفريق",
     "troops": "القوات",
     "warships": "السفن الحربية"
+  },
+  "event_plate": {
+    "attack": "{name} يهاجمك",
+    "betrayal": "{name} نقض تحالفكما",
+    "milestone_first_nation": "لقد غزوت {name}",
+    "milestone_land_25": "تملك ربع الأرض",
+    "milestone_land_50": "تملك نصف الأرض",
+    "milestone_last_rival": "لم يبقَ سوى {name}",
+    "milestone_leader": "دولتك هي الأكبر",
+    "nuke": "قنبلة نووية قادمة من {name}",
+    "someone": "أحدهم"
   }
 }

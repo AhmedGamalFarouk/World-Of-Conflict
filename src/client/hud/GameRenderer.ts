@@ -341,6 +341,7 @@ export function createRenderer(
             game,
             (kind) => {
               if (kind === "attack") vibrate(40);
+              if (kind === "milestone") vibrate(15);
             },
             resumeTurnCount,
           ),

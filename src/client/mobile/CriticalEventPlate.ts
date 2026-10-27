@@ -1,15 +1,47 @@
 // A plate for the three events a phone player must not miss while looking at
 // the map: a nuke inbound, a betrayed alliance, a new attack on them. Local
-// player only. DESIGN.md "Event plate". Game-client chunk.
-import { MessageType } from "@openfront/engine-api/game/GameTypes";
+// player only. The same plate, gold-edged, marks a few good moments once per
+// game (milestones). DESIGN.md "Event plate". Game-client chunk.
+import { MessageType, PlayerType } from "@openfront/engine-api/game/GameTypes";
 import { GameUpdateType } from "@openfront/engine-api/game/GameUpdates";
 import { Controller } from "../Controller";
+import { landProgress } from "../hud/layers/GameLeftSidebar";
 import { translateText } from "../Utils";
 import type { GameView } from "../view";
+import { rivalCount } from "./Recap";
 
-export type PlateKind = "nuke" | "betrayal" | "attack";
+export type PlateKind = "nuke" | "betrayal" | "attack" | "milestone";
+
+export type Milestone =
+  | "first_nation"
+  | "land_25"
+  | "land_50"
+  | "leader"
+  | "last_rival";
+
+/** Milestones reached, in the order they show; each shows once a game. */
+export function milestonesReached(s: {
+  /** We conquered a nation (not a tribe) this game. */
+  conquered: boolean;
+  /** Our share of the land, percent. */
+  share: number;
+  /** Rival nations out, of all there were (see `rivalCount`). */
+  out: number;
+  total: number;
+  /** We hold more land than anyone else. */
+  leading: boolean;
+}): Milestone[] {
+  const m: Milestone[] = [];
+  if (s.conquered) m.push("first_nation");
+  if (s.share >= 25) m.push("land_25");
+  if (s.share >= 50) m.push("land_50");
+  if (s.leading) m.push("leader");
+  if (s.out >= 1 && s.out === s.total - 1) m.push("last_rival");
+  return m;
+}
 
 const PRIORITY: Record<PlateKind, number> = {
+  milestone: 0,
   attack: 1,
   betrayal: 2,
   nuke: 3,
@@ -27,6 +59,8 @@ export class PlateGate {
 
   /** True when `kind` should be shown now; the caller then shows it. */
   offer(kind: PlateKind, tick: number, attackId?: string): boolean {
+    // Good news waits for an empty slot; it never cuts another plate short.
+    if (kind === "milestone" && this.shown !== null) return false;
     if (kind === "attack") {
       // An id never triggers twice, whether or not it got a plate.
       if (attackId !== undefined) {
@@ -62,20 +96,20 @@ export function truncateName(name: string): string {
     : name;
 }
 
-// 22px line icons in Alarm Red: a radiation mark, a broken link, crossed blades.
+// 22px line icons: a radiation mark, a broken link, crossed blades (Alarm
+// Red), a star (Gold Leaf).
 const ICONS: Record<PlateKind, string> = {
   nuke: '<circle cx="12" cy="12" r="2.2"/><path d="M12 9.8 7.6 2.6A10 10 0 0 1 16.4 2.6Z"/><path d="M14.1 13.1 22 14.5A10 10 0 0 1 17.6 22.1Z"/><path d="M9.9 13.1 6.4 22.1A10 10 0 0 1 2 14.5Z"/>',
   betrayal:
     '<path d="M10 14 6.5 17.5a3.2 3.2 0 0 1-4.5-4.5L5.5 9.5"/><path d="M14 10 17.5 6.5A3.2 3.2 0 0 1 22 11l-3.5 3.5"/><path d="M8 3.5 9 6M3.5 8 6 9M16 21l-1-2.5M21 16l-2.5-1"/>',
   attack:
     '<path d="M4 20 19 5M15 4h5v5"/><path d="M20 20 5 5M9 4H4v5"/><path d="M3 21l3-3M21 21l-3-3"/>',
+  milestone:
+    '<path d="M12 2.8l2.8 5.8 6.4.9-4.6 4.5 1.1 6.3L12 17.3l-5.7 3 1.1-6.3L2.8 9.5l6.4-.9Z"/>',
 };
 
-const TEXT_KEY: Record<PlateKind, string> = {
-  nuke: "event_plate.nuke",
-  betrayal: "event_plate.betrayal",
-  attack: "event_plate.attack",
-};
+/** Milestones are checked once a second (10 ticks a second). */
+const MILESTONE_TICKS = 10;
 
 export const PLATE_ID = "wc-event-plate";
 
@@ -92,6 +126,9 @@ export class CriticalEventPlate implements Controller {
     private resumeTurnCount = 0,
   ) {}
   private replaying = false;
+  private milestonesDone = new Set<Milestone>();
+  /** The first nation we conquered this game, while live. */
+  private conquered: string | null = null;
 
   tick(): void {
     const me = this.game.myPlayer();
@@ -108,7 +145,15 @@ export class CriticalEventPlate implements Controller {
       // Back to live: attacks already under way are not new.
       this.replaying = false;
       for (const a of me.incomingAttacks()) this.gate.markSeen(a.id);
+      // Nor are milestones already reached.
+      for (const m of this.milestones()) this.milestonesDone.add(m);
       return;
+    }
+
+    for (const c of updates?.[GameUpdateType.ConquestEvent] ?? []) {
+      if (this.conquered !== null || c.conquerorId !== me.id()) continue;
+      const p = this.game.player(c.conqueredId);
+      if (p.type() !== PlayerType.Bot) this.conquered = p.displayName();
     }
 
     for (const u of updates?.[GameUpdateType.UnitIncoming] ?? []) {
@@ -141,6 +186,43 @@ export class CriticalEventPlate implements Controller {
         a.id,
       );
     }
+
+    if (tick % MILESTONE_TICKS === 0 && !this.game.inSpawnPhase()) {
+      const next = this.milestones().find((m) => !this.milestonesDone.has(m));
+      if (next !== undefined && this.gate.offer("milestone", tick)) {
+        this.milestonesDone.add(next);
+        this.show("milestone", this.milestoneText(next));
+        this.onShown("milestone");
+      }
+    }
+  }
+
+  private milestones(): Milestone[] {
+    const me = this.game.myPlayer();
+    if (!me) return [];
+    const mine = me.numTilesOwned();
+    return milestonesReached({
+      conquered: this.conquered !== null,
+      share: landProgress(this.game)?.share ?? 0,
+      ...rivalCount(this.game),
+      leading: this.game
+        .players()
+        .every((p) => p === me || !p.isAlive() || p.numTilesOwned() < mine),
+    });
+  }
+
+  private milestoneText(m: Milestone): string {
+    const me = this.game.myPlayer();
+    const name =
+      m === "first_nation"
+        ? this.conquered
+        : this.game
+            .players()
+            .find((p) => p !== me && p.isAlive() && p.type() !== PlayerType.Bot)
+            ?.displayName();
+    return translateText(`event_plate.milestone_${m}`, {
+      name: truncateName(name ?? translateText("event_plate.someone")),
+    });
   }
 
   private offer(
@@ -150,18 +232,24 @@ export class CriticalEventPlate implements Controller {
     attackId?: string,
   ): void {
     if (!this.gate.offer(kind, tick, attackId)) return;
-    this.show(kind, name ?? translateText("event_plate.someone"));
+    this.show(
+      kind,
+      translateText(`event_plate.${kind}`, {
+        name: truncateName(name ?? translateText("event_plate.someone")),
+      }),
+    );
     this.onShown(kind);
   }
 
-  private show(kind: PlateKind, name: string): void {
+  private show(kind: PlateKind, message: string): void {
     this.hide(false);
     const el = document.createElement("div");
     el.id = PLATE_ID;
-    el.className = "wc-plate wc-event-plate";
-    // Alarms interrupt a screen reader; an attack only queues behind it.
-    el.setAttribute("role", kind === "attack" ? "status" : "alert");
-    el.setAttribute("aria-live", kind === "attack" ? "polite" : "assertive");
+    el.className = `wc-plate wc-event-plate${kind === "milestone" ? " wc-milestone" : ""}`;
+    // Alarms interrupt a screen reader; an attack or milestone queues.
+    const polite = kind === "attack" || kind === "milestone";
+    el.setAttribute("role", polite ? "status" : "alert");
+    el.setAttribute("aria-live", polite ? "polite" : "assertive");
 
     const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     icon.setAttribute("class", "wc-event-icon");
@@ -171,9 +259,7 @@ export class CriticalEventPlate implements Controller {
     icon.setAttribute("aria-hidden", "true");
     icon.innerHTML = ICONS[kind];
     const text = document.createElement("span");
-    text.textContent = translateText(TEXT_KEY[kind], {
-      name: truncateName(name),
-    });
+    text.textContent = message;
     el.append(icon, text);
     el.addEventListener("click", () => this.hide(true));
 
