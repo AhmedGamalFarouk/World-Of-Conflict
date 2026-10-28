@@ -161,9 +161,11 @@ Open:
 - `dist-mobile/` is 86 MB uncompressed (maps 39, flags 26, images 11), well under
   the 150 MB AAB gate; `resources/flags/` stays. The gate itself still needs a
   real release build to prove.
-- B2 (solo rail): the plan's "START directly under the last control" could not
-  be reproduced; the rail holds only START and is pinned to the bottom.
-  `DESIGN.md` still lists "empty space above START" as an open item.
+- B2 (solo rail, done 2026-10-29): the rail now carries a match card (map
+  thumbnail, name, tribes, difficulty) above START, and the map section opens
+  on a featured strip with ALL MAPS behind a steel button (`SoloSummary.ts`,
+  `MapPicker.renderStrip`). Only two curated maps are featured, so the strip is
+  short until the player favourites more.
 - Arabic (2026-10-26): 285 keys added to `ar.json` by hand (mobile, save, main
   menu, tutorial, build menu, win modal, in-game events, six curated map
   names), checked in the preview at 640x320. Machine-drafted: needs a native

@@ -29,9 +29,10 @@ import { gamePortal } from "./GamePortal";
 import { GameStartingModal } from "./GameStartingModal";
 import { showInGameAlert } from "./InGameModal";
 import { JoinLobbyEvent } from "./Main";
-import { isOffline } from "./mobile/MobileShell";
+import { isMobileShell, isOffline } from "./mobile/MobileShell";
 import { allowNewGame } from "./mobile/SaveHome";
 import { rememberSoloConfig, takeSoloReplay } from "./mobile/SoloReplay";
+import { soloSummary } from "./mobile/SoloSummary";
 import { fallbackPlayerName, ResolvedPlayerName } from "./PlayerName";
 import { lastUserMeResponse } from "./UserMeBroadcast";
 import { UsernameInput } from "./UsernameInput";
@@ -584,6 +585,14 @@ export class SinglePlayerModal extends BaseModal {
 
         <!-- Footer Action -->
         <div class="p-6 border-t border-white/10 bg-black/20 shrink-0">
+          ${isMobileShell()
+            ? soloSummary({
+                map: this.selectedMap,
+                random: this.useRandomMap,
+                bots: this.bots,
+                difficulty: this.nations === 0 ? null : this.selectedDifficulty,
+              })
+            : null}
           ${responseHasLinkedIdentity(this.userMeResponse) &&
           this.hasOptionsChanged()
             ? html`<div

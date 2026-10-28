@@ -732,6 +732,97 @@ body.mobile-theme
   margin-top: auto;
 }
 
+/* The rail's match card: what START launches, so a quick player reads it and
+   presses START without scrolling the settings. */
+.wc-solo-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+}
+.wc-solo-summary img {
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  object-fit: cover;
+  border-radius: 7px;
+  background: var(--wc-night);
+}
+.wc-solo-map {
+  font-family: var(--wc-display);
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: 0.06em;
+  line-height: 1.1;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wc-solo-summary dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  gap: 2px 8px;
+  margin: 0;
+}
+.wc-solo-summary dt {
+  font-family: var(--wc-display);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wc-mute);
+}
+.wc-solo-summary dd {
+  margin: 0;
+  text-align: end;
+  font-family: var(--wc-display);
+  font-weight: 700;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums lining-nums;
+  text-transform: uppercase;
+}
+@media (max-height: 340px) {
+  .wc-solo-summary img {
+    aspect-ratio: auto;
+    height: 56px;
+  }
+  body.mobile-theme single-player-modal o-button[variant="primary"] > button {
+    min-height: 56px;
+    font-size: 22px;
+  }
+}
+
+/* Solo map strip: featured, favourite and the picked map in one swipeable
+   row; ALL MAPS opens upstream's tabbed list (search stays in the header). */
+.wc-map-strip-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.wc-map-strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  padding: 2px 0 4px;
+}
+.wc-map-strip > * {
+  flex: 0 0 152px;
+  scroll-snap-align: start;
+}
+.wc-map-strip .text-xs {
+  font-size: 14px;
+}
+/* No hover on touch: the picked map shows its favourite star so it can be
+   starred. */
+body.mobile-theme map-display [aria-selected="true"] button[aria-pressed] {
+  opacity: 1;
+}
+
 /* The flag belongs to the title screen only. */
 body.mobile-theme:has(#page-play.hidden) page-footer lang-selector {
   display: none;

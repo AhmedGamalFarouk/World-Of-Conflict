@@ -10,7 +10,7 @@ import { assetUrl } from "@openfront/shared/AssetUrls";
 import { html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { repeat } from "lit/directives/repeat.js";
-import { isMapAvailable } from "../../mobile/MobileShell";
+import { isMapAvailable, isMobileShell } from "../../mobile/MobileShell";
 import { translateText } from "../../Utils";
 import "./MapDisplay";
 import { getFavoriteMaps, starIcon, toggleFavoriteMap } from "./MapFavorites";
@@ -59,6 +59,8 @@ export class MapPicker extends LitElement {
 
   private handleMapSelection(mapValue: GameMapType) {
     this.onSelectMap?.(mapValue);
+    // Phone: back to the strip, where the pick now leads.
+    if (isMobileShell()) this.activeTab = "featured";
   }
 
   private handleSelectRandomMap = () => {
@@ -199,6 +201,40 @@ export class MapPicker extends LitElement {
     </div>`;
   }
 
+  /** Phone: one swipeable row of the selected, featured and favourite maps,
+      then Random; the full tabbed list sits behind the ALL MAPS chip. */
+  private renderStrip() {
+    const strip = [
+      ...new Set(
+        [
+          this.useRandomMap ? undefined : this.selectedMap,
+          ...featuredMaps.map((m) => m.type),
+          ...this.favorites,
+        ].filter((t) => t !== undefined),
+      ),
+    ]
+      .map((t) => maps.find((m) => m.type === t))
+      .filter((m) => m !== undefined);
+    return html`<div class="wc-map-strip-head">
+        <span class="wc-label">${translateText("map.featured")}</span>
+        <button
+          type="button"
+          class="wc-btn wc-btn-steel"
+          @click=${() => (this.activeTab = "all")}
+        >
+          ${translateText("mobile.all_maps")}
+        </button>
+      </div>
+      <div class="wc-map-strip">
+        ${repeat(
+          strip,
+          (map) => map.id,
+          (map) => this.renderMapCard(map),
+        )}
+        ${this.renderRandomCard()}
+      </div>`;
+  }
+
   private renderAllTab() {
     return html`<div class="space-y-3">
       ${this.allCategories.map((categoryKey) =>
@@ -301,6 +337,36 @@ export class MapPicker extends LitElement {
     </div>`;
   }
 
+  private renderRandomCard() {
+    return html`<button
+      type="button"
+      class="w-full h-full p-3 flex flex-col items-center justify-between rounded-xl border cursor-pointer transition-all duration-200 active:scale-95 gap-3 group ${this
+        .useRandomMap
+        ? "bg-malibu-blue/20 border-malibu-blue/50 shadow-[var(--shadow-malibu-blue-strong)]"
+        : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 hover:-translate-y-1"}"
+      @click=${this.handleSelectRandomMap}
+    >
+      <div
+        class="w-full aspect-[2/1] relative overflow-hidden rounded-lg bg-black/20"
+      >
+        <img
+          src=${randomMap}
+          alt=${translateText("map.random")}
+          draggable="false"
+          @dragstart=${this.preventImageDrag}
+          class="w-full h-full object-cover ${this.useRandomMap
+            ? "opacity-100"
+            : "opacity-80"} group-hover:opacity-100 transition-opacity duration-200"
+        />
+      </div>
+      <div
+        class="text-xs font-bold text-white uppercase tracking-wider text-center leading-tight break-words hyphens-auto"
+      >
+        ${translateText("map.random")}
+      </div>
+    </button>`;
+  }
+
   private renderTabButton(tab: MapTab, label: string) {
     const isActive = this.activeTab === tab;
     return html`<button
@@ -318,6 +384,9 @@ export class MapPicker extends LitElement {
 
   render() {
     const isSearching = this.searchQuery.trim().length > 0;
+    if (isMobileShell() && !isSearching && this.activeTab === "featured") {
+      return this.renderStrip();
+    }
     return html`
       <div class="space-y-8">
         <div class="w-full flex items-center gap-2">
@@ -348,33 +417,7 @@ export class MapPicker extends LitElement {
         >
           ${this.renderSectionHeading(translateText("map_categories.special"))}
           <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            <button
-              type="button"
-              class="w-full h-full p-3 flex flex-col items-center justify-between rounded-xl border cursor-pointer transition-all duration-200 active:scale-95 gap-3 group ${this
-                .useRandomMap
-                ? "bg-malibu-blue/20 border-malibu-blue/50 shadow-[var(--shadow-malibu-blue-strong)]"
-                : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 hover:-translate-y-1"}"
-              @click=${this.handleSelectRandomMap}
-            >
-              <div
-                class="w-full aspect-[2/1] relative overflow-hidden rounded-lg bg-black/20"
-              >
-                <img
-                  src=${randomMap}
-                  alt=${translateText("map.random")}
-                  draggable="false"
-                  @dragstart=${this.preventImageDrag}
-                  class="w-full h-full object-cover ${this.useRandomMap
-                    ? "opacity-100"
-                    : "opacity-80"} group-hover:opacity-100 transition-opacity duration-200"
-                />
-              </div>
-              <div
-                class="text-xs font-bold text-white uppercase tracking-wider text-center leading-tight break-words hyphens-auto"
-              >
-                ${translateText("map.random")}
-              </div>
-            </button>
+            ${this.renderRandomCard()}
           </div>
         </div>
       </div>
