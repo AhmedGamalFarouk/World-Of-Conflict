@@ -1782,6 +1782,7 @@
     "title_unbroken": "Unbroken",
     "title_victor": "Victor",
     "title_warlord": "Warlord of {map}",
+    "tribes_off": "Off",
     "victory": "Victory"
   },
   "mode_selector": {

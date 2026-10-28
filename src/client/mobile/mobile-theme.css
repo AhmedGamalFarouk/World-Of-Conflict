@@ -802,7 +802,7 @@ body.mobile-theme
   gap: 12px;
   margin-bottom: 8px;
 }
-.wc-map-strip {
+body.mobile-theme .wc-map-strip {
   display: flex;
   gap: 10px;
   overflow-x: auto;
@@ -810,13 +810,69 @@ body.mobile-theme
   scrollbar-width: none;
   padding: 2px 0 4px;
 }
+.wc-map-strip::-webkit-scrollbar {
+  display: none;
+}
 .wc-map-strip > * {
-  flex: 0 0 152px;
+  flex: 0 0 144px;
+  min-width: 0;
   scroll-snap-align: start;
 }
-.wc-map-strip .text-xs {
-  font-size: 14px;
+/* Tight one-line cards so the quick rows below clear the fold at 844x390. */
+.wc-map-strip map-display {
+  display: block;
 }
+.wc-map-strip .p-3 {
+  padding: 8px;
+  gap: 6px;
+}
+.wc-map-strip .text-xs.leading-tight {
+  font-size: 14px;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+body.mobile-theme single-player-modal section.space-y-6 > :not(:last-child) {
+  margin-block-end: 12px;
+}
+/* Difficulty and tribes under the strip, so a quick player sets both without
+   scrolling. The pick is tinted, not gold: START stays the screen's one gold
+   face. Upstream's difficulty grid is the same control, so it goes. */
+.wc-quick-setup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+.wc-quick-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+}
+.wc-seg {
+  flex: 1 1 300px;
+  max-width: 360px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.wc-seg .wc-btn {
+  padding: 0 4px;
+  font-size: 16px;
+  letter-spacing: 0.04em;
+}
+.wc-seg .wc-btn[aria-checked="true"] {
+  color: var(--wc-gold-hi);
+  background: rgb(232 178 74 / 0.18);
+  border-color: var(--wc-gilt);
+}
+body.mobile-theme game-config-settings section:has(difficulty-info) {
+  display: none;
+}
+
 /* No hover on touch: the picked map shows its favourite star so it can be
    starred. */
 body.mobile-theme map-display [aria-selected="true"] button[aria-pressed] {

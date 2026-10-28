@@ -164,8 +164,9 @@ Open:
 - B2 (solo rail, done 2026-10-29): the rail now carries a match card (map
   thumbnail, name, tribes, difficulty) above START, and the map section opens
   on a featured strip with ALL MAPS behind a steel button (`SoloSummary.ts`,
-  `MapPicker.renderStrip`). Only two curated maps are featured, so the strip is
-  short until the player favourites more.
+  `MapPicker.renderStrip`). Follow-up the same day: the phone features six
+  maps of its own (`MOBILE_FEATURED_IDS`) and quick Difficulty / Tribes rows
+  sit under the strip (`QuickSetup.ts`), replacing upstream's difficulty grid.
 - Arabic (2026-10-26): 285 keys added to `ar.json` by hand (mobile, save, main
   menu, tutorial, build menu, win modal, in-game events, six curated map
   names), checked in the preview at 640x320. Machine-drafted: needs a native

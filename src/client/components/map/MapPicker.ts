@@ -10,6 +10,7 @@ import { assetUrl } from "@openfront/shared/AssetUrls";
 import { html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { repeat } from "lit/directives/repeat.js";
+import { MOBILE_FEATURED_IDS } from "../../mobile/CuratedMaps";
 import { isMapAvailable, isMobileShell } from "../../mobile/MobileShell";
 import { translateText } from "../../Utils";
 import "./MapDisplay";
@@ -22,13 +23,18 @@ const maps = allMaps.filter((m) => isMapAvailable(m.type));
 type MapTab = "featured" | "all" | "favorites";
 
 // Featured grid order: ranked maps first (1 = first), unranked alphabetical.
-const featuredMaps: MapInfo[] = maps
-  .filter((m) => m.categories.includes("featured"))
-  .sort(
-    (a, b) =>
-      (a.featuredRank ?? Number.MAX_SAFE_INTEGER) -
-      (b.featuredRank ?? Number.MAX_SAFE_INTEGER),
-  );
+// The phone build picks its own, since only two curated maps are featured.
+const featuredMaps: MapInfo[] = isMobileShell()
+  ? MOBILE_FEATURED_IDS.map((id) => maps.find((m) => m.id === id)).filter(
+      (m) => m !== undefined,
+    )
+  : maps
+      .filter((m) => m.categories.includes("featured"))
+      .sort(
+        (a, b) =>
+          (a.featuredRank ?? Number.MAX_SAFE_INTEGER) -
+          (b.featuredRank ?? Number.MAX_SAFE_INTEGER),
+      );
 
 function mapsInCategory(category: MapCategory): MapInfo[] {
   return maps.filter((m) => m.categories.includes(category));

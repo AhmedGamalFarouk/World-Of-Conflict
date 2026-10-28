@@ -22,6 +22,8 @@ import {
   svg,
 } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { isMobileShell } from "../mobile/MobileShell";
+import { quickSetupRows } from "../mobile/QuickSetup";
 import { translateText } from "../Utils";
 import "./Difficulties";
 import "./DifficultyInfo";
@@ -440,15 +442,24 @@ export class GameConfigSettings extends LitElement {
           "bg-malibu-blue/20",
           "map.map",
           html`<map-picker
-            .selectedMap=${settings.map.selected}
-            .useRandomMap=${settings.map.useRandom}
-            .randomMapDivider=${settings.map.randomMapDivider ?? false}
-            .showMedals=${settings.map.showMedals ?? false}
-            .mapWins=${settings.map.mapWins ?? new Map()}
-            .onSelectMap=${this.handleSelectMap}
-            .onSelectRandom=${this.handleSelectRandom}
-            .searchQuery=${this.mapSearchQuery}
-          ></map-picker>`,
+              .selectedMap=${settings.map.selected}
+              .useRandomMap=${settings.map.useRandom}
+              .randomMapDivider=${settings.map.randomMapDivider ?? false}
+              .showMedals=${settings.map.showMedals ?? false}
+              .mapWins=${settings.map.mapWins ?? new Map()}
+              .onSelectMap=${this.handleSelectMap}
+              .onSelectRandom=${this.handleSelectRandom}
+              .searchQuery=${this.mapSearchQuery}
+            ></map-picker>
+            ${isMobileShell()
+              ? quickSetupRows({
+                  difficulty: settings.difficulty.selected,
+                  difficultyDisabled: settings.difficulty.disabled,
+                  bots: settings.options.bots.value,
+                  onDifficulty: this.handleDifficultySelect,
+                  onBots: (value) => this.emit("bots-changed", { value }),
+                })
+              : nothing}`,
           undefined,
           this.renderMapSearchInput(),
         )}

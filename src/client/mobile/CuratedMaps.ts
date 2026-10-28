@@ -25,6 +25,17 @@ export const CURATED_MAP_IDS: readonly GameMapName[] = [
   "Australia",
 ];
 
+// The solo map strip's lead maps, big to small (upstream features only World
+// and Europe of the curated set).
+export const MOBILE_FEATURED_IDS: readonly GameMapName[] = [
+  "World",
+  "Europe",
+  "Pangaea",
+  "Mena",
+  "Italia",
+  "BosphorusStraits",
+];
+
 /** resources/maps/<folder> names of the curated maps, for the build copy. */
 export function curatedMapFolders(): string[] {
   return CURATED_MAP_IDS.map((id) => id.toLowerCase());
