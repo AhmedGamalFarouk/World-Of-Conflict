@@ -25,6 +25,8 @@ const DYNAMIC_KEY_PATTERNS: RegExp[] = [
   /^territory_patterns\.pattern_owned\.[^.]+$/,
   /^territory_patterns\.color_palette\.[^.]+$/,
   /^build_menu\.desc\.[^.]+$/,
+  // BuildMenu.buildDescription swaps desc for desc_short in the mobile shell.
+  /^build_menu\.desc_short\.[^.]+$/,
   /^unit_type\.[^.]+$/,
   /^news_box\.(tournament|tutorial|news|warning|firefox_warning)$/,
   // Built-in graphics preset names/descriptions are referenced from

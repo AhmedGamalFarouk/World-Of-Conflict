@@ -29,6 +29,9 @@ function extractFlagLatestBlock(): string {
   return source.slice(start + BEGIN.length, end);
 }
 
+// Git Bash reads a Windows path inside a script as relative; use the /c/... form.
+const sh = (p: string) => p.replace(/\\/g, "/").replace(/^([A-Za-z]):/, "/$1");
+
 let tempDir: string | null = null;
 
 afterEach(() => {
@@ -74,10 +77,10 @@ function runFlagLatest(
   // prints the scripted status code on stdout the way -w "%{http_code}" does.
   const fakeCurl = `#!/bin/bash
 CODES=(${codes.map((c) => `'${c}'`).join(" ")})
-n="$(cat '${countFile}')"
+n="$(cat '${sh(countFile)}')"
 idx="$n"
 if [ "$idx" -ge "\${#CODES[@]}" ]; then idx=$(( \${#CODES[@]} - 1 )); fi
-echo $(( n + 1 )) > '${countFile}'
+echo $(( n + 1 )) > '${sh(countFile)}'
 OUT=/dev/null
 URL=""
 DATA=""
@@ -89,7 +92,7 @@ while [ $# -gt 0 ]; do
     *) shift ;;
   esac
 done
-echo "\${URL} \${DATA}" >> '${logFile}'
+echo "\${URL} \${DATA}" >> '${sh(logFile)}'
 CODE="\${CODES[$idx]}"
 case "$CODE" in
   nostatus)
@@ -110,7 +113,7 @@ printf '%s' "$CODE"
   fs.chmodSync(curlPath, 0o755);
 
   const script = [
-    `export PATH='${binDir}':"$PATH"`,
+    `export PATH='${sh(binDir)}':"$PATH"`,
     `FLAG_LATEST_TIMEOUT=${opts.timeout ?? 5}`,
     "FLAG_LATEST_RETRY_DELAY=0",
     extractFlagLatestBlock(),

@@ -26,6 +26,9 @@ function extractRegisterBlock(): string {
   return source.slice(start + BEGIN.length, end);
 }
 
+// Git Bash reads a Windows path inside a script as relative; use the /c/... form.
+const sh = (p: string) => p.replace(/\\/g, "/").replace(/^([A-Za-z]):/, "/$1");
+
 let tempDir: string | null = null;
 
 afterEach(() => {
@@ -63,10 +66,10 @@ function runRegister(replies: Reply[]): Result {
 
   const fakeCurl = `#!/bin/bash
 CODES=(${replies.map((r) => `'${r.code}'`).join(" ")})
-n="$(cat '${countFile}')"
+n="$(cat '${sh(countFile)}')"
 idx="$n"
 if [ "$idx" -ge "\${#CODES[@]}" ]; then idx=$(( \${#CODES[@]} - 1 )); fi
-echo $(( n + 1 )) > '${countFile}'
+echo $(( n + 1 )) > '${sh(countFile)}'
 OUT=/dev/null
 URL=""
 DATA=""
@@ -78,10 +81,10 @@ while [ $# -gt 0 ]; do
     *) shift ;;
   esac
 done
-echo "\${URL} \${DATA}" >> '${logFile}'
+echo "\${URL} \${DATA}" >> '${sh(logFile)}'
 CODE="\${CODES[$idx]}"
 if [ "$CODE" = "000" ]; then printf '000'; exit 7; fi
-cat '${tempDir}'/body$idx > "$OUT"
+cat '${sh(tempDir)}'/body$idx > "$OUT"
 printf '%s' "$CODE"
 `;
   const curlPath = path.join(binDir, "curl");
@@ -89,7 +92,7 @@ printf '%s' "$CODE"
   fs.chmodSync(curlPath, 0o755);
 
   const script = [
-    `export PATH='${binDir}':"$PATH"`,
+    `export PATH='${sh(binDir)}':"$PATH"`,
     "REGISTER_ATTEMPTS=3",
     "REGISTER_RETRY_DELAY=0",
     extractRegisterBlock(),

@@ -193,6 +193,7 @@
     "until": "Banned until {date}."
   },
   "build_menu": {
+    "cant_build_here": "Can't build here",
     "desc": {
       "atom_bomb": "Small explosion",
       "city": "Increases max population",
@@ -217,7 +218,6 @@
       "sam_launcher": "Shoots down nukes",
       "warship": "Raids ships at sea"
     },
-    "cant_build_here": "Can't build here",
     "missile_reloading": "Missile reloading",
     "need_gold": "Need {amount} more gold",
     "need_port": "Build a Port first",
