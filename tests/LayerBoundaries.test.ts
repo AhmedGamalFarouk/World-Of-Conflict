@@ -1,9 +1,9 @@
 /**
  * Enforces the import graph between the engine, its public API, the code
- * shared by client and server, and the apps (#1701, docs/EnginePackageSplit.md).
+ * shared by the client and the build, and the app (#1701, docs/EnginePackageSplit.md).
  *
  * Every file belongs to the package its directory names (packages/<pkg>/src,
- * src/client, src/server). An import edge outside the allowed graph fails
+ * src/client). An import edge outside the allowed graph fails
  * unless ALLOWLIST lists it; a listed edge that no longer occurs fails too,
  * so the list only shrinks.
  */
@@ -22,13 +22,10 @@ type Pkg =
   | "shared"
   | "zbin"
   | "client"
-  | "server"
   | "resources";
 
-// The only engine files the apps may load: the simulation worker for the
-// client, and the winner replay for the server (src/server/WinnerReplay.ts).
+// The only engine file the client may load: the simulation worker.
 const ENGINE_ENTRY = "packages/engine/src/worker/Worker.worker.ts";
-const SERVER_ENGINE_ENTRY = "packages/engine/src/WinnerReplay.ts";
 
 const ALLOWED: Record<Pkg, Pkg[]> = {
   "engine-api": ["engine-api", "zbin", "resources"],
@@ -37,7 +34,6 @@ const ALLOWED: Record<Pkg, Pkg[]> = {
   shared: ["shared", "engine-lib", "engine-api", "zbin", "resources"],
   zbin: ["zbin"],
   client: ["client", "shared", "engine-lib", "engine-api", "zbin", "resources"],
-  server: ["server", "shared", "engine-lib", "engine-api", "zbin", "resources"],
   resources: [],
 };
 
@@ -97,7 +93,6 @@ function packageOf(file: string): Pkg | null {
   const m = /^packages\/([^/]+)\/src\//.exec(file);
   if (m && (PACKAGES as string[]).includes(m[1])) return m[1] as Pkg;
   if (file.startsWith("src/client/")) return "client";
-  if (file.startsWith("src/server/")) return "server";
   if (file.startsWith("resources/")) return "resources";
   return null;
 }
@@ -217,7 +212,6 @@ function violations(): {
   const files = [
     ...PACKAGES.flatMap((pkg) => walk(`packages/${pkg}/src`)),
     ...walk("src/client"),
-    ...walk("src/server"),
   ];
   for (const file of files) {
     const from = packageOf(file)!;
@@ -233,13 +227,6 @@ function violations(): {
       if (to === null) continue;
       if (ALLOWED[from].includes(to)) continue;
       if (to === "engine" && from === "client" && r.file === ENGINE_ENTRY) {
-        continue;
-      }
-      if (
-        to === "engine" &&
-        from === "server" &&
-        r.file === SERVER_ENGINE_ENTRY
-      ) {
         continue;
       }
       edges.add(`${file} -> ${r.file}`);

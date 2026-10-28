@@ -29,7 +29,7 @@ import {
   getResourcesDir,
   writePublicAssetManifest,
   writeRootFilesIndex,
-} from "./src/server/PublicAssetManifest";
+} from "./scripts/PublicAssetManifest";
 
 // Vite already handles these, but its good practice to define them explicitly
 const __filename = fileURLToPath(import.meta.url);

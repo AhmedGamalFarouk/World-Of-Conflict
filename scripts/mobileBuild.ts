@@ -9,7 +9,7 @@
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
-import { copyRootPublicFiles } from "../src/server/PublicAssetManifest";
+import { copyRootPublicFiles } from "./PublicAssetManifest";
 
 const MAP_FILES = ["map.bin", "map4x.bin", "map16x.bin", "manifest.json"];
 

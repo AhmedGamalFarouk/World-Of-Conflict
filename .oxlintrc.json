@@ -5,7 +5,6 @@
     "node": true
   },
   "ignorePatterns": [
-    "src/server/gatekeeper/**",
     "tests/pathfinding/playground/**",
     "android/**"
   ],

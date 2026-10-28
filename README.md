@@ -54,7 +54,7 @@ Do NOT use `npm install` nor `npm i` for project dependencies. `npm run inst` ru
 ### In the browser (mobile build)
 
 ```bash
-npm run dev:mobile
+npm run dev # http://localhost:9000
 ```
 
 ### On Android
@@ -66,14 +66,6 @@ adb install -r dist-mobile/WorldOfConflict-dev.apk
 ```
 
 `android:debug` rebuilds `dist-mobile/`, syncs it into the Capacitor app and builds the APK. A debug APK says DEV BUILD in About and must not be shared. Release builds, signing and the device checklist are in [docs/mobile/ANDROID.md](docs/mobile/ANDROID.md); contributor rules are in [CONTRIBUTING.md](CONTRIBUTING.md).
-
-### Upstream web client and server
-
-The original OpenFront client and server still build and run:
-
-```bash
-npm run dev
-```
 
 ## 🛠️ Development Tools
 
@@ -88,7 +80,6 @@ npm test          # Vitest
 ## 🏗️ Project Structure
 
 - `/src/client` - Game client (UI and WebGL2 renderer)
-- `/src/server` - Upstream multiplayer game server
 - `/packages/engine` - Deterministic game simulation (`@openfront/engine`)
 - `/packages/engine-api` - The engine's contract: types, schemas, game updates and the worker protocol (`@openfront/engine-api`)
 - `/packages/engine-lib` - Engine code also used outside the engine: map grid, rules, helpers (`@openfront/engine-lib`)

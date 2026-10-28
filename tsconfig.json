@@ -16,7 +16,6 @@
     "tests/**/*",
     "src/scripts",
     "scripts/replay",
-    "scripts/split-packages",
     "scripts/android*.ts",
     "scripts/versionSet.ts",
     "vite.config.ts"

@@ -6,15 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 npm run inst             # Install deps (uses npm ci --ignore-scripts — do NOT use npm install)
-npm run dev              # Run client + server in dev mode with hot reload
-npm run start:client     # Client only
-npm run start:server-dev # Server only
+npm run dev              # Mobile build in the browser with hot reload (port 9000)
 npm test                 # Run all tests (Vitest)
 npm run test:coverage    # Tests with coverage
 npm run lint             # Oxlint + ESLint
 npm run lint:fix         # Oxlint + ESLint with auto-fix
 npm run format           # Prettier
-npm run build-prod       # Production build
+npm run build-mobile     # Mobile build into dist-mobile/
 npm run typecheck        # tsc for the root project and each package
 ```
 
@@ -31,7 +29,7 @@ OpenFront.io is a real-time multiplayer territorial strategy game. There are fou
 
 1. **The engine** — Deterministic game simulation, split into npm workspace packages under `packages/` (see below). Pure TypeScript with **no external dependencies** beyond zod. Must stay bit-identical on every client: use the seeded PRNG, and use `packages/engine-lib/src/DetMath.ts` instead of `Math.exp`/`log`/`pow`/`sin`/… or `**` with an exponent other than 2 (ESLint enforces this). Runs in a Web Worker thread. All `packages/engine`, `packages/engine-api` and `packages/engine-lib` changes **must** include tests.
 2. **`src/client/`** — Rendering (custom WebGL2 renderer in `src/client/render/`), UI (Lit web components + Tailwind CSS 4), WebSocket communication.
-3. **`src/server/`** — Game coordination, intent relay, WebSocket management (Node.js/Express/ws).
+3. **Server** — Upstream's game server (`src/server/`) has been deleted: this fork is an offline mobile app. In singleplayer, `src/client/LocalServer.ts` relays the turns. Client code that talks to the server (lobbies, matchmaking, Steam/desktop) is still upstream's and unused on mobile.
 4. **API** — Closed-source Cloudflare Worker handling auth, stats, cosmetics, monetization. Not in this repo.
 
 ### Packages
@@ -46,15 +44,15 @@ OpenFront.io is a real-time multiplayer territorial strategy game. There are fou
 
 Import them as `@openfront/<pkg>/<path>` (e.g. `@openfront/engine-api/game/GameMap`); paths mirror `packages/<pkg>/src/`. The allowed graph is enforced by `tests/LayerBoundaries.test.ts`:
 
-- `engine-api` imports only zod, `zbin` and `resources/*.json`; `engine-lib` adds `engine-api`; `engine` adds `engine-lib`. None of them may import `shared`, `src/client` or `src/server`, use `Math.random`/`Date.now`/`new Date` or the approximated `Math` functions (`sin`, `pow`, `exp`, `log`, `atan2`…; `engine-lib/DetMath` has exact ones), use host APIs beyond `console`, `performance` and `TextEncoder`/`TextDecoder` (their tsconfigs use `lib: ["ES2022"]` plus `packages/engine-api/globals.d.ts`; only the worker entry and protocol, `src/worker/`, get the WebWorker lib), or fetch anything: the engine's host passes it the map files in `init`.
+- `engine-api` imports only zod, `zbin` and `resources/*.json`; `engine-lib` adds `engine-api`; `engine` adds `engine-lib`. None of them may import `shared` or `src/client`, use `Math.random`/`Date.now`/`new Date` or the approximated `Math` functions (`sin`, `pow`, `exp`, `log`, `atan2`…; `engine-lib/DetMath` has exact ones), use host APIs beyond `console`, `performance` and `TextEncoder`/`TextDecoder` (their tsconfigs use `lib: ["ES2022"]` plus `packages/engine-api/globals.d.ts`; only the worker entry and protocol, `src/worker/`, get the WebWorker lib), or fetch anything: the engine's host passes it the map files in `init`.
 - `shared` may import `engine-api` and `engine-lib`, never `engine`.
-- `src/client` and `src/server` import `engine-api`, `engine-lib` and `shared`; the client loads `engine` only through `packages/engine/src/worker/Worker.worker.ts`, and the server only through `packages/engine/src/WinnerReplay.ts` (the winner-replay subprocess).
+- `src/client` imports `engine-api`, `engine-lib` and `shared`, and loads `engine` only through `packages/engine/src/worker/Worker.worker.ts`.
 - The homepage (`src/client/Main.ts` and its static imports) never statically imports the game client (`ClientGameRunner`, `Transport`, `hud/`, `render/`, `view/`, `controllers/`…): it's a separate chunk, loaded through `GameClientLoader` on join and prefetched once the page is idle. Load it with `import()`, or move what the homepage needs into a small module of its own (e.g. `LobbyEvents.ts`). The same goes for the modals in `LazyModals.ts`: `showPage` and the modal router load them, and code that calls one of them directly loads it first (`whenModalLoaded(tag, open)`, or await `loadModal(tag)`) and imports its class only with `import type`. They load after Main's `userMeResponse` broadcast, so one that listens for it also reads `lastUserMeResponse()` (`UserMeBroadcast.ts`) when it connects.
 - Rules that run on both sides (e.g. `Config.maxTroops`) take `PlayerLike`/`UnitLike`/`GameLike` from `engine-api/game/ReadViews.ts` and live in `engine-lib`; both the engine objects and the client views implement.
 
 ### Simulation Flow (Intent → Execution)
 
-The game simulation runs **on each client**, not the server. The server only relays intents.
+The game simulation runs **on each client**, not the server. The server only relays intents; offline, `LocalServer` stands in for it.
 
 1. Player action → client creates an **Intent** → sent to server
 2. Server bundles all intents for the tick into a **Turn** → relays to all clients
@@ -80,8 +78,7 @@ The game server only serves `index.html` and the WebSocket. All other assets (JS
 | `packages/shared/src/WireSchemas.ts`   | Client/server message types (Zod schemas)  |
 | `packages/engine/src/GameRunner.ts`    | Simulation orchestrator                    |
 | `packages/engine/src/game/GameImpl.ts` | Game state implementation                  |
-| `src/server/GameServer.ts`             | Main WebSocket server, game loop           |
-| `src/server/Master.ts`                 | Lobby and game registry                    |
+| `src/client/LocalServer.ts`            | Offline turn relay (stands in for server)  |
 | `tests/util/Setup.ts`                  | Test helper — creates test games           |
 | `tests/LayerBoundaries.test.ts`        | Enforces the package import rules          |
 | `docs/Architecture.md`                 | Architecture overview                      |
@@ -108,7 +105,6 @@ Only `tests/client/**` runs under jsdom; everything else runs in the `node` envi
 - **Audio:** Howler.js
 - **Schemas/Validation:** Zod
 - **Testing:** Vitest
-- **Server:** Node.js, Express, ws (WebSocket)
 
 ## Skill routing
 
