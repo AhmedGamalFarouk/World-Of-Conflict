@@ -243,3 +243,14 @@ export function resetHomeSaveForTests(): void {
   homeLoad = Promise.resolve();
   listeners.clear();
 }
+
+/** "23 h ago": a save's age in the largest unit that reads as a small number. */
+export function agoText(savedAt: number): string {
+  const min = Math.max(0, Math.round((Date.now() - savedAt) / 60000));
+  if (min < 1) return translateText("save.ago_now");
+  if (min < 60) return translateText("save.ago_min", { n: min });
+  if (min < 48 * 60) {
+    return translateText("save.ago_hours", { n: Math.round(min / 60) });
+  }
+  return translateText("save.ago_days", { n: Math.round(min / 1440) });
+}

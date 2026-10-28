@@ -44,6 +44,7 @@ export class WeaponsButton implements Controller {
       <div class="wc-weapons-list"></div>
       <button class="wc-weapons-btn" aria-label="${translateText("radial_menu.weapons")}">
         <img src="${nukeIcon}" alt="" width="28" height="28" />
+        <span class="wc-weapons-label">${translateText("radial_menu.weapons")}</span>
         <span class="wc-weapons-badge"></span>
       </button>`;
     this.list = this.root.querySelector(".wc-weapons-list")!;

@@ -493,7 +493,7 @@ body.mobile-theme .wc-continue {
 body.mobile-theme .wc-save-discard {
   grid-area: discard;
   min-width: 48px;
-  min-height: 32px;
+  min-height: 48px;
   padding: 0 6px;
   background: none;
   border: 0;
@@ -571,7 +571,7 @@ body.mobile-theme .wc-save-notice {
   }
   body.mobile-theme .wc-save-discard {
     justify-self: start;
-    min-height: 28px;
+    min-height: 40px;
     padding: 0;
     font-size: 12px;
   }
@@ -964,6 +964,7 @@ body.mobile-theme control-panel > div {
 .wc-pause-row .wc-btn {
   font-size: 16px;
   padding: 0 6px;
+  line-height: 1.1;
 }
 /* Resumed header and the saved line (save/resume, NEXT-STEPS C1). */
 .wc-resumed {
@@ -1059,6 +1060,8 @@ body.mobile-theme.in-game {
 body.mobile-theme game-left-sidebar aside {
   margin: calc(env(safe-area-inset-top) + 12px) 0 0
     calc(env(safe-area-inset-left) + 12px);
+  /* upstream writes an inline margin-top (its header bar offset) */
+  margin-top: calc(env(safe-area-inset-top) + 12px) !important;
   padding: 0;
   background-color: transparent !important;
   backdrop-filter: none;
@@ -1158,6 +1161,7 @@ body.mobile-theme tutorial-panel > div {
 /* Event feed keeps clear of the send rail. */
 body.mobile-theme div:has(> events-display) {
   padding-right: calc(env(safe-area-inset-right) + 88px);
+  padding-bottom: calc(env(safe-area-inset-bottom) + 12px);
 }
 
 /* Aftergame. */
@@ -1638,28 +1642,38 @@ player-info-overlay {
   gap: 8px;
 }
 .wc-weapons-btn {
-  position: relative;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 14px 0 12px;
+  border-radius: 10px;
   background: linear-gradient(180deg, #303d61, #1c2540);
-  border: 1px solid #f7dc8f;
-  box-shadow: 0 3px 8px rgb(0 0 0 / 0.45);
+  border: 1px solid rgb(255 255 255 / 0.14);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.12),
+    inset 0 -3px 0 rgb(0 0 0 / 0.35),
+    0 3px 8px rgb(0 0 0 / 0.4);
 }
+.wc-weapons-label {
+  font-family: var(--wc-display);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wc-ivory);
+}
+/* The silo count sits inline after the label, so nothing hangs off the pill. */
 .wc-weapons-badge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
   min-width: 22px;
   padding: 0 6px;
   border-radius: 999px;
   background: #d99b2b;
   color: var(--wc-gold-ink);
   font-weight: 700;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 22px;
+  text-align: center;
 }
 .wc-weapons-badge:empty {
   display: none;
@@ -1704,4 +1718,17 @@ player-info-overlay {
 }
 .wc-weapons-item:disabled .wc-weapons-note {
   color: #ff8a80;
+}
+
+/* Resume catch-up progress: a gold bar under the percentage line. */
+.wc-catchup-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--wc-line);
+  overflow: hidden;
+}
+.wc-catchup-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--wc-gold);
 }

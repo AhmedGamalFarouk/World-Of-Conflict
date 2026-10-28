@@ -21,7 +21,7 @@ import { dispatchEscape, MOBILE_BACK_EVENT } from "../../mobile/MobileBack";
 import { isMobileShell } from "../../mobile/MobileShell";
 import { gameEnded } from "../../mobile/PlayStats";
 import { GameResumedEvent } from "../../mobile/SaveEvents";
-import { confirmGone } from "../../mobile/SaveHome";
+import { agoText, confirmGone } from "../../mobile/SaveHome";
 import { catchUpPercent } from "../../mobile/SaveStore";
 import { PauseGameIntentEvent, SendWinnerEvent } from "../../Transport";
 import {
@@ -653,26 +653,23 @@ export class GameRightSidebar extends LitElement implements Controller {
     `;
   }
 
-  // "RESUMED · TURN N · SAVED N MIN AGO", until the first RESUME tap; then
+  // "RESUMED · SAVED 23 H AGO", until the first RESUME tap; then
   // the catch-up progress, and once caught up where the player stands.
   private renderResumedHeader() {
     if (!this.resumed) return nothing;
-    const minutes = Math.max(
-      0,
-      Math.round((Date.now() - this.resumed.savedAt) / 60000),
-    );
+    const percent = catchUpPercent(this.game.ticks(), this.resumed.turn);
     return html`<p class="wc-label wc-resumed">
         ${translateText("save.resumed_header", {
-          turn: this.resumed.turn,
-          minutes,
+          ago: agoText(this.resumed.savedAt),
         })}
       </p>
       ${this.game.isCatchingUp()
         ? html`<p class="wc-saved" role="status">
-            ${translateText("save.catching_up_pct", {
-              percent: catchUpPercent(this.game.ticks(), this.resumed.turn),
-            })}
-          </p>`
+              ${translateText("save.catching_up_pct", { percent })}
+            </p>
+            <div class="wc-catchup-bar" aria-hidden="true">
+              <span style="width: ${percent}%"></span>
+            </div>`
         : this.renderStanding()}`;
   }
 

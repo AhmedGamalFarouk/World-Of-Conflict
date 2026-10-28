@@ -52,6 +52,7 @@ import {
 } from "./mobile/QuickGame";
 import { commanderRecord, formatDuration } from "./mobile/Recap";
 import {
+  agoText,
   allowNewGame,
   confirmDiscard,
   continueSavedGame,
@@ -1088,14 +1089,15 @@ export class GameModeSelector extends LitElement {
     if (save.kind !== "save") return nothing;
     const mm = Math.floor(save.seconds / 60);
     const ss = String(Math.floor(save.seconds % 60)).padStart(2, "0");
-    const ago = Math.max(0, Math.round((Date.now() - save.savedAt) / 60000));
     const busy = isContinuing();
     return html`<div class="wc-plate wc-save-card">
       <div class="wc-save-info">
         <span class="wc-save-map">${save.mapName}</span>
         <span class="wc-save-meta"
           ><span class="wc-num">${mm}:${ss}</span> ·
-          ${translateText("save.saved_min_ago", { minutes: ago })}</span
+          ${translateText("save.saved_when", {
+            ago: agoText(save.savedAt),
+          })}</span
         >
       </div>
       <button
