@@ -532,10 +532,11 @@ body.mobile-theme .wc-save-notice {
     padding-bottom: calc(env(safe-area-inset-bottom) + 12px);
   }
   body.mobile-theme #page-play:not(.hidden):has(.wc-record) {
+    /* Record under the buttons: the two columns end level instead of the
+       left one running to the bottom edge. */
     grid-template-areas:
       "word actions"
-      "name actions"
-      "record actions";
+      "name record";
   }
   body.mobile-theme #page-play div:has(> news-box) {
     align-self: start;
@@ -1192,7 +1193,12 @@ body.mobile-theme div:has(> events-display) {
 }
 .wc-result-again {
   min-height: 64px;
+  margin-top: 6px;
   font-size: 26px;
+}
+/* Two buttons here; the pause row it shares a class with has three. */
+.wc-result-card .wc-pause-row {
+  grid-template-columns: 1fr 1fr;
 }
 
 /* Critical event plate (CriticalEventPlate.ts): top centre between the rank
@@ -1270,6 +1276,10 @@ body.mobile-theme settings-modal .bg-slate-800 {
   border-color: var(--wc-gilt);
   border-radius: 12px;
   box-shadow: 0 8px 24px rgb(0 0 0 / 0.55);
+}
+/* Debug tools are for the web dev build; they pushed Quit below the fold. */
+body.mobile-theme settings-modal [data-dev-only] {
+  display: none;
 }
 body.mobile-theme settings-modal button.p-3 {
   min-height: 56px;

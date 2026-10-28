@@ -289,7 +289,7 @@ export class SettingsModal extends LitElement implements Controller {
 
             ${this.renderModifiers()}
 
-            <div class="border-t border-slate-600 pt-3 mt-4">
+            <div data-dev-only class="border-t border-slate-600 pt-3 mt-4">
               <div
                 class="px-3 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wider"
               >

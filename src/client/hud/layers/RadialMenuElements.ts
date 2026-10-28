@@ -736,7 +736,8 @@ export const buildMenuElement: MenuElement = {
   name: "build",
   disabled: (params: MenuElementParams) => params.game.inSpawnPhase(),
   icon: buildIcon,
-  color: COLORS.build,
+  // The yellow wedge is the one upstream colour left in the app theme.
+  color: isMobileShell() ? COLORS.building : COLORS.build,
 
   subMenu: (params: MenuElementParams) => {
     if (params === undefined) return [];

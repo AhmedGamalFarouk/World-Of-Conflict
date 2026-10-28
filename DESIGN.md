@@ -184,7 +184,7 @@ A night-and-gold palette: deep navy plates carry the UI, gold is the one accent,
 
 ### Named Rules
 
-**The Gold Is Pressed Rule.** Gold faces mean "press this" or "this is selected": one gold button per decision group (PLAY, RESUME, PLAY AGAIN, the active speed, the lit rail stop, the pause button). Everything else in the group is steel.
+**The Gold Is Pressed Rule.** Gold faces mean "press this" or "this is selected": one gold button per decision group (PLAY, RESUME, PLAY AGAIN, the active speed, the lit rail stop; pause is steel so it never outshouts the rail). Everything else in the group is steel.
 
 **The Ink On Gold Rule.** Text and icons on a gold face are Gold Ink; icon images on gold are flattened to ink (`brightness(0) opacity(0.82)`).
 

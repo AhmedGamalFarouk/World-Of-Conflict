@@ -565,7 +565,7 @@ export class GameRightSidebar extends LitElement implements Controller {
         </div>
         ${canPause
           ? html`<button
-              class="wc-btn wc-btn-gold wc-pause"
+              class="wc-btn wc-btn-steel wc-pause"
               aria-label=${translateText("mobile.pause")}
               @click=${this.onPauseButtonClick}
             >
