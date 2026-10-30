@@ -1,6 +1,7 @@
 import { assetUrl } from "@openfront/shared/AssetUrls";
 import { LitElement, html } from "lit";
 import { customElement } from "lit/decorators.js";
+import { translateText } from "../Utils";
 import "./CosmeticBackground";
 import "./NavAccountMenu";
 import "./NavUtilityIcons";
@@ -102,6 +103,7 @@ export class PlayPage extends LitElement {
               ></cosmetic-background>
               <div
                 class="relative z-10 flex h-full w-full min-w-0 items-center bg-surface/80 p-1 sm:rounded-xl"
+                data-wc-label=${translateText("mobile.commander")}
               >
                 <username-input
                   class="flex-1 min-w-0 h-10 sm:h-[50px]"
