@@ -346,7 +346,10 @@
     <% if (locals.mobile) { %>
     <!-- Launch frame: starts exactly the native launch background (#0b1020,
          no mark: the portrait frame before sensorLandscape can't draw one
-         sideways), fades the mark in over 200 ms, leaves once the page painted. -->
+         sideways). The globe mark draws in and its gold quarter is claimed
+         from the centre; the title screen's wordmark joins once Barlow
+         Condensed is ready (never a fallback face); leaves once the page
+         painted. -->
     <style>
       /* While html.preload hides the page, the launch frame must stay up and
          match the native background: no #111827 step, no hidden mark. */
@@ -363,52 +366,167 @@
         z-index: 2147483000;
         display: grid;
         place-items: center;
-        background: #0b1020;
+        background:
+          radial-gradient(
+            60vmax 40vmax at 50% 46%,
+            rgb(30 40 66 / 0.55),
+            transparent 70%
+          ),
+          #0b1020;
         transition: opacity 200ms ease;
       }
       #wc-boot.wc-boot-done {
         opacity: 0;
         pointer-events: none;
       }
-      #wc-boot span {
-        display: block;
-        text-align: center;
-        font-family: var(--wc-display, sans-serif);
-        font-weight: 800;
-        font-size: 36px;
-        line-height: 1;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: #f2ead8;
-        animation: wc-boot-in 200ms ease both;
+      .wc-boot-lockup {
+        display: flex;
+        align-items: center;
+        gap: 0.42em;
+        font-size: clamp(48px, 15vh, 104px);
       }
-      @keyframes wc-boot-in {
+      .wc-boot-mark {
+        width: 2.05em;
+        height: 2.05em;
+        flex: none;
+        filter: drop-shadow(0 3px 10px rgb(0 0 0 / 0.55));
+      }
+      .wc-boot-mark path {
+        fill: none;
+        stroke: #f6d27a;
+        stroke-linecap: round;
+        stroke-dasharray: 1;
+        animation: wc-boot-draw 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+      .wc-boot-mark .wc-boot-grid {
+        stroke-width: 2.5;
+        animation-delay: 120ms;
+      }
+      .wc-boot-mark .wc-boot-claim {
+        fill: #e8b24a;
+        stroke: none;
+        /* The wedge's corner is the globe's centre: the claim spreads out
+           from it like territory from a spawn. */
+        transform-box: fill-box;
+        transform-origin: 100% 100%;
+        animation: wc-boot-claim 320ms cubic-bezier(0.16, 1, 0.3, 1) 380ms both;
+      }
+      .wc-boot-word {
+        display: flex;
+        flex-direction: column;
+        margin: 0;
+        font-family: "Barlow Condensed", "Barlow", sans-serif;
+        font-weight: 800;
+        line-height: 0.86;
+        letter-spacing: -0.01em;
+        text-transform: uppercase;
+        color: #ece8df;
+        text-shadow: 0 3px 12px rgb(0 0 0 / 0.6);
+        opacity: 0;
+        transform: translateY(8px);
+        transition:
+          opacity 260ms cubic-bezier(0.16, 1, 0.3, 1),
+          transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .wc-boot-word.wc-boot-ready {
+        opacity: 1;
+        transform: none;
+      }
+      .wc-boot-of {
+        font-size: 0.34em;
+        line-height: 1.2;
+        letter-spacing: 0.32em;
+        padding-left: 0.12em;
+        color: #e8b24a;
+      }
+      @keyframes wc-boot-draw {
         from {
-          opacity: 0;
+          stroke-dashoffset: 1;
+        }
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+      @keyframes wc-boot-claim {
+        from {
+          transform: scale(0);
         }
       }
       @media (prefers-reduced-motion: reduce) {
         #wc-boot,
-        #wc-boot span {
+        .wc-boot-word,
+        .wc-boot-mark path {
           transition: none;
           animation: none;
         }
+        .wc-boot-word {
+          transform: none;
+        }
       }
     </style>
-    <div id="wc-boot" aria-hidden="true"><span>World of Conflict</span></div>
+    <div id="wc-boot" aria-hidden="true">
+      <div class="wc-boot-lockup">
+        <!-- The adaptive-icon mark (res/drawable/wc_mark.xml), one path per
+             stroke so they draw together. -->
+        <svg class="wc-boot-mark" viewBox="26 26 56 56">
+          <path class="wc-boot-claim" d="M54,54 L54,28 A26,26 0 0,0 28,54 Z" />
+          <path
+            pathLength="1"
+            stroke-width="3.5"
+            d="M54,28 A26,26 0 1,1 53.99,28 Z"
+          />
+          <path
+            class="wc-boot-grid"
+            pathLength="1"
+            d="M54,28 A11,26 0 1,1 53.99,28 Z"
+          />
+          <path class="wc-boot-grid" pathLength="1" d="M28,54 L80,54" />
+          <path class="wc-boot-grid" pathLength="1" d="M31.5,41 L76.5,41" />
+          <path class="wc-boot-grid" pathLength="1" d="M31.5,67 L76.5,67" />
+        </svg>
+        <p class="wc-boot-word">
+          <span>World</span><span class="wc-boot-of">of</span
+          ><span>Conflict</span>
+        </p>
+      </div>
+    </div>
     <script>
-      window.addEventListener("load", function () {
+      (function () {
         var boot = document.getElementById("wc-boot");
         if (!boot) return;
-        requestAnimationFrame(function () {
-          requestAnimationFrame(function () {
-            boot.classList.add("wc-boot-done");
-            setTimeout(function () {
-              boot.remove();
-            }, 400);
-          });
+        var word = boot.querySelector(".wc-boot-word");
+        var show = function () {
+          word.classList.add("wc-boot-ready");
+        };
+        // The bundle's stylesheet in <head> declares the face; wait for it so
+        // the wordmark never paints in a system font.
+        if (document.fonts && document.fonts.load) {
+          document.fonts
+            .load('800 1em "Barlow Condensed"', "WORLD OF CONFLICT")
+            .then(function (faces) {
+              if (faces.length) setTimeout(show, 200);
+            });
+        }
+        window.addEventListener("load", function () {
+          if (
+            document.fonts &&
+            document.fonts.check('800 1em "Barlow Condensed"')
+          )
+            show();
+          // Let the claim land before leaving; a slower load waits for nothing.
+          var hold = Math.max(0, 720 - performance.now());
+          setTimeout(function () {
+            requestAnimationFrame(function () {
+              requestAnimationFrame(function () {
+                boot.classList.add("wc-boot-done");
+                setTimeout(function () {
+                  boot.remove();
+                }, 400);
+              });
+            });
+          }, hold);
         });
-      });
+      })();
     </script>
     <% } %>
     <div id="hex-grid" class="fixed inset-0 -z-50 pointer-events-none">
