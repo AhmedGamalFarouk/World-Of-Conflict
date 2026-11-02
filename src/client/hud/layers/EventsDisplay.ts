@@ -17,6 +17,7 @@ import { customElement, query, state } from "lit/decorators.js";
 import { DirectiveResult } from "lit/directive.js";
 import { unsafeHTML, UnsafeHTMLDirective } from "lit/directives/unsafe-html.js";
 import { Controller } from "../../Controller";
+import { isMobileShell } from "../../mobile/MobileShell";
 import { SendAllianceRequestIntentEvent } from "../../Transport";
 import { UserSettings } from "../../UserSettings";
 
@@ -59,6 +60,16 @@ const TIER_1_TYPES: ReadonlySet<MessageType> = new Set([
 ]);
 
 const isTier1 = (type: MessageType): boolean => TIER_1_TYPES.has(type);
+
+/** The phone's feed: the newest three events, without your own confirmations. */
+export function mobileFeed<
+  E extends Pick<GameEvent, "type" | "minor" | "createdAt">,
+>(events: readonly E[]): E[] {
+  return events
+    .filter((e) => !e.minor && e.type !== MessageType.DONATION_SENT)
+    .sort((a, b) => a.createdAt - b.createdAt)
+    .slice(-3);
+}
 
 @customElement("events-display")
 export class EventsDisplay extends LitElement implements Controller {
@@ -203,7 +214,7 @@ export class EventsDisplay extends LitElement implements Controller {
     }
 
     const updates = this.game.updatesSinceLastTick();
-    if (updates) {
+    if (updates && !this.game.isReplaying()) {
       for (const [ut, fn] of this.updateMap) {
         updates[ut]?.forEach(fn as (event: unknown) => void);
       }
@@ -690,7 +701,7 @@ export class EventsDisplay extends LitElement implements Controller {
       myPlayer.getTraitorRemainingTicks() > 0
     );
 
-    const tier1Events: GameEvent[] = [];
+    let tier1Events: GameEvent[] = [];
     let tier2Events: GameEvent[] = [];
     for (const event of this.events) {
       (isTier1(event.type) && !event.minor ? tier1Events : tier2Events).push(
@@ -700,6 +711,12 @@ export class EventsDisplay extends LitElement implements Controller {
     tier1Events.sort((a, b) => a.createdAt - b.createdAt);
     tier2Events.sort((a, b) => a.createdAt - b.createdAt);
     tier2Events = tier2Events.slice(-4);
+    if (isMobileShell()) {
+      // The phone keeps one quiet log of three rows: the event plate is the
+      // alarm, and confirmations of what you did yourself are left out.
+      tier2Events = mobileFeed(this.events);
+      tier1Events = [];
+    }
 
     if (
       tier1Events.length === 0 &&

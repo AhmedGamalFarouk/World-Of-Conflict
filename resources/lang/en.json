@@ -919,6 +919,7 @@
     "ignore": "Ignore",
     "mirv_inbound": "⚠️⚠️⚠️ {name} - MIRV INBOUND ⚠️⚠️⚠️",
     "missile_intercepted": "SAM intercepted {unit}",
+    "more_attacks": "+{count} more",
     "naval_invasion_inbound": "Naval invasion incoming from {name} ({troops})",
     "no_boats_available": "No boats available, max {max}",
     "received_gold_from_captured_ship": "Received {gold} gold from ship captured from {name}",

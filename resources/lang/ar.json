@@ -610,6 +610,7 @@
     "ignore": "تجاهل",
     "mirv_inbound": "⚠️⚠️⚠️ {name} - MIRV قادم ⚠️⚠️⚠️",
     "missile_intercepted": "أسقط قاذف الصواريخ المضادة {unit}",
+    "more_attacks": "+{count} أخرى",
     "naval_invasion_inbound": "غزو بحري قادم من {name} ({troops})",
     "no_boats_available": "لا توجد قوارب متاحة، الحد الأقصى {max}",
     "received_gold_from_captured_ship": "حصلت على {gold} ذهب من سفينة أُخذت من {name}",

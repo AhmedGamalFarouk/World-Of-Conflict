@@ -229,6 +229,14 @@ export class GameView implements GameLike {
     return (this.lastUpdate?.pendingTurns ?? 0) > 1;
   }
 
+  /** Turns of a resumed game that replay before play is live; 0 otherwise. */
+  public resumeTurnCount = 0;
+
+  /** Updates are old news: a catch-up, or a resumed game replaying its turns. */
+  public isReplaying(): boolean {
+    return this.isCatchingUp() || this.ticks() < this.resumeTurnCount;
+  }
+
   public update(gu: GameUpdateViewData) {
     // Unit set/ownership changes below; rebuild the owner index on demand.
     this._unitsByOwnerStale = true;

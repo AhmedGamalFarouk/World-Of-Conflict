@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   AudioCategory,
   USER_SETTINGS_CHANGED_EVENT,
@@ -182,6 +182,15 @@ describe("master volume default", () => {
   it("starts the desktop shell audible, at the default master level", () => {
     pretendDesktopShell();
     expect(new UserSettings().audioVolume("master")).toBeCloseTo(0.9);
+  });
+
+  it("starts the mobile app audible, at the default master level", () => {
+    vi.stubEnv("MODE", "mobile");
+    try {
+      expect(new UserSettings().audioVolume("master")).toBeCloseTo(0.9);
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 
   it("keeps a returning web player audible when only a legacy key is stored", () => {

@@ -11,6 +11,10 @@ import {
   truncateName,
 } from "../../../src/client/mobile/CriticalEventPlate";
 import { onBackButton } from "../../../src/client/mobile/MobileBack";
+import {
+  GoToPlayerEvent,
+  GoToPositionEvent,
+} from "../../../src/client/TransformHandler";
 
 describe("PlateGate", () => {
   it("lets a nuke replace an attack, but an attack never replaces a nuke", () => {
@@ -138,7 +142,9 @@ function fakeGame(over: {
     isCatchingUp: over.catchingUp ?? (() => false),
     updatesSinceLastTick: () => over.updates ?? {},
     playerBySmallID: (id: number) => (id === 1 ? me : other),
-    unit: () => ({ owner: () => other }),
+    unit: () => ({ owner: () => other, targetTile: () => 42 }),
+    x: () => 4,
+    y: () => 2,
   };
   return game as never;
 }
@@ -246,6 +252,25 @@ describe("CriticalEventPlate", () => {
     };
     new CriticalEventPlate(fakeGame({ updates, inSpawnPhase: true })).tick();
     expect(document.getElementById(PLATE_ID)).toBeNull();
+  });
+
+  it("a tap on an attack plate goes to the attacker, on a nuke to its target", () => {
+    const attacks = [{ id: "t", attackerID: 2, retreating: false }];
+    const emit = vi.fn();
+    const bus = { emit } as never;
+    new CriticalEventPlate(fakeGame({ attacks }), undefined, 0, bus).tick();
+    document.getElementById(PLATE_ID)!.click();
+    expect(emit.mock.calls[0][0]).toBeInstanceOf(GoToPlayerEvent);
+    expect(document.getElementById(PLATE_ID)).toBeNull();
+
+    const updates = {
+      [GameUpdateType.UnitIncoming]: [
+        { unitID: 9, playerID: 1, messageType: MessageType.NUKE_INBOUND },
+      ],
+    };
+    new CriticalEventPlate(fakeGame({ updates }), undefined, 0, bus).tick();
+    document.getElementById(PLATE_ID)!.click();
+    expect(emit.mock.calls[1][0]).toEqual(new GoToPositionEvent(4, 2));
   });
 
   it("ignores retreating attacks", () => {

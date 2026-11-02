@@ -13,6 +13,17 @@ import {
 const AMBIENCE_FADE_MS = 500;
 
 /**
+ * Cues this game keeps quiet (owner's call, 2026-11-02): the spawn tap, the
+ * spawn phase ending and a nation asking for an alliance. Their callers still
+ * announce them, so bringing one back is deleting it here.
+ */
+const SILENT_CUES: ReadonlySet<SoundEffect> = new Set<SoundEffect>([
+  "spawn",
+  "game-start",
+  "alliance-suggested",
+]);
+
+/**
  * The audio a running game owns: the looping gameplay track and the structure
  * ambience. Cue playback, channel volumes and the concurrency budgets all live
  * in AudioMixer, which outlives any one game.
@@ -37,7 +48,9 @@ export class SoundManager {
   ) {
     this.buildBackgroundMusic();
 
-    this.onPlaySoundEffect = (e) => this.mixer.play(e.effect);
+    this.onPlaySoundEffect = (e) => {
+      if (!SILENT_CUES.has(e.effect)) this.mixer.play(e.effect);
+    };
     this.onSetAmbience = (e) => this.setAmbience(e.track, e.gain);
     eventBus.on(PlaySoundEffectEvent, this.onPlaySoundEffect);
     eventBus.on(SetAmbienceEvent, this.onSetAmbience);

@@ -133,7 +133,7 @@ export class AlertFrame extends LitElement implements Controller {
   }
 
   private activateAlert() {
-    if (this.userSettings.alertFrame()) {
+    if (this.userSettings.alertFrame() && !this.game.isReplaying()) {
       this.isActive = true;
       this.lastAlertTick = this.game.ticks();
       this.requestUpdate();

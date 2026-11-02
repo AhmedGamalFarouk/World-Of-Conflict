@@ -346,10 +346,10 @@
     <% if (locals.mobile) { %>
     <!-- Launch frame: starts exactly the native launch background (#0b1020,
          no mark: the portrait frame before sensorLandscape can't draw one
-         sideways). The globe mark draws in and its gold quarter is claimed
-         from the centre; the title screen's wordmark joins once Barlow
-         Condensed is ready (never a fallback face); leaves once the page
-         painted. -->
+         sideways). The globe mark draws in alone at the centre, its gold
+         quarter is claimed and sweeps one eased turn; then the globe slides
+         left as the wordmark joins, once Barlow Condensed is ready (never a
+         fallback face); leaves once the page painted. -->
     <style>
       /* While html.preload hides the page, the launch frame must stay up and
          match the native background: no #111827 step, no hidden mark. */
@@ -379,16 +379,21 @@
         opacity: 0;
         pointer-events: none;
       }
+      /* The lockup is only as wide as the globe, so the globe starts centred;
+         the word hangs off its right edge and the script slides the lockup
+         left by half the word (--wc-shift) to centre both. */
       .wc-boot-lockup {
-        display: flex;
-        align-items: center;
-        gap: 0.42em;
+        position: relative;
         font-size: clamp(48px, 15vh, 104px);
+        transition: translate 650ms cubic-bezier(0.65, 0, 0.35, 1);
+      }
+      .wc-boot-lockup.wc-boot-ready {
+        translate: calc(var(--wc-shift, 0px) * -1) 0;
       }
       .wc-boot-mark {
+        display: block;
         width: 2.05em;
         height: 2.05em;
-        flex: none;
         filter: drop-shadow(0 3px 10px rgb(0 0 0 / 0.55));
       }
       .wc-boot-mark path {
@@ -406,15 +411,23 @@
         fill: #e8b24a;
         stroke: none;
         /* The wedge's corner is the globe's centre: the claim spreads out
-           from it like territory from a spawn. */
+           from it like territory from a spawn, then turns once around it. */
         transform-box: fill-box;
         transform-origin: 100% 100%;
-        animation: wc-boot-claim 320ms cubic-bezier(0.16, 1, 0.3, 1) 380ms both;
+        animation:
+          wc-boot-claim 300ms cubic-bezier(0.16, 1, 0.3, 1) 300ms both,
+          wc-boot-spin 900ms cubic-bezier(0.65, 0, 0.35, 1) 600ms both;
       }
       .wc-boot-word {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 100%;
         display: flex;
         flex-direction: column;
-        margin: 0;
+        justify-content: center;
+        margin: 0 0 0 0.42em;
+        white-space: nowrap;
         font-family: "Barlow Condensed", "Barlow", sans-serif;
         font-weight: 800;
         line-height: 0.86;
@@ -423,14 +436,14 @@
         color: #ece8df;
         text-shadow: 0 3px 12px rgb(0 0 0 / 0.6);
         opacity: 0;
-        transform: translateY(8px);
+        translate: -0.25em 0;
         transition:
-          opacity 260ms cubic-bezier(0.16, 1, 0.3, 1),
-          transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
+          opacity 500ms ease-out 150ms,
+          translate 650ms cubic-bezier(0.16, 1, 0.3, 1) 120ms;
       }
-      .wc-boot-word.wc-boot-ready {
+      .wc-boot-ready .wc-boot-word {
         opacity: 1;
-        transform: none;
+        translate: none;
       }
       .wc-boot-of {
         font-size: 0.34em;
@@ -449,18 +462,25 @@
       }
       @keyframes wc-boot-claim {
         from {
-          transform: scale(0);
+          scale: 0;
+        }
+      }
+      @keyframes wc-boot-spin {
+        to {
+          rotate: 360deg;
         }
       }
       @media (prefers-reduced-motion: reduce) {
         #wc-boot,
+        .wc-boot-lockup,
         .wc-boot-word,
-        .wc-boot-mark path {
+        .wc-boot-mark path,
+        .wc-boot-mark .wc-boot-claim {
           transition: none;
           animation: none;
         }
         .wc-boot-word {
-          transform: none;
+          translate: none;
         }
       }
     </style>
@@ -494,28 +514,56 @@
       (function () {
         var boot = document.getElementById("wc-boot");
         if (!boot) return;
+        var lockup = boot.querySelector(".wc-boot-lockup");
         var word = boot.querySelector(".wc-boot-word");
-        var show = function () {
-          word.classList.add("wc-boot-ready");
+        var still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var wait = function (ms) {
+          return new Promise(function (resolve) {
+            setTimeout(resolve, ms);
+          });
         };
         // The bundle's stylesheet in <head> declares the face; wait for it so
         // the wordmark never paints in a system font.
-        if (document.fonts && document.fonts.load) {
-          document.fonts
-            .load('800 1em "Barlow Condensed"', "WORLD OF CONFLICT")
-            .then(function (faces) {
-              if (faces.length) setTimeout(show, 200);
+        var font =
+          document.fonts && document.fonts.load
+            ? document.fonts
+                .load('800 1em "Barlow Condensed"', "WORLD OF CONFLICT")
+                .then(
+                  function (faces) {
+                    return faces.length > 0;
+                  },
+                  function () {
+                    return false;
+                  },
+                )
+            : Promise.resolve(false);
+        var spun = still
+          ? Promise.resolve()
+          : new Promise(function (resolve) {
+              boot
+                .querySelector(".wc-boot-claim")
+                .addEventListener("animationend", function (e) {
+                  if (e.animationName === "wc-boot-spin") resolve();
+                });
             });
-        }
-        window.addEventListener("load", function () {
-          if (
-            document.fonts &&
-            document.fonts.check('800 1em "Barlow Condensed"')
-          )
-            show();
-          // Let the claim land before leaving; a slower load waits for nothing.
-          var hold = Math.max(0, 720 - performance.now());
-          setTimeout(function () {
+        var revealed = Promise.all([font, spun]).then(function (r) {
+          if (!r[0]) return; // No face: the globe stays alone, centred.
+          // Layout offsets, not rects: the word's own translate must not count.
+          var shift =
+            (word.offsetLeft + word.offsetWidth - lockup.offsetWidth) / 2;
+          lockup.style.setProperty("--wc-shift", shift + "px");
+          lockup.classList.add("wc-boot-ready");
+          if (!still) return wait(800); // Let the slide and the word settle.
+        });
+        var loaded =
+          document.readyState === "complete"
+            ? Promise.resolve()
+            : new Promise(function (resolve) {
+                window.addEventListener("load", resolve);
+              });
+        // shortcut: a stalled reveal can't hold the app past 4 s.
+        Promise.all([Promise.race([revealed, wait(4000)]), loaded]).then(
+          function () {
             requestAnimationFrame(function () {
               requestAnimationFrame(function () {
                 boot.classList.add("wc-boot-done");
@@ -524,8 +572,8 @@
                 }, 400);
               });
             });
-          }, hold);
-        });
+          },
+        );
       })();
     </script>
     <% } %>

@@ -47,6 +47,7 @@ describe("SoundEffectController", () => {
       unit: (id: number) => units.get(id),
       myPlayer: () => null,
       updatesSinceLastTick: () => undefined,
+      isReplaying: () => false,
     };
     controller = new SoundEffectController(game, eventBus);
   });
@@ -84,9 +85,15 @@ describe("SoundEffectController", () => {
 
   // createdAt reads `tick` lazily, so the unit counts as created on whichever
   // tick tickWithUnits delivers it.
-  function makeCreatedUnit(id: number, type: UnitType, owner: object) {
+  function makeCreatedUnit(
+    id: number,
+    type: UnitType,
+    owner: object,
+    targetTile?: number,
+  ) {
     return {
       id: () => id,
+      targetTile: () => targetTile,
       type: () => type,
       isActive: () => true,
       reachedTarget: () => false,
@@ -115,6 +122,19 @@ describe("SoundEffectController", () => {
     });
     controller.tick();
     expect(played).toEqual(["conquered", "ka-ching", "ka-ching"]);
+  });
+
+  it("plays nuke launches only for my nukes and nukes aimed at my land", () => {
+    const me = {};
+    game.myPlayer = () => me;
+    game.owner = (tile: number) => (tile === 7 ? me : {});
+    tickWithUnits(
+      makeCreatedUnit(1, UnitType.AtomBomb, me, 3),
+      makeCreatedUnit(2, UnitType.HydrogenBomb, {}, 7),
+      makeCreatedUnit(3, UnitType.MIRV, {}, 3),
+      makeCreatedUnit(4, UnitType.AtomBomb, {}, 3),
+    );
+    expect(played).toEqual(["atom-launch", "hydrogen-launch"]);
   });
 
   it("plays game-start when the spawn phase ends", () => {

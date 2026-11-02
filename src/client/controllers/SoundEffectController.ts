@@ -149,13 +149,13 @@ export class SoundEffectController implements Controller {
     const myPlayer = this.game.myPlayer();
     switch (unit.type()) {
       case UnitType.AtomBomb:
-        this.emit("atom-launch");
+        if (this.mineOrAtMe(unit)) this.emit("atom-launch");
         break;
       case UnitType.HydrogenBomb:
-        this.emit("hydrogen-launch");
+        if (this.mineOrAtMe(unit)) this.emit("hydrogen-launch");
         break;
       case UnitType.MIRV:
-        this.emit("mirv-launch");
+        if (this.mineOrAtMe(unit)) this.emit("mirv-launch");
         break;
       case UnitType.Warship:
         if (unit.owner() === myPlayer) this.emit("build-warship");
@@ -236,6 +236,15 @@ export class SoundEffectController implements Controller {
     this.hadTrainStation.set(unit.id(), hasStation);
   }
 
+  /** A nuke I launched, or one aimed at land I own. */
+  private mineOrAtMe(unit: UnitView): boolean {
+    const me = this.game.myPlayer();
+    if (me === null) return false;
+    if (unit.owner() === me) return true;
+    const target = unit.targetTile();
+    return target !== undefined && this.game.owner(target) === me;
+  }
+
   private onNukeDetonation(unit: UnitView, sound: SoundEffect): void {
     if (unit.isActive()) return;
     if (!unit.reachedTarget()) return;
@@ -243,6 +252,7 @@ export class SoundEffectController implements Controller {
   }
 
   private emit(sound: SoundEffect): void {
+    if (this.game.isReplaying()) return;
     this.eventBus.emit(new PlaySoundEffectEvent(sound));
   }
 }

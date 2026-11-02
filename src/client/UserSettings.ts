@@ -16,6 +16,7 @@ import {
 // DesktopShell.ts imports nothing, so this cannot introduce an import cycle
 // (verified with madge: 58 cycles before and after, none involving it).
 import { isDesktopShell } from "./DesktopShell";
+import { isMobileShell } from "./mobile/MobileShell";
 
 export function getDefaultKeybinds(isMac: boolean): Record<string, string> {
   return {
@@ -421,7 +422,8 @@ export class UserSettings {
   }
 
   alertFrame() {
-    return this.getBool("settings.alertFrame", true);
+    // Off on the phone: the event plate already carries attacks and betrayals.
+    return this.getBool("settings.alertFrame", !isMobileShell());
   }
 
   anonymousNames() {
@@ -933,7 +935,9 @@ export class UserSettings {
    * cannot drift apart the next time the default moves.
    */
   private defaultMasterVolume(): number {
-    if (isDesktopShell()) return AUDIO_DEFAULTS.master;
+    // An installed app is opened to play, so it starts audible; the web stays
+    // silent until asked.
+    if (isDesktopShell() || isMobileShell()) return AUDIO_DEFAULTS.master;
     const chosenBefore = AUDIO_VOLUME_KEYS.some(
       (key) => this.getCached(key) !== null,
     );

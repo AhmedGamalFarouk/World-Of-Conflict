@@ -306,6 +306,14 @@ describe("cue playback", () => {
     eventBus.emit(new PlaySoundEffectEvent("build-city"));
     expect(play).toHaveBeenCalledWith("build-city");
   });
+
+  it("keeps the spawn, game-start and alliance-suggested cues quiet", () => {
+    const play = vi.spyOn(mixer, "play");
+    eventBus.emit(new PlaySoundEffectEvent("spawn"));
+    eventBus.emit(new PlaySoundEffectEvent("game-start"));
+    eventBus.emit(new PlaySoundEffectEvent("alliance-suggested"));
+    expect(play).not.toHaveBeenCalled();
+  });
 });
 
 describe("ambience", () => {

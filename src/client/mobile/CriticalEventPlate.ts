@@ -4,8 +4,14 @@
 // game (milestones). DESIGN.md "Event plate". Game-client chunk.
 import { MessageType, PlayerType } from "@openfront/engine-api/game/GameTypes";
 import { GameUpdateType } from "@openfront/engine-api/game/GameUpdates";
+import type { EventBus, GameEvent } from "@openfront/shared/EventBus";
 import { Controller } from "../Controller";
 import { landProgress } from "../hud/layers/GameLeftSidebar";
+import {
+  GoToPlayerEvent,
+  GoToPositionEvent,
+  GoToUnitEvent,
+} from "../TransformHandler";
 import { translateText } from "../Utils";
 import type { GameView } from "../view";
 import { rivalCount } from "./Recap";
@@ -138,6 +144,8 @@ export class CriticalEventPlate implements Controller {
     private onShown: (kind: PlateKind) => void = () => {},
     /** Turns of a resumed game that replay before play is live; 0 otherwise. */
     private resumeTurnCount = 0,
+    /** A tap on an alarm plate moves the camera to the threat. */
+    private eventBus?: EventBus,
   ) {}
   private replaying = false;
   private milestonesDone = new Set<Milestone>();
@@ -175,8 +183,17 @@ export class CriticalEventPlate implements Controller {
         u.playerID === me.smallID() &&
         u.messageType === MessageType.NUKE_INBOUND
       ) {
-        const owner = this.game.unit(u.unitID)?.owner();
-        this.offer("nuke", owner?.displayName(), tick);
+        const nuke = this.game.unit(u.unitID);
+        const target = nuke?.targetTile();
+        this.offer(
+          "nuke",
+          nuke?.owner().displayName(),
+          tick,
+          undefined,
+          target !== undefined
+            ? new GoToPositionEvent(this.game.x(target), this.game.y(target))
+            : nuke && new GoToUnitEvent(nuke),
+        );
       }
     }
     for (const u of updates?.[GameUpdateType.BrokeAlliance] ?? []) {
@@ -186,6 +203,8 @@ export class CriticalEventPlate implements Controller {
           "betrayal",
           traitor.isPlayer() ? traitor.displayName() : undefined,
           tick,
+          undefined,
+          traitor.isPlayer() ? new GoToPlayerEvent(traitor) : undefined,
         );
       }
     }
@@ -198,6 +217,7 @@ export class CriticalEventPlate implements Controller {
         attacker.isPlayer() ? attacker.displayName() : undefined,
         tick,
         a.id,
+        attacker.isPlayer() ? new GoToPlayerEvent(attacker) : undefined,
       );
     }
 
@@ -244,6 +264,7 @@ export class CriticalEventPlate implements Controller {
     name: string | undefined,
     tick: number,
     attackId?: string,
+    goTo?: GameEvent,
   ): void {
     if (!this.gate.offer(kind, tick, attackId)) return;
     this.show(
@@ -251,11 +272,12 @@ export class CriticalEventPlate implements Controller {
       translateText(`event_plate.${kind}`, {
         name: truncateName(name ?? translateText("event_plate.someone")),
       }),
+      goTo,
     );
     this.onShown(kind);
   }
 
-  private show(kind: PlateKind, message: string): void {
+  private show(kind: PlateKind, message: string, goTo?: GameEvent): void {
     this.hide(false);
     const el = document.createElement("div");
     el.id = PLATE_ID;
@@ -275,7 +297,10 @@ export class CriticalEventPlate implements Controller {
     const text = document.createElement("span");
     text.textContent = message;
     el.append(icon, text);
-    el.addEventListener("click", () => this.hide(true));
+    el.addEventListener("click", () => {
+      if (goTo) this.eventBus?.emit(goTo);
+      this.hide(true);
+    });
 
     // Directly below the tutorial banner while that shows.
     const below = belowTutorialBanner();

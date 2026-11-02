@@ -102,6 +102,7 @@ describe("EventsDisplay handlers", () => {
         traitorDuration: () => 25, // ticks -> floor(2.5) = 2 seconds
       }),
       updatesSinceLastTick: () => null,
+      isReplaying: () => false,
     };
     (ed as unknown as Ed).game = game;
   });

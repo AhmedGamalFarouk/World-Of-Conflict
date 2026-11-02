@@ -14,6 +14,7 @@ import { EventBus } from "@openfront/shared/EventBus";
 import { html, LitElement } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { Controller } from "../../Controller";
+import { isMobileShell } from "../../mobile/MobileShell";
 import { themeProvider } from "../../theme/ThemeProvider";
 import {
   GoToPlayerEvent,
@@ -32,6 +33,14 @@ import { GameView, PlayerView, UnitView } from "../../view";
 import { getColoredSprite } from "../SpriteLoader";
 const soldierIcon = assetUrl("images/SoldierIcon.svg");
 const swordIcon = assetUrl("images/SwordIcon.svg");
+
+/** The `count` biggest attacks, biggest first: the phone lists only those. */
+export function biggestAttacks<A extends { troops: number }>(
+  attacks: readonly A[],
+  count: number,
+): A[] {
+  return [...attacks].sort((a, b) => b.troops - a.troops).slice(0, count);
+}
 
 @customElement("attacks-display")
 export class AttacksDisplay extends LitElement implements Controller {
@@ -217,7 +226,11 @@ export class AttacksDisplay extends LitElement implements Controller {
   private renderIncomingAttacks() {
     if (this.incomingAttacks.length === 0) return html``;
 
-    return this.incomingAttacks.map(
+    const shown = isMobileShell()
+      ? biggestAttacks(this.incomingAttacks, 2)
+      : this.incomingAttacks;
+    const more = this.incomingAttacks.length - shown.length;
+    return html`${shown.map(
       (attack) => html`
         <div
           class="flex items-center gap-0.5 w-full bg-gray-800/92 backdrop-blur-sm sm:rounded-lg px-1.5 py-0.5 overflow-hidden"
@@ -258,7 +271,13 @@ export class AttacksDisplay extends LitElement implements Controller {
             : ""}
         </div>
       `,
-    );
+    )}${more > 0
+      ? html`<div
+          class="flex items-center w-full bg-gray-800/92 px-1.5 py-0.5 text-red-400"
+        >
+          ${translateText("events_display.more_attacks", { count: more })}
+        </div>`
+      : ""}`;
   }
 
   private renderOutgoingAttacks() {

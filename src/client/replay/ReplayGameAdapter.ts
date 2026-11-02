@@ -390,6 +390,10 @@ export class ReplayGameView {
   inSpawnPhase(): boolean {
     return this.spawnPhase;
   }
+  /** A replay's events are all the ones the viewer came to see. */
+  isReplaying(): boolean {
+    return false;
+  }
   unit(id: number): ReplayUnitView | undefined {
     const state = this.frame?.units.get(id);
     return state === undefined ? undefined : new ReplayUnitView(state, this);

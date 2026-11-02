@@ -18,7 +18,7 @@ import { UIState } from "../UIState";
 // The homepage loads it on demand, but the in-game instance (#game-settings)
 // is set up below, so it has to be defined by the time a game renders.
 import { CriticalEventPlate } from "../mobile/CriticalEventPlate";
-import { vibrate } from "../mobile/Haptics";
+import { vibrateAlert } from "../mobile/Haptics";
 import { isMobileShell } from "../mobile/MobileShell";
 import "../UserSettingModal";
 import type { UserSettingModal } from "../UserSettingModal";
@@ -63,6 +63,7 @@ export function createRenderer(
   mapLayerController?: MapLayerController,
   resumeTurnCount = 0,
 ): GameRenderer {
+  game.resumeTurnCount = resumeTurnCount;
   const transformHandler = new TransformHandler(game, eventBus, inputEl);
   const userSettings = new UserSettings();
 
@@ -339,11 +340,10 @@ export function createRenderer(
           new WeaponsButton(game, eventBus, uiState),
           new CriticalEventPlate(
             game,
-            (kind) => {
-              if (kind === "attack") vibrate(40);
-              if (kind === "milestone") vibrate(15);
-            },
+            // Every plate is felt: an alarm firmly, a milestone lightly.
+            (kind) => vibrateAlert(kind === "milestone" ? 15 : 40),
             resumeTurnCount,
+            eventBus,
           ),
         ]
       : []),
