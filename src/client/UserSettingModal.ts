@@ -28,8 +28,8 @@ import {
 } from "./DesktopDisplay";
 import { isDesktopShell } from "./DesktopShell";
 import { pushMapLayerState } from "./MapLayerSettings";
-import { openAbout } from "./mobile/About";
 import { isMobileShell } from "./mobile/MobileShell";
+import "./mobile/Settings";
 import { Platform } from "./Platform";
 import type { AudioControls } from "./sound/CuePlayer";
 import { audioControls, playCue } from "./sound/CuePlayer";
@@ -392,10 +392,6 @@ export class UserSettingModal extends BaseModal {
     console.log("🤡 Emojis:", this.userSettings.emojis() ? "ON" : "OFF");
   }
 
-  private toggleVibration() {
-    this.userSettings.toggleVibration();
-  }
-
   private toggleAlertFrame() {
     this.userSettings.toggleAlertFrame();
 
@@ -733,6 +729,8 @@ export class UserSettingModal extends BaseModal {
   }
 
   protected modalConfig() {
+    // The phone draws its own sections (mobile/Settings.ts).
+    if (isMobileShell()) return { hideTabs: true };
     return {
       tabs: [
         { key: "gameplay", label: translateText("user_setting.tab_gameplay") },
@@ -785,6 +783,7 @@ export class UserSettingModal extends BaseModal {
   }
 
   protected renderBody(tab: string) {
+    if (isMobileShell()) return html`<wc-settings></wc-settings>`;
     let body;
     switch (tab) {
       case "keybinds":
@@ -1831,16 +1830,6 @@ export class UserSettingModal extends BaseModal {
         @change=${this.toggleAlertFrame}
       ></setting-toggle>
 
-      ${isMobileShell()
-        ? html`<setting-toggle
-            label="${translateText("user_setting.vibration_label")}"
-            description="${translateText("user_setting.vibration_desc")}"
-            id="vibration-toggle"
-            .checked=${this.userSettings.vibration()}
-            @change=${this.toggleVibration}
-          ></setting-toggle>`
-        : nothing}
-
       <!-- 💰 Cursor Price Pill -->
       <setting-toggle
         label="${translateText("user_setting.cursor_cost_label_label")}"
@@ -2029,11 +2018,6 @@ export class UserSettingModal extends BaseModal {
               }}
             ></setting-number>
           `
-        : null}
-      ${isMobileShell()
-        ? html`<button class="wc-btn wc-btn-steel" @click=${openAbout}>
-            ${translateText("mobile.about")}
-          </button>`
         : null}
     `;
   }

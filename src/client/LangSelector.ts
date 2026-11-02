@@ -266,6 +266,7 @@ export class LangSelector extends LitElement {
       "game-mode-selector",
       "graphics-preset-selector",
       "user-setting",
+      "wc-settings",
       "o-modal",
       "o-button",
       "inventory-modal",
@@ -370,7 +371,7 @@ export class LangSelector extends LitElement {
     return text;
   }
 
-  private async openModal() {
+  public async openModal() {
     this.debugMode = this.debugKeyPressed;
     await this.loadLanguageList();
 
