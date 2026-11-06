@@ -6,7 +6,9 @@
   },
   "ignorePatterns": [
     "tests/pathfinding/playground/**",
-    "android/**"
+    "android/**",
+    ".trail/**",
+    "promo/**"
   ],
   "categories": {
     "correctness": "off",

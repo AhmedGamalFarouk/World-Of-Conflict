@@ -10,8 +10,9 @@ describe("android resources", () => {
   it("the launch theme is plain Night, the same colour the web launch frame starts from", () => {
     const night = /#0b1020/i;
     expect(read(`${res}/values/ic_launcher_background.xml`)).toMatch(night);
+    // A soft glow sits on top; the base colour under it is Night.
     expect(read("index.html")).toMatch(
-      /#wc-boot\s*{[^}]*background:\s*#0b1020/i,
+      /#wc-boot\s*{[^}]*background:[^;]*#0b1020;/i,
     );
     // html.preload hides the body (and #wc-boot in it); the frame must stay up.
     expect(read("index.html")).toMatch(
