@@ -8,6 +8,7 @@ import { EventBus } from "@openfront/shared/EventBus";
 import { SoundEffectController } from "../../../src/client/controllers/SoundEffectController";
 import { PlaySoundEffectEvent } from "../../../src/client/sound/Sounds";
 import { SendSpawnIntentEvent } from "../../../src/client/Transport";
+import { UserSettings } from "../../../src/client/UserSettings";
 
 describe("SoundEffectController", () => {
   let eventBus: EventBus;
@@ -16,6 +17,7 @@ describe("SoundEffectController", () => {
   let units: Map<number, any>;
   let game: any;
   let controller: SoundEffectController;
+  let buildSounds: boolean;
 
   function makeDetonatedWarhead(id: number) {
     return {
@@ -49,7 +51,10 @@ describe("SoundEffectController", () => {
       updatesSinceLastTick: () => undefined,
       isReplaying: () => false,
     };
-    controller = new SoundEffectController(game, eventBus);
+    buildSounds = true;
+    controller = new SoundEffectController(game, eventBus, {
+      buildSounds: () => buildSounds,
+    } as UserSettings);
   });
 
   it("plays at most one warhead boom per interval", () => {
@@ -204,6 +209,19 @@ describe("SoundEffectController", () => {
       makeCreatedUnit(4, UnitType.TransportShip, {}),
     );
     expect(played).toEqual(["build-factory", "transport-ship"]);
+  });
+
+  it("keeps build and ship sounds off unless the setting is on", () => {
+    expect(new UserSettings().buildSounds()).toBe(false);
+    buildSounds = false;
+    const me = {};
+    game.myPlayer = () => me;
+    tickWithUnits(
+      makeCreatedUnit(1, UnitType.City, me),
+      makeCreatedUnit(2, UnitType.TransportShip, me),
+      makeCreatedUnit(3, UnitType.AtomBomb, me, 3),
+    );
+    expect(played).toEqual(["atom-launch"]);
   });
 
   it("plays build-train-station when my structure gains a station", () => {

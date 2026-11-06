@@ -443,6 +443,8 @@
     "settings_fronts_desc": "أعداد قوات المهاجم والمدافع حيث يدور القتال.",
     "settings_emojis": "رموز الدول التعبيرية",
     "settings_emojis_desc": "عرض الرموز التعبيرية التي ترسلها الدول أثناء اللعبة.",
+    "settings_build_sounds": "أصوات البناء والسفن",
+    "settings_build_sounds_desc": "تُسمع عند بناء منشأة أو إرسال سفينة.",
     "settings_vibration": "الاهتزاز",
     "settings_vibration_desc": "تشعر به عند الهجمات والتحذيرات والقائمة الدائرية.",
     "settings_master": "الرئيسي",

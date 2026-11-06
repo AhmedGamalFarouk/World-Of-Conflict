@@ -8,6 +8,7 @@ import { EventBus } from "@openfront/shared/EventBus";
 import { Controller } from "../Controller";
 import { PlaySoundEffectEvent, SoundEffect } from "../sound/Sounds";
 import { SendSpawnIntentEvent } from "../Transport";
+import { UserSettings } from "../UserSettings";
 import { GameView, UnitView } from "../view";
 
 // A MIRV rains hundreds of warheads over a few seconds; playing a boom per
@@ -36,6 +37,19 @@ const STATION_CAPABLE_TYPES = new Set<UnitType>([
   UnitType.Port,
 ]);
 
+// Gated by UserSettings.buildSounds (off by default).
+const BUILD_SOUNDS = new Set<SoundEffect>([
+  "build-port",
+  "build-city",
+  "build-defense-post",
+  "build-warship",
+  "build-factory",
+  "build-train-station",
+  "sam-built",
+  "silo-built",
+  "transport-ship",
+]);
+
 const NUKE_INBOUND_MESSAGES = new Set<MessageType>([
   MessageType.NUKE_INBOUND,
   MessageType.HYDROGEN_BOMB_INBOUND,
@@ -55,6 +69,7 @@ export class SoundEffectController implements Controller {
   constructor(
     private readonly game: GameView,
     private readonly eventBus: EventBus,
+    private readonly userSettings: UserSettings = new UserSettings(),
   ) {}
 
   init(): void {
@@ -253,6 +268,7 @@ export class SoundEffectController implements Controller {
 
   private emit(sound: SoundEffect): void {
     if (this.game.isReplaying()) return;
+    if (BUILD_SOUNDS.has(sound) && !this.userSettings.buildSounds()) return;
     this.eventBus.emit(new PlaySoundEffectEvent(sound));
   }
 }

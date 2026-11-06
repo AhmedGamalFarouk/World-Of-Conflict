@@ -219,6 +219,12 @@ export class WcSettings extends LitElement {
         this.settings.vibration(),
         () => this.settings.toggleVibration(),
       )}
+      ${this.toggle(
+        "wc-set-build-sounds",
+        "build_sounds",
+        this.settings.buildSounds(),
+        () => this.settings.toggleBuildSounds(),
+      )}
       <div class="wc-plate wc-set-volumes">
         ${CHANNELS.map((category) => {
           const value = Math.round(this.settings.audioVolume(category) * 100);

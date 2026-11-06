@@ -1816,6 +1816,8 @@
     "settings_style_desc": "Colours and lighting of the battlefield.",
     "settings_style_night": "Night",
     "settings_style_standard": "Standard",
+    "settings_build_sounds": "Building and ship sounds",
+    "settings_build_sounds_desc": "Played when you build a structure or send a ship.",
     "settings_vibration": "Vibration",
     "settings_vibration_desc": "Felt on attacks, warnings and the radial menu.",
     "solo_difficulty": "Difficulty",

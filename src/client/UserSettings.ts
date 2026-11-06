@@ -146,6 +146,7 @@ const AUDIO_RESET_KEYS: readonly string[] = [
   ...AUDIO_CHANNELS.map((category) => `settings.audio.${category}`),
   "settings.audio.muteOnBlur",
   "settings.audio.alertsWhenUnfocused",
+  "settings.audio.buildSounds",
   // The legacy keys too: leaving them would have the read-through hand the
   // old two-slider values straight back, which is not "defaults".
   "settings.backgroundMusicVolume",
@@ -989,6 +990,15 @@ export class UserSettings {
 
   alertsWhenUnfocused(): boolean {
     return this.getBool("settings.audio.alertsWhenUnfocused", true);
+  }
+
+  /** Cues for my own structures, warships and transport ships. Off by default. */
+  buildSounds(): boolean {
+    return this.getBool("settings.audio.buildSounds", false);
+  }
+
+  toggleBuildSounds(): void {
+    this.setBool("settings.audio.buildSounds", !this.buildSounds());
   }
 
   /**
