@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GameMapType, GameType } from "@openfront/engine-api/game/GameTypes";
@@ -8,6 +10,7 @@ import "../../src/client/hud/layers/GameRightSidebar";
 import type { GameRightSidebar } from "../../src/client/hud/layers/GameRightSidebar";
 import { showInGameConfirm } from "../../src/client/InGameModal";
 import { aboutBack, openAbout } from "../../src/client/mobile/About";
+import { ANALYTICS_ORIGINS } from "../../src/client/mobile/Analytics";
 import { SOURCE_URL } from "../../src/client/mobile/AppInfo";
 import {
   fatalForHeading,
@@ -92,6 +95,29 @@ describe("MobileShell in the mobile build", () => {
     expect(inner).toHaveBeenCalledTimes(1);
 
     expect(navigator.sendBeacon("https://tracker.example/b", "x")).toBe(false);
+  });
+
+  // The fetch guard misses XHR, WebSocket and EventSource; the page's CSP
+  // stops those. It must allow no origin beyond the guard's own list.
+  it("the page's CSP connects only to itself and the usage-stats origins", () => {
+    const html = fs.readFileSync(
+      path.join(import.meta.dirname, "../../index.html"),
+      "utf-8",
+    );
+    const csp = html.match(/Content-Security-Policy"\s*content="([^"]*)"/)?.[1];
+    const directive = (name: string) =>
+      csp
+        ?.split(";")
+        .map((d) => d.trim().split(/\s+/))
+        .find(([n]) => n === name)
+        ?.slice(1);
+    expect(directive("default-src")).toEqual(["'self'", "blob:", "data:"]);
+    expect(directive("connect-src")).toEqual([
+      "'self'",
+      "blob:",
+      "data:",
+      ...ANALYTICS_ORIGINS,
+    ]);
   });
 });
 

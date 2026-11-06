@@ -144,8 +144,9 @@ log flush on `visibilitychange`/`pagehide` and in `showFatal`, the header label
 (`build`), boat-attack vibration, save cleared on `CRASHED`/`spawn_failed`,
 CONTINUE stays disabled after the join, new CSS scoped under `body.mobile-theme`,
 keystore backslash escaping, a resumed (paused) game skips frames and a redraw is
-forced on return from the background. Item 5's `gameStarted` resume guard has
-no direct test (it sits inside `createClientGame`).
+forced on return from the background. Item 5's `gameStarted` resume guard is
+pinned by a wiring test (`tests/client/mobile/ResumeCount.test.ts`; it sits
+inside `createClientGame`).
 
 Open:
 
@@ -156,8 +157,10 @@ Open:
   workflows on every push, so this is dropped.
 - Tests added in the third pass: every start entry goes through `allowNewGame`
   (source wiring test), saved speed restored by `LocalServer`, `save.restore_failed`
-  is now logged and tested. Still missing: an offline runtime test asserting no
-  non-local request after a finished game.
+  is now logged and tested. Offline egress: the fetch guard is unit-tested and
+  the page CSP (`default-src`, `connect-src`) is pinned to self plus the
+  Aptabase origins (`tests/client/MobileShell.test.ts`), which covers XHR and
+  WebSocket too. No full-game runtime test; not worth a worker in jsdom.
 - `dist-mobile/` is 86 MB uncompressed (maps 39, flags 26, images 11), well under
   the 150 MB AAB gate; `resources/flags/` stays. The gate itself still needs a
   real release build to prove.
@@ -214,11 +217,15 @@ Open:
 
 ## 6. Release order
 
-1. Commit the first-pass work (it is all uncommitted) in reviewable pieces.
-2. Fix section 1, then section 2.
-3. Dry-run the release workflow (needs item 9), then `npm run version:set -- 0.2.0`,
-   commit, tag `v0.2.0`, push the tag.
-4. Closed test (14 days, 12+ testers).
+Steps 1 to 3 (commit, sections 1 and 2, tag `v0.2.0`) are done. Next:
+
+1. A2 on a 4 GB phone (section 3): resume catch-up time decides whether long
+   games get a cap before testers see them.
+2. Retake the stale store screenshots (`GAMIFICATION-TASKS.md`), finish the
+   Play Console listing and content rating, D1 keystore and CI secrets.
+3. Bump the version (`npm run version:set -- <next>`), dry-run the release
+   workflow, tag, push the tag.
+4. Closed test (14 days, 12+ testers). Recruit while 1 to 3 run.
 
 Done when: the closed test ran 14 days with 12+ testers, no unresolved crash
 reports in tester error logs, at least 5 testers finished 3+ games (from their
