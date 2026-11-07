@@ -114,8 +114,9 @@ Europe that could take minutes, and nothing caps or tests it.
   long runs were extrapolated). No `resume-desync`; the pause card shows
   "Catching up…" and the win modal can appear during catch-up. Still to do on
   the 4 GB phone and with a surviving, active player: the camera centring and a
-  real 25-minute game. Decision pending: 80 s to 3 minutes is long enough to
-  want a cap or a "Catching up" progress line on the pause card.
+  real 25-minute game. **Decided (2026-11-07):** the owner measured resume and
+  it is acceptable; no cap. The progress line and the long-game warning stay.
+  The 4 GB row in `ANDROID.md` still needs the owner's numbers.
 - If catch-up is minutes, either cap it (save the turn list but resume only
   from a game under N minutes, otherwise offer to discard), or drop save and
   resume, Quick game and the event plate to v0.2.1 as the old plan's C5 rule
@@ -219,8 +220,8 @@ Open:
 
 Steps 1 to 3 (commit, sections 1 and 2, tag `v0.2.0`) are done. Next:
 
-1. A2 on a 4 GB phone (section 3): resume catch-up time decides whether long
-   games get a cap before testers see them.
+1. Resume catch-up: measured and acceptable, no cap (section 3). Fill in the
+   4 GB row in `ANDROID.md`.
 2. Retake the stale store screenshots (`GAMIFICATION-TASKS.md`), finish the
    Play Console listing and content rating, D1 keystore and CI secrets.
 3. Bump the version (`npm run version:set -- <next>`), dry-run the release
