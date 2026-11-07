@@ -3,6 +3,7 @@ import {
   AUTOSAVE_SECONDS,
   AutoSaver,
   autosaveTurns,
+  setGameSnapshotter,
 } from "../../../src/client/mobile/AutoSave";
 import {
   readErrorLog,
@@ -47,6 +48,88 @@ function setup(everyTurns = 600) {
 beforeEach(() => {
   localStorage.clear();
   resetErrorLogForTests();
+  setGameSnapshotter(null);
+});
+
+describe("AutoSaver snapshots", () => {
+  const bytes = new Uint8Array([1, 2, 3]);
+
+  it("the autosave stores the worker's snapshot, taken before the turns", async () => {
+    const { saver, store, setTurns } = setup(600);
+    setTurns(600);
+    // The worker answers at tick 600; turns listed meanwhile are saved too.
+    setGameSnapshotter(async () => {
+      setTurns(603);
+      return { tick: 600, bytes };
+    });
+    saver.onTurn(600);
+    await vi.waitFor(async () => expect(await store.read()).not.toBeNull());
+    expect(await store.read()).toMatchObject({
+      turnCount: 603,
+      snapshot: { tick: 600, bytes },
+    });
+  });
+
+  it("a background or exit save keeps the last snapshot and asks for none", async () => {
+    const { saver, store, setTurns } = setup(600);
+    const ask = vi.fn(async () => ({ tick: 600, bytes }));
+    setGameSnapshotter(ask);
+    setTurns(600);
+    saver.onTurn(600);
+    await vi.waitFor(async () => expect(await store.read()).not.toBeNull());
+    setTurns(700);
+    expect(await saver.saveNow()).toBe(true);
+    expect(ask).toHaveBeenCalledTimes(1);
+    expect(await store.read()).toMatchObject({
+      turnCount: 700,
+      snapshot: { tick: 600 },
+    });
+  });
+
+  it("a resumed game starts from the snapshot it was restored from", async () => {
+    const mem = memoryBackend();
+    const store = new SaveStore(async () => mem.backend);
+    const saver = new AutoSaver(
+      {
+        turns: () => turns(50),
+        gameStartInfo: makeSave().gameStartInfo,
+        clientID: "c1",
+        speed: () => 1,
+        hashes: () => [],
+        resumedFrom: { tick: 40, bytes },
+      },
+      store,
+    );
+    expect(await saver.saveNow()).toBe(true);
+    expect(await store.read()).toMatchObject({ snapshot: { tick: 40 } });
+  });
+
+  it("a failed snapshot is logged and the save goes out without it", async () => {
+    const { saver, store, setTurns } = setup(600);
+    setGameSnapshotter(async () => {
+      throw new Error("Snapshot failed");
+    });
+    setTurns(600);
+    saver.onTurn(600);
+    await vi.waitFor(async () => expect(await store.read()).not.toBeNull());
+    expect((await store.read())?.snapshot).toBeUndefined();
+    expect(readErrorLog().map((e) => e.code)).toContain("save.snapshot_failed");
+  });
+
+  it("a snapshot slower than 2 s is skipped", async () => {
+    vi.useFakeTimers();
+    try {
+      const { saver, store, setTurns } = setup(600);
+      setGameSnapshotter(() => new Promise(() => {}));
+      setTurns(600);
+      const saved = saver.saveNow(true);
+      await vi.advanceTimersByTimeAsync(2000);
+      expect(await saved).toBe(true);
+      expect((await store.read())?.snapshot).toBeUndefined();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
 
 describe("AutoSaver", () => {

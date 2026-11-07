@@ -201,6 +201,8 @@ export interface SnapshotResultMessage extends BaseWorkerMessage {
   type: "snapshot_result";
   /** Uncompressed; null if the snapshot failed (see the worker log). */
   snapshot: Uint8Array | null;
+  /** The game tick it was taken at: turns from this one on are not in it. */
+  tick: number;
 }
 
 export interface HumanStatsMessage extends BaseWorkerMessage {

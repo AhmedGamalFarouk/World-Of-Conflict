@@ -165,7 +165,7 @@ export class WorkerClient {
   }
 
   /** Serializes the worker's game at its current tick (uncompressed). */
-  snapshot(gitCommit?: string): Promise<Uint8Array> {
+  snapshot(gitCommit?: string): Promise<{ bytes: Uint8Array; tick: number }> {
     return new Promise((resolve, reject) => {
       if (!this.isInitialized) {
         reject(new Error("Worker not initialized"));
@@ -179,7 +179,7 @@ export class WorkerClient {
           if (message.snapshot === null) {
             reject(new Error("Snapshot failed"));
           } else {
-            resolve(message.snapshot);
+            resolve({ bytes: message.snapshot, tick: message.tick });
           }
         }
       });

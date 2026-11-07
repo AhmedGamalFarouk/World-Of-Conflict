@@ -108,7 +108,11 @@ export class LocalServer {
     const resume = lobbyConfig.resume;
     this.announceResume = resume !== undefined;
     if (resume) {
-      this.turns = expandTurns(resume.turnCount, resume.turns);
+      // A restored snapshot draws on its first tick, so one turn must follow
+      // it even when it was taken at the last turn: an empty one, as if the
+      // game had run 0.1 s longer.
+      const after = resume.snapshot ? resume.snapshot.tick + 1 : 0;
+      this.turns = expandTurns(Math.max(resume.turnCount, after), resume.turns);
       this.paused = true;
       for (const [tick, hash] of resume.hashes) {
         this.stateHashes.set(tick, hash);
@@ -217,6 +221,7 @@ export class LocalServer {
       clientID,
       speed: () => this.replaySpeedMultiplier,
       hashes: () => [...this.stateHashes],
+      resumedFrom: this.lobbyConfig.resume?.snapshot,
     });
     this.saver.listenForBackground();
     setActiveAutoSaver(this.saver);
@@ -336,8 +341,8 @@ export class LocalServer {
   }
 
   // This is so the client can tell us when it finished processing the turn.
-  public turnComplete() {
-    this.turnsExecuted++;
+  public turnComplete(count = 1) {
+    this.turnsExecuted += count;
   }
 
   // endTurn in this context means the server has collected all the intents

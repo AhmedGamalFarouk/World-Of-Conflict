@@ -18,9 +18,12 @@ import {
   saveStore,
   sparseTurns,
   type SavedGame,
+  type SavedSnapshot,
 } from "./SaveStore";
 
 export const AUTOSAVE_SECONDS = 60;
+/** A snapshot slower than this is skipped: the save goes out without it. */
+const SNAPSHOT_TIMEOUT_MS = 2000;
 const FAILURES_BEFORE_PAUSED = 3;
 const DEV_OVERRIDE_KEY = "wc.dev.autosaveSeconds";
 
@@ -48,6 +51,37 @@ export interface AutoSaveSource {
   clientID: ClientID;
   speed(): number;
   hashes(): readonly [number, number][];
+  /** The snapshot this game was resumed from, still valid for its turns. */
+  resumedFrom?: SavedSnapshot;
+}
+
+/** Asks the worker for its state; set by the running game (ClientGameRunner). */
+type Snapshotter = () => Promise<SavedSnapshot>;
+let snapshotter: Snapshotter | null = null;
+export function setGameSnapshotter(fn: Snapshotter | null): void {
+  snapshotter = fn;
+}
+
+async function takeSnapshot(): Promise<SavedSnapshot | undefined> {
+  if (!snapshotter) return undefined;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const timeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(
+        () => reject(new Error("timeout")),
+        SNAPSHOT_TIMEOUT_MS,
+      );
+    });
+    return await Promise.race([snapshotter(), timeout]);
+  } catch (e) {
+    appendError({
+      code: "save.snapshot_failed",
+      message: e instanceof Error ? e.message : String(e),
+    });
+    return undefined;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export class AutoSaver {
@@ -60,6 +94,8 @@ export class AutoSaver {
   // The epoch this game was created under: a clear() since then (game end,
   // abandon, discard) ends its right to write.
   private epochAtStart: number;
+  // Reused by the saves between autosaves: the turns after it are saved too.
+  private snapshot: SavedSnapshot | undefined;
 
   constructor(
     private source: AutoSaveSource,
@@ -68,6 +104,7 @@ export class AutoSaver {
     private now: () => number = Date.now,
   ) {
     this.epochAtStart = store.currentEpoch;
+    this.snapshot = source.resumedFrom;
   }
 
   /** False once the game is over or abandoned: nothing more will be saved. */
@@ -101,20 +138,29 @@ export class AutoSaver {
     }
     // One write in flight; a tick that lands while one is pending is skipped.
     if (this.inFlight) return;
-    void this.saveNow();
+    void this.saveNow(true);
   }
 
-  /** Saves the game as it is now. Resolves false when nothing was written. */
-  async saveNow(): Promise<boolean> {
+  /**
+   * Saves the game as it is now. Resolves false when nothing was written.
+   * Only the periodic autosave waits for a new snapshot; a background or
+   * exit save must land at once, so it keeps the last one.
+   */
+  async saveNow(freshSnapshot = false): Promise<boolean> {
     if (this.stopped) return false;
     // Wait for a write in flight so the newest turns land after it.
     if (this.inFlight) await this.inFlight.catch(() => {});
     if (this.stopped) return false;
-    this.inFlight = this.write().finally(() => (this.inFlight = null));
+    this.inFlight = this.write(freshSnapshot).finally(
+      () => (this.inFlight = null),
+    );
     return this.inFlight;
   }
 
-  private async write(): Promise<boolean> {
+  private async write(freshSnapshot: boolean): Promise<boolean> {
+    // Before the turns: the worker can't be past a turn not yet listed.
+    if (freshSnapshot) this.snapshot = (await takeSnapshot()) ?? this.snapshot;
+    if (this.stopped) return false;
     const turns = this.source.turns();
     const save: SavedGame = {
       version: SAVE_VERSION,
@@ -126,6 +172,7 @@ export class AutoSaver {
       turnCount: turns.length,
       turns: sparseTurns(turns),
       hashes: [...this.source.hashes()],
+      ...(this.snapshot ? { snapshot: this.snapshot } : {}),
     };
     try {
       const written = await this.store.write(save, this.epochAtStart);

@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   isStale,
   openIdbBackend,
+  parseSave,
+  replayTurns,
   SaveError,
   SaveStore,
 } from "../../../src/client/mobile/SaveStore";
@@ -74,5 +76,32 @@ describe("isStale", () => {
     expect(isStale({ commit: "v0.2.0" }, "v0.2.0")).toBe(false);
     expect(isStale({ commit: "v0.2.0" }, "DEV")).toBe(false);
     expect(isStale({ commit: "DEV" }, "v0.2.0")).toBe(false);
+  });
+});
+
+describe("saved snapshot", () => {
+  const bytes = new Uint8Array([9]);
+
+  it("a save with a snapshot reads back; a bad one is damaged", () => {
+    const ok = makeSave({ turnCount: 50, snapshot: { tick: 50, bytes } });
+    expect(parseSave(ok).snapshot).toEqual({ tick: 50, bytes });
+    expect(parseSave(makeSave()).snapshot).toBeUndefined();
+    for (const snapshot of [
+      { tick: 51, bytes }, // past the last saved turn
+      { tick: -1, bytes },
+      { tick: 1.5, bytes },
+      { tick: 10, bytes: [9] },
+    ]) {
+      expect(() =>
+        parseSave(makeSave({ turnCount: 50, snapshot } as never)),
+      ).toThrow(SaveError);
+    }
+  });
+
+  it("a resume replays only the turns after the snapshot", () => {
+    expect(replayTurns({ turnCount: 30_000 })).toBe(30_000);
+    expect(
+      replayTurns({ turnCount: 30_000, snapshot: { tick: 29_400, bytes } }),
+    ).toBe(600);
   });
 });

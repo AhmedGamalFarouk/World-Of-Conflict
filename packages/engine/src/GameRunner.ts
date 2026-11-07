@@ -131,7 +131,7 @@ export async function createGameRunnerFromSnapshot(
     teamGameSpawnAreas: gameMap.teamGameSpawnAreas,
   });
   // No init(): the snapshot already holds every execution init() adds.
-  return new GameRunner(
+  const runner = new GameRunner(
     game,
     new Executor(
       game,
@@ -141,6 +141,9 @@ export async function createGameRunnerFromSnapshot(
     ),
     callBack,
   );
+  // The client view starts empty; the first tick carries the whole state.
+  runner.fullStatePending = true;
+  return runner;
 }
 
 export class GameRunner {
@@ -152,6 +155,8 @@ export class GameRunner {
   // Name placements are recomputed periodically; a runner that starts
   // mid-game (restored from a snapshot) computes them on its first tick.
   private viewDataStale = true;
+  /** Set on a restored runner: the next tick queues the full state. */
+  fullStatePending = false;
 
   constructor(
     public game: Game,
@@ -224,6 +229,10 @@ export class GameRunner {
     try {
       const startTime = performance.now();
       updates = this.game.executeNextTick();
+      if (this.fullStatePending) {
+        this.fullStatePending = false;
+        this.game.queueFullState();
+      }
       const endTime = performance.now();
       tickExecutionDuration = endTime - startTime;
     } catch (error: unknown) {

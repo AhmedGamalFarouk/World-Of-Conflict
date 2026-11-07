@@ -9,6 +9,7 @@ import {
   elapsedSeconds,
   isStale,
   MAX_RESUME_TURNS,
+  replayTurns,
   type SavedGame,
   SaveError,
   saveStore,
@@ -156,7 +157,7 @@ function confirmLongResume(save: SavedGame): Promise<boolean> {
     title: translateText("save.long_title"),
     body: translateText("save.long_body", {
       minutes: Math.round(elapsedSeconds(save) / 60),
-      wait: catchUpMinutes(save.turnCount),
+      wait: catchUpMinutes(replayTurns(save)),
     }),
     keep: translateText("save.not_now"),
     destroy: translateText("save.resume_anyway"),
@@ -206,7 +207,10 @@ export async function continueSavedGame(): Promise<void> {
   try {
     const save = await saveStore.read();
     if (save === null || isStale(save)) return await giveUp();
-    if (save.turnCount > MAX_RESUME_TURNS && !(await confirmLongResume(save))) {
+    if (
+      replayTurns(save) > MAX_RESUME_TURNS &&
+      !(await confirmLongResume(save))
+    ) {
       // Not now: the save stays, the title screen comes back.
       overlay?.hide?.();
       continuing = false;

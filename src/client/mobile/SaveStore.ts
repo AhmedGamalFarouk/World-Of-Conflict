@@ -1,10 +1,11 @@
 // Save and resume, storage side (homepage chunk: the title screen reads it).
 //
-// A save is the game's turn list. The simulation is deterministic, so a
-// resumed game starts fresh and the existing rejoin path feeds it every saved
-// turn; the worker catches up to where the player left. That needs no
-// snapshot (a restored game would reach the client view with no tiles, units
-// or motion plans: the engine only emits what changed) and no engine change.
+// A save is the game's turn list plus, when the worker gave one, an engine
+// snapshot from the last autosave. A resume restores the snapshot (the
+// restored game's first tick sends the client the whole state) and the
+// rejoin path feeds only the turns after it, so CONTINUE is quick however
+// long the game ran. Without a snapshot, or if it won't restore, the worker
+// starts fresh and replays every turn: the simulation is deterministic.
 // Turns without intents are stored as a count, so a 30 minute game is a few
 // KB. The state hash the original run reported every 100 ticks is kept too
 // and compared during the catch-up (LocalServer, `resume-desync`).
@@ -43,6 +44,16 @@ export interface SavedGame {
   turns: SavedTurn[];
   /** [tick, state hash] the game reported every 100 ticks. */
   hashes: [number, number][];
+  /**
+   * The engine's state at `tick` (<= turnCount). A resume restores it and
+   * replays only the turns from `tick` on; without one it replays them all.
+   */
+  snapshot?: SavedSnapshot;
+}
+
+export interface SavedSnapshot {
+  tick: number;
+  bytes: Uint8Array;
 }
 
 export type SaveErrorKind = "unavailable" | "damaged";
@@ -67,6 +78,10 @@ export const elapsedSeconds = (s: Pick<SavedGame, "turnCount">) =>
 const CATCH_UP_TICKS_PER_SECOND = 150;
 /** 40 game minutes: past this CONTINUE asks first, the wait is minutes. */
 export const MAX_RESUME_TURNS = 24000;
+
+/** Turns a resume must replay: those after the snapshot, or all of them. */
+export const replayTurns = (s: Pick<SavedGame, "turnCount" | "snapshot">) =>
+  s.turnCount - (s.snapshot?.tick ?? 0);
 
 /** Minutes the catch-up is expected to take, at least 1. */
 export const catchUpMinutes = (turnCount: number) =>
@@ -148,6 +163,16 @@ export function parseSave(raw: unknown): SavedGame {
     )
   ) {
     return bad("hashes");
+  }
+  const snap = s.snapshot;
+  if (
+    snap !== undefined &&
+    (!(snap?.bytes instanceof Uint8Array) ||
+      !Number.isInteger(snap.tick) ||
+      snap.tick < 0 ||
+      snap.tick > (s.turnCount as number))
+  ) {
+    return bad("snapshot");
   }
   return s as SavedGame;
 }

@@ -34,9 +34,11 @@ import {
 } from "@openfront/engine-api/Schemas";
 import { ATTACK_INDEX_SENT } from "@openfront/engine-api/StatsSchemas";
 import { renderNumber } from "@openfront/engine-lib/Format";
+import { GameMapImpl } from "@openfront/engine-lib/game/GameMapImpl";
 import {
   MotionPlanRecord,
   packMotionPlans,
+  unpackMotionPlans,
 } from "@openfront/engine-lib/game/MotionPlans";
 import {
   assignTeams,
@@ -51,6 +53,7 @@ import {
   zInt,
   zPlayerRef,
   zRef,
+  zTiles,
 } from "@openfront/engine-lib/snapshot/SnapshotType";
 import { simpleHash } from "@openfront/engine-lib/Util";
 import { z } from "zod";
@@ -145,6 +148,8 @@ export class GameImpl implements Game {
   private attackTroopsQuads: number[] = [];
   private motionPlanRecords: MotionPlanRecord[] = [];
   private planDrivenUnitIds = new Set<number>();
+  // The latest plan per unit (train: per engine), for queueFullState.
+  private livePlans = new Map<number, MotionPlanRecord>();
   private unitGrid: UnitGrid<Unit>;
   private _unitMap = new Map<number, Unit>();
 
@@ -646,6 +651,47 @@ export class GameImpl implements Game {
         break;
     }
     this.motionPlanRecords.push(record);
+    // A copy in the restored form: typed arrays, not the execution's own path.
+    const [copy] = unpackMotionPlans(packMotionPlans([record]));
+    this.livePlans.set(planUnitId(copy), copy);
+  }
+
+  /**
+   * Queues this tick's update with the whole state a client view builds up
+   * over a game: every set tile, unit, motion plan and railroad, and the end
+   * of the spawn phase. Players send their full state on their first update
+   * anyway. For a game restored from a snapshot, whose client starts empty.
+   */
+  queueFullState(): void {
+    const state = this._map.tileStateBuffer();
+    for (let tile = 0; tile < state.length; tile++) {
+      if (state[tile] !== 0) this.recordTileUpdate(tile);
+    }
+    // Land a water nuke turned to water, even where nobody owns it.
+    for (const tile of (this._map as GameMapImpl).snapshot().editTiles) {
+      if (state[tile] === 0) this.recordTileUpdate(tile);
+    }
+    for (const unit of this._unitMap.values()) this.addUpdate(unit.toUpdate());
+    this.motionPlanRecords.push(...this.livePlans.values());
+    const railroads = new Map<number, TileRef[]>();
+    for (const station of this._railNetwork.stationManager().getAll()) {
+      for (const rail of station.getRailroads()) {
+        railroads.set(rail.id, rail.tiles);
+      }
+    }
+    for (const [id, tiles] of railroads) {
+      this.addUpdate({
+        type: GameUpdateType.RailroadConstructionEvent,
+        id,
+        tiles,
+      });
+    }
+    if (this.startTick !== null) {
+      this.addUpdate({
+        type: GameUpdateType.SpawnPhaseEnd,
+        startTick: this.startTick,
+      });
+    }
   }
 
   private isUnitPlanDriven(unitId: number): boolean {
@@ -1195,6 +1241,7 @@ export class GameImpl implements Game {
     this.unitGrid.removeUnit(u);
     this._unitMap.delete(u.id());
     this.planDrivenUnitIds.delete(u.id());
+    this.livePlans.delete(u.id());
     if (u.hasTrainStation()) {
       this._railNetwork.removeStation(u);
     }
@@ -1465,6 +1512,7 @@ export class GameImpl implements Game {
       nextAllianceID: this.nextAllianceID,
       units: [...this._unitMap.values()].map((u) => w.unit(u)),
       planDrivenUnitIds: [...this.planDrivenUnitIds],
+      motionPlans: packMotionPlans([...this.livePlans.values()]),
       unitGrid: this.unitGrid.snapshot((u) => w.unit(u)),
       playerTeams: [...this.playerTeams],
       botTeam: this.botTeam,
@@ -1521,6 +1569,9 @@ export class GameImpl implements Game {
       }),
     );
     this.planDrivenUnitIds = new Set(s.planDrivenUnitIds);
+    this.livePlans = new Map(
+      unpackMotionPlans(s.motionPlans).map((p) => [planUnitId(p), p]),
+    );
     this.unitGrid.restoreSnapshot(s.unitGrid, (i) => r.unit(i));
     this.playerTeams = [...s.playerTeams];
     this.botTeam = s.botTeam;
@@ -1636,9 +1687,12 @@ export class GameImpl implements Game {
   }
 }
 
+const planUnitId = (p: MotionPlanRecord) =>
+  p.kind === "grid" ? p.unitId : p.engineUnitId;
+
 export const GameSnapshot = snapshotType({
   name: "Game",
-  version: 1,
+  version: 2,
   schema: z.object({
     ticks: zInt(),
     startTick: zInt().nullable(),
@@ -1653,6 +1707,8 @@ export const GameSnapshot = snapshotType({
     nextAllianceID: zInt(),
     units: z.array(zRef()),
     planDrivenUnitIds: z.array(zInt()),
+    /** packMotionPlans of each unit's latest plan. */
+    motionPlans: zTiles(),
     unitGrid: z.array(z.array(z.tuple([UnitTypeSchema, z.array(zRef())]))),
     playerTeams: z.array(z.string()),
     botTeam: z.string(),
@@ -1673,6 +1729,11 @@ export const GameSnapshot = snapshotType({
     sharedWaterCache: VersionedSchema,
     stats: VersionedSchema,
   }),
+  migrations: {
+    // v1 kept no plans: a restored v1 game's ships and trains get theirs on
+    // their next route change.
+    1: (d) => ({ ...d, motionPlans: packMotionPlans([]) }),
+  },
 });
 export type GameState = z.infer<typeof GameSnapshot.schema>;
 

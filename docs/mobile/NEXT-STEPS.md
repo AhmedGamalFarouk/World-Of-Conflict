@@ -25,6 +25,8 @@ record), `docs/mobile/STORE-LISTING.md` (Play copy and declarations),
 - Engine untouched (`packages/engine*`). Mobile code lives in
   `src/client/mobile/`, `mobile-theme.css` (scoped to `body.mobile-theme`) and
   small `isMobileShell()` / `isOffline()` branches. No new dependencies.
+  One owner-approved exception (2026-11-07): snapshot resume, a full-state
+  update after a restore (`GameImpl.queueFullState`), with its engine tests.
 - The homepage chunk never statically imports the game client.
 - UI text through `translateText()`, keys in `resources/lang/en.json` only.
 - Every new module gets a test; run targeted vitest files, `npm run typecheck`,
@@ -114,14 +116,14 @@ Europe that could take minutes, and nothing caps or tests it.
   long runs were extrapolated). No `resume-desync`; the pause card shows
   "Catching up…" and the win modal can appear during catch-up. Still to do on
   the 4 GB phone and with a surviving, active player: the camera centring and a
-  real 25-minute game. **Decided (2026-11-07):** the owner measured resume and
-  it is acceptable; no cap. The progress line and the long-game warning stay.
-  The 4 GB row in `ANDROID.md` still needs the owner's numbers.
-- If catch-up is minutes, either cap it (save the turn list but resume only
-  from a game under N minutes, otherwise offer to discard), or drop save and
-  resume, Quick game and the event plate to v0.2.1 as the old plan's C5 rule
-  allowed. An engine snapshot is the proper fix but needs an engine change
-  (a full baseline update after restore), which the rules forbid today.
+  real 25-minute game. **Fixed (2026-11-07): snapshot resume.** Each 60 s
+  autosave stores an engine snapshot (`AutoSave.ts`, under 2 s or skipped);
+  CONTINUE restores it and replays only the turns after it, whatever the
+  game's length. Checked in headless Chromium on the GPU: 0.8 MB at game
+  minute 1, caught up 1.2 s after the tap, every player identical. A snapshot
+  that won't restore falls back to the full replay (`save.snapshot_restore_failed`).
+  Still to see on the phone: snapshot time on a late World game (it pauses
+  the worker that long once a minute) and a resume with ships and trains moving.
 - Get eliminated, then exit from the win modal and from the pause card: home
   must show no CONTINUE and PlayStats must count one loss. **Done for the win
   modal on the phone (2026-10-21):** no CONTINUE, one loss counted (also when a
@@ -220,8 +222,8 @@ Open:
 
 Steps 1 to 3 (commit, sections 1 and 2, tag `v0.2.0`) are done. Next:
 
-1. Resume catch-up: measured and acceptable, no cap (section 3). Fill in the
-   4 GB row in `ANDROID.md`.
+1. Snapshot resume on the phone (section 3): a late World game's resume and
+   the once-a-minute snapshot pause. Fill in the 4 GB row in `ANDROID.md`.
 2. Retake the stale store screenshots (`GAMIFICATION-TASKS.md`), finish the
    Play Console listing and content rating, D1 keystore and CI secrets.
 3. Bump the version (`npm run version:set -- <next>`), dry-run the release
@@ -246,7 +248,6 @@ signed release APK passed a full offline game plus resume after force-stop.
   (2026-10-27): the title screen fits with the short layout (up to 430px tall).
   A daily game has not been played through on a device.
 - Monthly upstream merge from OpenFrontIO with the gate rerun.
-- Engine snapshot resume (needs a baseline-update engine change; see section 3).
 
 ## How to run
 

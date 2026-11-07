@@ -137,6 +137,25 @@ describe("a resumed LocalServer", () => {
     );
   });
 
+  it("from a snapshot at the last turn: one turn follows it, and live turns flow once the client counts the restored ones", () => {
+    open({ ...resume, snapshot: { tick: 50, bytes: new Uint8Array([1]) } });
+    server.onMessage({ type: "rejoin", lastTurn: 0 } as never);
+    const starts = sent.filter((m) => m.type === "start");
+    const start = starts[starts.length - 1] as { turns: unknown[] };
+    // Turn 50 is empty: the restored game must tick once to draw.
+    expect(start.turns).toHaveLength(51);
+
+    // ClientGameRunner.skipRestoredTurns, then the one replayed turn.
+    server.turnComplete(50);
+    server.turnComplete();
+    server.onMessage({
+      type: "intent",
+      intent: { type: "toggle_pause", paused: false },
+    } as never);
+    vi.advanceTimersByTime(1000);
+    expect(turnsSent().length).toBeGreaterThan(3);
+  });
+
   it("restores the saved speed: announced on rejoin, and turns come at that pace", () => {
     open({ ...resume, speed: 0.5 });
     const speeds: number[] = [];

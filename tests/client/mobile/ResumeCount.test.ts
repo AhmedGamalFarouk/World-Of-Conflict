@@ -7,6 +7,31 @@ const runner = fs.readFileSync(
   "utf-8",
 );
 
+describe("resume from a snapshot (createClientGame)", () => {
+  const body = runner.slice(
+    runner.indexOf("const snapshot = lobbyConfig.resume?.snapshot;"),
+  );
+
+  it("a snapshot that won't restore falls back to replaying every turn", () => {
+    const fallback = body.slice(
+      body.indexOf("} catch (e) {"),
+      body.indexOf("await atlasDataLoad;"),
+    );
+    expect(fallback).toContain('code: "save.snapshot_restore_failed"');
+    expect(fallback).toContain(
+      "worker = new WorkerClient(lobbyConfig.gameStartInfo, clientID);",
+    );
+    // Only a restore that worked skips the turns it holds.
+    expect(fallback).not.toContain("restoredTick");
+    expect(body).toMatch(
+      /await worker\.initialize\(\);\s*restoredTick = snapshot\?\.tick \?\? 0;/,
+    );
+    expect(body).toContain(
+      "if (restoredTick > 0) runner.skipRestoredTurns(restoredTick);",
+    );
+  });
+});
+
 // The guard sits inside createClientGame, which needs a worker and a canvas;
 // this pins its wiring instead. A resume was counted when the game first began.
 describe("a resumed game is not counted as a new start", () => {

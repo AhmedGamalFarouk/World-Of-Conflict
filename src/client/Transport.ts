@@ -701,9 +701,10 @@ export class Transport {
     }
   }
 
-  public turnComplete() {
+  /** `count` > 1: turns a restored snapshot already holds. */
+  public turnComplete(count = 1) {
     if (this.isLocal) {
-      this.localServer.turnComplete();
+      this.localServer.turnComplete(count);
     }
   }
 

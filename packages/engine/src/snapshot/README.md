@@ -166,5 +166,9 @@ and that the original and restored games stay byte-identical tick by tick.
   rebuilds the graph from the current water, so a ship that asks for a new
   route inside that window can take a different one. The same applies to a
   ship still counting down its rebuild stagger (`WaterPathFinder.fromState`).
-- Client-side state (GameView, renderer) is not stored. The client rebuilds
-  from the restored game's first full update.
+- Client-side state (GameView, renderer) is not stored. A restored runner's
+  first tick also carries the whole state a client builds up over a game
+  (`GameImpl.queueFullState`: set tiles, units, each unit's latest motion
+  plan, railroads, spawn-phase end; players send their full update anyway).
+  A v1 game snapshot kept no motion plans, so its moving ships and trains get
+  theirs at their next route change.

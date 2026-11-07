@@ -83,7 +83,9 @@ import { MapLayerController } from "./controllers/MapLayerController";
 import { createRenderer, GameRenderer } from "./hud/GameRenderer";
 import { goldRateTracker } from "./hud/layers/lib/GoldRateTracker";
 import { track } from "./mobile/Analytics";
+import { setGameSnapshotter } from "./mobile/AutoSave";
 import { isDailyId } from "./mobile/DailyChallenge";
+import { appendError } from "./mobile/ErrorLog";
 import { fatalForHeading, GL_LOST, showFatal } from "./mobile/FatalScreen";
 import { vibrate } from "./mobile/Haptics";
 import { isMobileShell } from "./mobile/MobileShell";
@@ -757,8 +759,26 @@ async function createClientGame(
   // Kick off the font-atlas fetch so it overlaps with worker init; the
   // render passes need it parsed before createWebGLView runs.
   const atlasDataLoad = preloadAtlasData();
-  const worker = new WorkerClient(lobbyConfig.gameStartInfo, clientID);
-  await worker.initialize();
+  // A saved game restores its snapshot; one that won't restore replays all.
+  const snapshot = lobbyConfig.resume?.snapshot;
+  let restoredTick = 0;
+  let worker = new WorkerClient(
+    lobbyConfig.gameStartInfo,
+    clientID,
+    snapshot?.bytes,
+  );
+  try {
+    await worker.initialize();
+    restoredTick = snapshot?.tick ?? 0;
+  } catch (e) {
+    if (!snapshot) throw e;
+    appendError({
+      code: "save.snapshot_restore_failed",
+      message: e instanceof Error ? e.message : String(e),
+    });
+    worker = new WorkerClient(lobbyConfig.gameStartInfo, clientID);
+    await worker.initialize();
+  }
   await atlasDataLoad;
   const gameView = new GameView(
     worker,
@@ -962,6 +982,7 @@ async function createClientGame(
       disposeRenderer,
       metrics,
     );
+    if (restoredTick > 0) runner.skipRestoredTurns(restoredTick);
     // The phone gets a screen instead of a blank map under a live HUD.
     if (isMobileShell()) {
       view.onContextUnrecoverable = (detail) => {
@@ -1013,6 +1034,12 @@ export class ClientGameRunner {
     this.lastMessageTime = Date.now();
   }
 
+  /** The worker restored a snapshot at `tick`: turns before it are done. */
+  skipRestoredTurns(tick: number): void {
+    this.turnsSeen = tick;
+    this.transport.turnComplete(tick);
+  }
+
   /**
    * Determines whether window closing should be prevented.
    *
@@ -1033,6 +1060,10 @@ export class ClientGameRunner {
     console.log("starting client game");
 
     this.isActive = true;
+    // The phone's autosave keeps an engine snapshot (mobile/AutoSave.ts).
+    if (isMobileShell() && !this.lobby.gameRecord) {
+      setGameSnapshotter(() => this.worker.snapshot());
+    }
     this.lastMessageTime = Date.now();
     this.metrics?.start();
     setTimeout(() => {
@@ -1296,6 +1327,7 @@ export class ClientGameRunner {
     if (!this.isActive) return;
 
     this.isActive = false;
+    setGameSnapshotter(null);
     this.metrics?.stop();
     this.worker.cleanup();
     this.transport.leaveGame();
