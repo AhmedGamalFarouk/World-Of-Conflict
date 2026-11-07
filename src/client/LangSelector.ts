@@ -297,6 +297,8 @@ export class LangSelector extends LitElement {
       "steam-wishlist-button",
       "streaming-now",
       "tutorial-panel",
+      // Its COMMANDER label is a translated attribute (mobile-theme.css).
+      "play-page",
     ];
 
     // The mobile app's name is its brand, not OpenFront's translated title.

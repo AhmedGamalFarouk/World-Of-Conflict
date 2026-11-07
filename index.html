@@ -387,10 +387,14 @@
       .wc-boot-lockup {
         position: relative;
         font-size: clamp(48px, 15vh, 104px);
+        will-change: transform;
+      }
+      /* Only with the face loaded: without the word the globe stays centred.
+         Both delays count from the font, so the slide and the word keep step. */
+      .wc-boot-font .wc-boot-lockup {
         /* shortcut: half of (gap + "CONFLICT" width) in Barlow Condensed 800,
            measured; re-measure if the wordmark's text or type changes. */
         transform: translateX(-1.93em);
-        will-change: transform;
         animation: wc-boot-slide 750ms cubic-bezier(0.65, 0, 0.35, 1) 1600ms
           both;
       }
@@ -447,10 +451,10 @@
         text-shadow: 0 3px 12px rgb(0 0 0 / 0.6);
         visibility: hidden;
         will-change: transform, opacity;
-        animation: wc-boot-word 700ms cubic-bezier(0.16, 1, 0.3, 1) 1800ms both;
       }
       .wc-boot-font .wc-boot-word {
         visibility: visible;
+        animation: wc-boot-word 700ms cubic-bezier(0.16, 1, 0.3, 1) 1800ms both;
       }
       .wc-boot-of {
         font-size: 0.34em;
